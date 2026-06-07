@@ -846,7 +846,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         <span class="sb-title">IT Infinity</span>
       </div>
       <div class="sb-sub">Migration Tool</div>
-      <div class="sb-version">v2.4.1</div>
+      <div class="sb-version">v1.0.0</div>
     </div>
 
     <nav class="sb-nav">
@@ -868,7 +868,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
       <div class="sb-section">Migration</div>
       <a onclick="nav('migrationfilters')"><i class="bi bi-funnel"></i> Filters</a>
       <a onclick="nav('coremigration')"><i class="bi bi-database-up"></i> Run Migration</a>
-      <a onclick="nav('dicomexport')"><i class="bi bi-box-arrow-right"></i> DICOM Export</a>
+      <a onclick="nav('dicomexport')"><i class="bi bi-box-arrow-right"></i> DICOM Export <span style="font-size:9px;color:var(--text-3);">(DTX Studio)</span></a>
       <div class="sb-sep"></div>
       <div class="sb-section">System</div>
       <a onclick="nav('mediasettings')"><i class="bi bi-hdd"></i> Media Settings</a>
@@ -1424,23 +1424,6 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
             </div>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-header"><i class="bi bi-shield-check"></i> Upload Permissions</div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Permission</th><th>Status</th></tr></thead>
-                <tbody>
-                  <tr><td>Create Patients</td><td><span class="badge badge-green"><i class="bi bi-check"></i> Allowed</span></td></tr>
-                  <tr><td>Upload Media</td><td><span class="badge badge-green"><i class="bi bi-check"></i> Allowed</span></td></tr>
-                  <tr><td>Write DICOM</td><td><span class="badge badge-yellow"><i class="bi bi-exclamation"></i> Not Checked</span></td></tr>
-                  <tr><td>Delete Patients</td><td><span class="badge badge-red"><i class="bi bi-x"></i> Denied</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- ─── CHECKLIST ─────────────────────────────────────── -->
@@ -1636,12 +1619,58 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
       <!-- ─── DICOM EXPORT ──────────────────────────────────── -->
       <div class="page" id="page-dicomexport">
         <div class="page-header">
-          <div class="page-title">DICOM Export</div>
-          <div class="page-sub">Export imaging data in DICOM format for external use</div>
+          <div class="page-title">DICOM Export <span style="font-size:13px;font-weight:400;color:var(--text-3);">(DTX Studio)</span></div>
+          <div class="page-sub">Export DICOM imaging files directly from DTX Studio Core</div>
         </div>
-
+ 
+        <!-- Step 1: Connection -->
         <div class="card mb-16">
-          <div class="card-header"><i class="bi bi-box-arrow-right"></i> Export Configuration</div>
+          <div class="card-header"><i class="bi bi-diagram-3"></i> DTX Studio Connection</div>
+          <div class="card-body">
+            <div class="alert-box alert-info mb-16" style="margin-bottom:12px;">
+              <i class="bi bi-info-circle-fill"></i>
+              <span>Uses the DTX Studio credentials from your current target configuration. Configure them on the <a onclick="nav('configuredatasource')" style="color:var(--accent);cursor:pointer;">Configure</a> page first.</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="status-dot" id="dicomDtxDot"></div>
+              <span id="dicomDtxStatus" style="font-size:13px;color:var(--text-2);">Not connected</span>
+              <button class="btn btn-ghost btn-sm ml-auto" onclick="dicomConnectDtx()">
+                <i class="bi bi-plug"></i> Connect &amp; Load Patients
+              </button>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- Step 2: Patient selection -->
+        <div class="card mb-16" id="dicomPatientCard" style="display:none;">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-people"></i> Select Patients to Export</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span id="dicomPatientCount" style="font-size:11px;color:var(--text-3);"></span>
+              <button class="btn btn-ghost btn-sm" onclick="dicomSelectAll(true)">Select All</button>
+              <button class="btn btn-ghost btn-sm" onclick="dicomSelectAll(false)">None</button>
+            </div>
+          </div>
+          <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:32px;"><input type="checkbox" id="dicomChkAll" onchange="dicomSelectAll(this.checked)"></th>
+                  <th>Patient Name</th>
+                  <th>ID</th>
+                  <th>DOB</th>
+                  <th>Images</th>
+                </tr>
+              </thead>
+              <tbody id="dicomPatientTbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+ 
+        <!-- Step 3: Export options -->
+        <div class="card mb-16" id="dicomOptionsCard" style="display:none;">
+          <div class="card-header"><i class="bi bi-gear"></i> Export Options</div>
           <div class="card-body">
             <div class="field">
               <label>Export Folder</label>
@@ -1649,42 +1678,45 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
                 <input type="text" id="dicom_out" placeholder="e.g. D:\DicomExport">
                 <button class="btn btn-ghost btn-sm" onclick="browsePath('dicom_out')"><i class="bi bi-folder"></i></button>
               </div>
+              <span class="field-hint">DICOM files will be saved here, one subfolder per patient</span>
             </div>
             <div class="form-row">
               <div class="field">
                 <label>Modality Filter</label>
                 <select id="dicom_modality">
                   <option value="">All modalities</option>
-                  <option>PANORAMIC</option>
-                  <option>CEPHALOGRAM</option>
-                  <option>INTRAORAL</option>
-                  <option>VOLUME</option>
+                  <option value="PANORAMIC">Panoramic</option>
+                  <option value="CEPHALOGRAM">Cephalogram</option>
+                  <option value="INTRAORAL">Intraoral</option>
+                  <option value="VOLUME">3D Volume</option>
+                  <option value="PICTURE">Photos</option>
                 </select>
               </div>
               <div class="field">
-                <label>DICOM Transfer Syntax</label>
-                <select id="dicom_syntax">
-                  <option>Implicit VR Little Endian (default)</option>
-                  <option>Explicit VR Little Endian</option>
-                  <option>JPEG Lossless</option>
+                <label>Patient Folder Naming</label>
+                <select id="dicom_naming">
+                  <option value="id">Patient ID</option>
+                  <option value="name">Patient Name</option>
+                  <option value="uid">Patient UID</option>
                 </select>
               </div>
             </div>
             <div class="toggle-wrap">
               <div class="toggle-info">
                 <div class="toggle-info-name">Anonymise Patient Data</div>
-                <div class="toggle-info-desc">Replace patient PII with anonymous IDs in exported DICOM files</div>
+                <div class="toggle-info-desc">Replace patient name, DOB and ID with anonymous identifiers in exported files</div>
               </div>
               <label class="toggle"><input type="checkbox" id="dicom_anon"><span class="toggle-track"></span></label>
             </div>
-            <div style="margin-top:12px;">
-              <button class="btn btn-primary" onclick="startDicomExport()">
+            <div style="margin-top:14px;">
+              <button class="btn btn-primary" onclick="startDicomExport()" id="dicomStartBtn">
                 <i class="bi bi-box-arrow-right"></i> Start Export
               </button>
             </div>
           </div>
         </div>
-
+ 
+        <!-- Progress -->
         <div class="card" id="dicomProgressCard" style="display:none;">
           <div class="card-header"><i class="bi bi-activity"></i> Export Progress</div>
           <div class="card-body">
@@ -2360,20 +2392,32 @@ async function testDbConnection() {
 
 async function testTargetConnection() {
   appLog('Testing target connection…', 'info');
+  const dot = document.getElementById('dtxDot');
+  const lbl = document.getElementById('dtxStatus');
+  if (dot) dot.className = 'status-dot yellow';
+  if (lbl) lbl.textContent = 'Testing…';
+  // Reset stat boxes
+  sv('dtxApiVer',       '…');
+  sv('dtxCoreVer',      '…');
+  sv('dtxPatientCount', '…');
   try {
     const d = await api('POST', '/test/target', { target: _selectedTarget, config: getTargetConfig() });
     appLog('Target connection OK: ' + (d.message || ''), 'success');
     setConnStatus(true, 'Target connected');
-    const dot = document.getElementById('dtxDot');
-    const lbl = document.getElementById('dtxStatus');
     if (dot) dot.className = 'status-dot green';
-    if (lbl) lbl.textContent = 'Connected';
+    if (lbl) lbl.textContent = d.message || 'Connected';
+    // Populate DTX stat boxes if data was returned
+    if (d.core_version !== undefined) sv('dtxCoreVer',      d.core_version || '—');
+    if (d.api_version  !== undefined) sv('dtxApiVer',       d.api_version  || '—');
+    if (d.patient_count !== undefined && d.patient_count !== null)
+      sv('dtxPatientCount', d.patient_count.toLocaleString());
+    else
+      sv('dtxPatientCount', '—');
   } catch(e) {
     appLog('Target connection failed: ' + e.message, 'error');
-    const dot = document.getElementById('dtxDot');
     if (dot) dot.className = 'status-dot red';
-    const lbl = document.getElementById('dtxStatus');
-    if (lbl) lbl.textContent = 'Connection failed';
+    if (lbl) lbl.textContent = 'Connection failed: ' + e.message.slice(0,60);
+    sv('dtxApiVer', '—'); sv('dtxCoreVer', '—'); sv('dtxPatientCount', '—');
   }
 }
 
@@ -3180,17 +3224,18 @@ function renderHistory(sessions) {
   };
   tbody.innerHTML = sessions.map(s => `
     <tr>
-      <td class="mono fs-11">${(s.id||'').slice(0,12)}…</td>
-      <td>${s.source||'—'} → ${s.target||'—'}</td>
-      <td class="mono fs-11">${s.started||'—'}</td>
+      <td class="mono fs-11">${(s.session_id||'').slice(0,12)}…</td>
+      <td>${s.source_key||'—'} → ${s.target_key||'—'}</td>
+      <td class="mono fs-11">${(s.created_at||'—').replace('T',' ').slice(0,16)}</td>
       <td>${statusBadge(s.status)}</td>
       <td class="mono">${s.done_patients||0} / ${s.total_patients||0}</td>
-      <td>
-        ${s.status==='paused' ? `<button class="btn btn-ghost btn-sm" onclick="resumeSession('${s.id}')"><i class="bi bi-play-fill"></i> Resume</button>` : ''}
+      <td style="display:flex;gap:4px;">
+        ${s.status==='paused' ? `<button class="btn btn-ghost btn-sm" onclick="resumeSession('${s.session_id}')"><i class="bi bi-play-fill"></i> Resume</button>` : ''}
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteSession('${s.session_id}')"><i class="bi bi-trash"></i></button>
       </td>
     </tr>`).join('');
 }
-
+ 
 async function resumeSession(id) {
   appLog(`Resuming session ${id}…`, 'info');
   _setMigState('running');
@@ -3198,16 +3243,120 @@ async function resumeSession(id) {
   await api('POST', '/migrate/resume', { session_id: id });
   _startMigPoll();
 }
+ 
+async function deleteSession(id) {
+  if (!confirm('Delete this session from history?')) return;
+  try {
+    await api('DELETE', `/history/${id}`);
+    appLog('Session deleted.', 'info');
+    loadHistory();
+  } catch(e) { appLog('Delete failed: ' + e.message, 'error'); }
+}
 
 /* ── DICOM EXPORT ───────────────────────────────────────────── */
+let _dicomPatients = [];  // patients loaded from DTX for export
+ 
+async function dicomConnectDtx() {
+  const dot = document.getElementById('dicomDtxDot');
+  const lbl = document.getElementById('dicomDtxStatus');
+  dot.className = 'status-dot yellow';
+  lbl.textContent = 'Connecting…';
+ 
+  try {
+    // Load patients from DTX using the current target config
+    const d = await api('POST', '/dicom/load_patients', {
+      config: getTargetConfig()
+    });
+    _dicomPatients = d.patients || [];
+ 
+    dot.className = 'status-dot green';
+    lbl.textContent = `Connected — ${_dicomPatients.length} patient(s) found`;
+ 
+    renderDicomPatients(_dicomPatients);
+    document.getElementById('dicomPatientCard').style.display = 'block';
+    document.getElementById('dicomOptionsCard').style.display = 'block';
+    appLog(`DTX Export: loaded ${_dicomPatients.length} patients`, 'success');
+  } catch(e) {
+    dot.className = 'status-dot red';
+    lbl.textContent = 'Connection failed: ' + e.message.slice(0, 80);
+    appLog('DTX Export connect failed: ' + e.message, 'error');
+  }
+}
+ 
+function renderDicomPatients(patients) {
+  const tbody = document.getElementById('dicomPatientTbody');
+  const count = document.getElementById('dicomPatientCount');
+  if (count) count.textContent = `${patients.length} patient(s)`;
+  if (!patients.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:16px;"><i class="bi bi-people"></i><p>No patients found</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = patients.map((p, i) => `
+    <tr>
+      <td><input type="checkbox" class="dicom-chk" data-idx="${i}" checked></td>
+      <td style="font-weight:600;">${escHtml([p.given_names, p.family_name].filter(Boolean).join(' ') || '—')}</td>
+      <td class="mono fs-11">${escHtml(p.id || p.uid?.slice(0,12) || '—')}</td>
+      <td class="mono fs-11">${escHtml(p.birth_date || p.dob || '—')}</td>
+      <td class="mono fs-11">${p.media_count ?? '—'}</td>
+    </tr>`).join('');
+}
+ 
+function dicomSelectAll(checked) {
+  document.querySelectorAll('.dicom-chk').forEach(c => c.checked = checked);
+  document.getElementById('dicomChkAll').checked = checked;
+}
+ 
 async function startDicomExport() {
   const out = v('dicom_out');
   if (!out) { appLog('Please set an export folder.', 'warning'); return; }
+ 
+  const selected = [];
+  document.querySelectorAll('.dicom-chk:checked').forEach(c => {
+    const idx = parseInt(c.dataset.idx);
+    if (_dicomPatients[idx]) selected.push(_dicomPatients[idx]);
+  });
+  if (!selected.length) { appLog('No patients selected for export.', 'warning'); return; }
+ 
+  const modality  = v('dicom_modality');
+  const naming    = v('dicom_naming');
+  const anonymise = document.getElementById('dicom_anon')?.checked || false;
+ 
   document.getElementById('dicomProgressCard').style.display = 'block';
-  animateProgress('dicomBar', 'dicomMsg', [
-    [20,'Creating output folder…'],[50,'Exporting files…'],[80,'Finalising DICOM metadata…'],[100,'Export complete']
-  ]);
-  appLog('DICOM export started.', 'info');
+  document.getElementById('dicomStartBtn').disabled = true;
+  document.getElementById('dicomBar').style.width = '0%';
+  document.getElementById('dicomMsg').textContent = `Starting export of ${selected.length} patient(s)…`;
+  appLog(`Starting DICOM export: ${selected.length} patient(s) → ${out}`, 'info');
+ 
+  try {
+    await api('POST', '/dicom/export', {
+      output_folder:   out,
+      modality_filter: modality,
+      anonymise:       anonymise,
+      folder_naming:   naming,
+      patient_uids:    selected.map(p => p.uid),
+    });
+    _pollDicomExport();
+  } catch(e) {
+    appLog('Export failed to start: ' + e.message, 'error');
+    document.getElementById('dicomStartBtn').disabled = false;
+  }
+}
+ 
+let _dicomPollTimer = null;
+function _pollDicomExport() {
+  clearInterval(_dicomPollTimer);
+  _dicomPollTimer = setInterval(async () => {
+    try {
+      const d = await api('GET', '/dicom/status');
+      document.getElementById('dicomBar').style.width = d.pct + '%';
+      document.getElementById('dicomMsg').textContent = d.message || '';
+      if (d.status === 'completed' || d.status === 'failed') {
+        clearInterval(_dicomPollTimer);
+        document.getElementById('dicomStartBtn').disabled = false;
+        appLog('DICOM export ' + d.status + ': ' + d.message, d.status === 'completed' ? 'success' : 'error');
+      }
+    } catch { clearInterval(_dicomPollTimer); }
+  }, 800);
 }
 
 /* ── SETTINGS ───────────────────────────────────────────────── */
@@ -3224,12 +3373,34 @@ async function loadOverview() {
     sv('statSize',     (d.size_gb        ?? '—') + (d.size_gb ? ' GB' : ''));
     sv('statMigrated', (d.migrated       ?? 0).toLocaleString());
   } catch {
-    // Fallback: count from cached patients if API not available
     if (!_loadedPatients.length) return;
     sv('statPatients', _loadedPatients.length.toLocaleString());
     const media = _loadedPatients.reduce((s,p) => s + (p.media_count || 0), 0);
     sv('statMedia', media.toLocaleString());
   }
+  // Populate recent sessions on overview page
+  try {
+    const h = await api('GET', '/history');
+    const sessions = (h.sessions || []).slice(0, 5);
+    const el = document.getElementById('recentSessions');
+    if (!el) return;
+    if (!sessions.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:16px;"><i class="bi bi-clock-history"></i><p>No migration history yet</p></div>';
+      return;
+    }
+    const statusColor = { completed:'var(--green)', failed:'var(--red)', paused:'var(--yellow)', running:'var(--accent)', cancelled:'var(--text-3)' };
+    el.innerHTML = sessions.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-dim);">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-1);">${escHtml(s.source_key||'?')} → ${escHtml(s.target_key||'?')}</div>
+          <div style="font-size:10px;color:var(--text-3);">${(s.created_at||'').replace('T',' ').slice(0,16)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:var(--text-2);">${s.done_patients||0}/${s.total_patients||0} pts</span>
+          <span style="font-size:11px;font-weight:600;color:${statusColor[s.status]||'var(--text-3)'};">${s.status}</span>
+        </div>
+      </div>`).join('');
+  } catch { /* history not available */ }
 }
 
 /* ── CONFIRM DIALOG ─────────────────────────────────────────── */

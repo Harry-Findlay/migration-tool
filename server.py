@@ -535,10 +535,36 @@ def api_test_target():
     except Exception as e:
         logger.exception("Target test failed")
         return _err(str(e))
-
-    if ok:
-        return _ok(message=msg)
-    return _err(msg)
+ 
+    if not ok:
+        return _err(msg)
+ 
+    # For DTX Studio targets, fetch extra info for the integration page
+    extra = {}
+    from datasources.dtxstudio_target import DTXStudioTarget
+    from datasources.dtxstudio_source import DTXStudioSource
+    if isinstance(target, (DTXStudioTarget, DTXStudioSource)):
+        try:
+            client = target._make_client()
+            info = client.get_core_info()
+            extra["core_version"] = (
+                info.get("version") or info.get("coreVersion") or
+                info.get("buildVersion") or info.get("Version") or "—"
+            )
+            extra["api_version"] = (
+                info.get("apiVersion") or info.get("api_version") or
+                str(info.get("apiResourceVersion", "")) or "—"
+            )
+            # Patient count — catch failure gracefully
+            try:
+                patients = client.get_patients()
+                extra["patient_count"] = len(patients)
+            except Exception:
+                extra["patient_count"] = None
+        except Exception:
+            pass
+ 
+    return _ok(message=msg, **extra)
 
 
 @app.route("/api/validate", methods=["POST"])
@@ -1156,86 +1182,246 @@ def api_pms_confirm():
 # ═══════════════════════════════════════════════════════════════════════════════
 # API — DICOM Export
 # ═══════════════════════════════════════════════════════════════════════════════
+@app.route("/api/dicom/load_patients", methods=["POST"])
+@require_auth
+def api_dicom_load_patients():
+    """
+    Load patient list from DTX Studio for the DICOM export page.
+    Uses the current target config if it's DTX Studio, otherwise
+    accepts config override in the request body.
+    """
+    body = request.get_json(force=True) or {}
+    cfg  = body.get("config", {})
+ 
+    with _state_lock:
+        target = _app.target
+ 
+    # Use DTX Studio target — either the current one or build a fresh one
+    from datasources.dtxstudio_target import DTXStudioTarget
+    if isinstance(target, DTXStudioTarget):
+        dtx = target
+    else:
+        # Try to find DTX Studio in registry
+        dtx_cls = TARGET_REGISTRY.get("DTX Studio")
+        if not dtx_cls:
+            return _err("DTX Studio target is not available.")
+        dtx = dtx_cls()
+ 
+    if cfg:
+        dtx.apply_config_dict(cfg)
+ 
+    ok, msg = dtx.test_connection()
+    if not ok:
+        return _err(f"Cannot connect to DTX Studio: {msg}")
+ 
+    try:
+        client = dtx._make_client()
+        raw_patients = client.get_patients()
+        patients = []
+        for rp in raw_patients:
+                uid  = rp.get("id", "")
+                name = rp.get("fullName") or rp.get("name") or ""
+                fn   = (rp.get("firstname") or rp.get("firstName") or
+                        rp.get("givenName") or "")
+                ln   = (rp.get("lastname") or rp.get("lastName") or
+                        rp.get("familyName") or "")
+                # DTX returns dateOfBirth in ISO format e.g. "1985-06-15T00:00:00"
+                dob_raw = (rp.get("dateOfBirth") or rp.get("birthDate") or
+                           rp.get("dob") or "")
+                dob = dob_raw[:10] if dob_raw else ""
+                # Fallback name parsing if firstname/lastname not present
+                if not fn and not ln and name:
+                    parts = name.strip().split()
+                    fn = parts[0] if parts else ""
+                    ln = parts[-1] if len(parts) > 1 else ""
+                pid = (rp.get("dicomId") or rp.get("pmsId") or
+                       rp.get("referenceId") or rp.get("patientReferenceId") or uid)
+                patients.append({
+                    "uid":         uid,
+                    "id":          pid,
+                    "given_names": fn,
+                    "family_name": ln,
+                    "birth_date":  dob,
+                    "media_count": None,
+                })
+        return _ok(patients=patients, total=len(patients))
+    except Exception as e:
+        logger.exception("dicom_load_patients failed")
+        return _err(str(e))
 
 @app.route("/api/dicom/export", methods=["POST"])
 @require_auth
 def api_dicom_export():
-    body = request.get_json(force=True) or {}
+    """
+    Export DICOM files from DTX Studio for selected patients.
+    Downloads actual DICOM binary data via the DTX Core API.
+    """
+    body           = request.get_json(force=True) or {}
     output_folder  = body.get("output_folder", "")
-    modality_filter = body.get("modality_filter", "")
+    modality_filter = (body.get("modality_filter") or "").upper()
     anonymise      = bool(body.get("anonymise", False))
-
+    folder_naming  = body.get("folder_naming", "id")   # id | name | uid
+    patient_uids   = body.get("patient_uids", [])       # empty = all
+ 
     if not output_folder:
         return _err("Output folder is required.")
-    if not os.path.isdir(output_folder):
-        try:
-            os.makedirs(output_folder, exist_ok=True)
-        except Exception as e:
-            return _err(f"Cannot create output folder: {e}")
-
+    try:
+        os.makedirs(output_folder, exist_ok=True)
+    except Exception as e:
+        return _err(f"Cannot create output folder: {e}")
+ 
     with _state_lock:
-        patients = _app.loaded_patients
-        if not patients:
-            return _err("No patients loaded. Load source data first.")
+        target = _app.target
+ 
+    from datasources.dtxstudio_target import DTXStudioTarget
+    if isinstance(target, DTXStudioTarget):
+        dtx = target
+    else:
+        dtx_cls = TARGET_REGISTRY.get("DTX Studio")
+        if not dtx_cls:
+            return _err("DTX Studio target is not available.")
+        dtx = dtx_cls()
+ 
+    ok, msg = dtx.test_connection()
+    if not ok:
+        return _err(f"Cannot connect to DTX Studio: {msg}")
+ 
+    with _state_lock:
         _app.dicom_status  = "running"
         _app.dicom_pct     = 0
-        _app.dicom_message = "Starting DICOM export…"
-
+        _app.dicom_message = "Connecting to DTX Studio…"
+ 
     def _export_worker():
-        total = len(patients)
-        done  = 0
-        for patient in patients:
-            if _app.dicom_status == "cancelled":
-                break
-            try:
-                _do_dicom_export_patient(patient, output_folder,
-                                         modality_filter, anonymise)
-                done += 1
-            except Exception as exc:
-                logger.warning(f"DICOM export failed for patient: {exc}")
-            pct = int((done / max(total, 1)) * 100)
+        try:
+            client = dtx._make_client()
+            all_patients = client.get_patients()
+ 
+            # Filter to selected patients if specified
+            if patient_uids:
+                uid_set = set(patient_uids)
+                all_patients = [p for p in all_patients if p.get("id") in uid_set]
+ 
+            total = len(all_patients)
+            done  = failed = 0
+ 
             with _state_lock:
-                _app.dicom_pct     = pct
-                _app.dicom_message = f"Exported {done}/{total} patients…"
-
-        with _state_lock:
-            _app.dicom_status  = "completed"
-            _app.dicom_pct     = 100
-            _app.dicom_message = f"DICOM export complete. {done} patients exported."
-        _app.store.audit("dicom_export_complete",
-                         f"{done} patients → {output_folder}",
-                         user_email=_current_user().get("email"))
-
+                _app.dicom_message = f"Exporting {total} patient(s)…"
+ 
+            for rp in all_patients:
+                if _app.dicom_status == "cancelled":
+                    break
+ 
+                pat_uid = rp.get("id", "")
+                fn = rp.get("firstname") or rp.get("firstName") or ""
+                ln = rp.get("lastname")  or rp.get("lastName")  or ""
+                pid = rp.get("dicomId") or rp.get("pmsId") or pat_uid
+ 
+                # Determine folder name
+                if folder_naming == "name":
+                    folder_name = f"{ln}_{fn}".strip("_") or pat_uid[:12]
+                elif folder_naming == "uid":
+                    folder_name = pat_uid[:16] or pid
+                else:
+                    folder_name = pid or pat_uid[:12]
+                # Sanitise folder name
+                folder_name = "".join(c for c in folder_name
+                                      if c.isalnum() or c in "-_ .")[:60]
+                patient_dir = os.path.join(output_folder, folder_name or "unknown")
+                os.makedirs(patient_dir, exist_ok=True)
+ 
+                try:
+                    # Get all media for this patient
+                    media_list = client.get_patient_media(pat_uid)
+                    exported = 0
+                    for media in media_list:
+                        mid      = media.get("id", "")
+                        modality = (media.get("modality") or "").upper()
+                        if modality_filter and modality != modality_filter:
+                            continue
+                        try:
+                            dcm_data = client.get_media_data(mid)
+                            if not dcm_data:
+                                continue
+                            # Filename: media ID or SOP instance UID
+                            sop = (media.get("sopInstanceUid") or mid or
+                                   str(__import__("uuid").uuid4()))
+                            fname = sop.replace(".", "_") + ".dcm"
+ 
+                            # Anonymise if requested — zero out patient tags
+                            # This is a basic approach: replace name/DOB in the
+                            # DICOM header. A full anonymisation would use deid tools.
+                            if anonymise:
+                                dcm_data = _anonymise_dicom(dcm_data, pat_uid)
+ 
+                            with open(os.path.join(patient_dir, fname), "wb") as f:
+                                f.write(dcm_data)
+                            exported += 1
+                        except Exception as me:
+                            logger.warning(f"  Media {mid} export failed: {me}")
+ 
+                    done += 1
+                    logger.info(f"  Exported {exported} files for {fn} {ln}")
+ 
+                except Exception as pe:
+                    failed += 1
+                    logger.error(f"  Patient {pat_uid} export failed: {pe}")
+ 
+                pct = int((done + failed) / max(total, 1) * 100)
+                with _state_lock:
+                    _app.dicom_pct     = pct
+                    _app.dicom_message = f"Exported {done}/{total} patients…"
+ 
+            with _state_lock:
+                _app.dicom_status  = "completed"
+                _app.dicom_pct     = 100
+                _app.dicom_message = (f"Export complete. {done} patient(s) exported"
+                                      + (f", {failed} failed." if failed else "."))
+            _app.store.audit("dicom_export_complete",
+                             f"{done} patients → {output_folder}",
+                             user_email=None)
+        except Exception as e:
+            logger.exception("DICOM export worker error")
+            with _state_lock:
+                _app.dicom_status  = "failed"
+                _app.dicom_message = f"Export failed: {e}"
+ 
     threading.Thread(target=_export_worker, daemon=True).start()
     return _ok(message="DICOM export started.")
-
-
-def _do_dicom_export_patient(patient: dict, output_folder: str,
-                              modality_filter: str, anonymise: bool):
+ 
+ 
+def _anonymise_dicom(data: bytes, anon_id: str) -> bytes:
     """
-    Write patient imaging files as DICOM to output_folder.
-    This is a stub — production implementation would use pydicom to
-    write proper DICOM files. For now it copies the source files
-    with a .dcm extension.
+    Basic DICOM anonymisation — blanks patient name, DOB, and ID tags.
+    Replaces values with the anonymised ID string.
+    This is a best-effort approach; use a dedicated deid tool for full compliance.
     """
-    import shutil
-    uid = patient.get("uid", "unknown")
-    patient_dir = os.path.join(output_folder, uid[:8])
-    os.makedirs(patient_dir, exist_ok=True)
-
-    for study in patient.get("studies", {}).values():
-        for series in study.get("series", {}).values():
-            for media in series.get("media", []):
-                modality = media.get("modality") or media.get("image_class") or ""
-                if modality_filter and modality.upper() != modality_filter.upper():
-                    continue
-                src_path = media.get("file_path") or media.get("_fetch_path")
-                if src_path and os.path.isfile(src_path):
-                    dst_name = os.path.basename(src_path)
-                    if not dst_name.endswith(".dcm"):
-                        dst_name += ".dcm"
-                    shutil.copy2(src_path, os.path.join(patient_dir, dst_name))
-
+    import struct as _st
+ 
+    def _blank_tag(d: bytes, grp: int, elm: int, replacement: bytes) -> bytes:
+        """Find and blank a specific DICOM tag value in-place."""
+        tag_bytes = _st.pack('<HH', grp, elm)
+        pos = d.find(tag_bytes)
+        if pos < 0:
+            return d
+        try:
+            vr = d[pos+4:pos+6].decode('ascii', errors='?')
+            if vr in ('OB','OW','SQ','UC','UR','UT','UN'):
+                length = _st.unpack('<I', d[pos+8:pos+12])[0]
+                vs = pos + 12
+            else:
+                length = _st.unpack('<H', d[pos+6:pos+8])[0]
+                vs = pos + 8
+            # Pad replacement to same length
+            rep = replacement[:length].ljust(length, b' ')
+            return d[:vs] + rep + d[vs+length:]
+        except Exception:
+            return d
+ 
+    anon_bytes = anon_id[:64].encode('ascii', errors='replace')
+    data = _blank_tag(data, 0x0010, 0x0010, anon_bytes)  # PatientName
+    data = _blank_tag(data, 0x0010, 0x0020, anon_bytes)  # PatientID
+    data = _blank_tag(data, 0x0010, 0x0030, b'19000101')  # PatientBirthDate
+    return data
 
 @app.route("/api/dicom/status")
 @require_auth
