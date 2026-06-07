@@ -365,6 +365,45 @@ def api_config_get():
         target_config=target.config_to_dict() if target else [],
     )
 
+@app.route("/api/config/schema")
+@require_auth
+def api_config_schema():
+    """
+    Return the configuration field schema for any source/target combination
+    WITHOUT changing app state.  Used by the frontend dynamic config renderer.
+ 
+    Query params:
+        source  — e.g. "VistaSoft", "DTX Studio", "SOPRO"
+        target  — e.g. "DTX Studio", "VistaSoft"
+    """
+    src_name = request.args.get("source", "VistaSoft")
+    tgt_name = request.args.get("target", "DTX Studio")
+ 
+    try:
+        source = _get_or_build_source(src_name)
+    except ValueError as e:
+        return _err(str(e))
+ 
+    try:
+        target = _get_or_build_target(tgt_name)
+    except ValueError as e:
+        return _err(str(e))
+ 
+    # Pre-fill with currently saved values so the UI restores previous entries
+    with _state_lock:
+        if _app.source_name == src_name and _app.source:
+            for item in _app.source.configuration:
+                source.set_config_value(item.key, item.value)
+        if _app.target_name == tgt_name and _app.target:
+            for item in _app.target.configuration:
+                target.set_config_value(item.key, item.value)
+ 
+    return _ok(
+        source_name=src_name,
+        target_name=tgt_name,
+        source_config=source.config_to_dict(show_advanced=True),
+        target_config=target.config_to_dict(show_advanced=True),
+    )
 
 @app.route("/api/config", methods=["POST"])
 @require_auth

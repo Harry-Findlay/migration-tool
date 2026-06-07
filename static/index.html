@@ -1079,111 +1079,25 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
           </button>
         </div>
 
-        <!-- Source config: VistaSoft -->
+         <!-- Source config — rendered dynamically from /api/config/schema -->
         <div id="cfg-source" class="tab-pane active">
-          <div class="card">
-            <div class="card-header"><i class="bi bi-folder2-open"></i> VistaSoft Configuration</div>
-            <div class="card-body">
-              <div class="field">
-                <label>Media Path</label>
-                <div class="field-row">
-                  <input type="text" id="vs_media_path" placeholder="e.g. C:\VistaSoft\Media" oninput="saveConfig()">
-                  <button class="btn btn-ghost btn-sm" onclick="browsePath('vs_media_path')"><i class="bi bi-folder"></i></button>
-                </div>
-                <span class="field-hint">Root folder containing patient imaging data (P1/Institution.fdb lives here)</span>
-              </div>
-              <div class="form-row">
-                <div class="field">
-                  <label>DB Encoding</label>
-                  <select id="vs_encoding" onchange="saveConfig()">
-                    <option value="utf-8">UTF-8 (Codepage 65001)</option>
-                    <option value="latin-1">Latin-1 / ISO-8859-1</option>
-                    <option value="cp1252">Windows-1252</option>
-                    <option value="utf-16">UTF-16</option>
-                    <option value="ascii">ASCII</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Max Parallelism</label>
-                  <input type="number" id="vs_max_parallel" value="4" min="1" max="16" oninput="saveConfig()">
-                  <span class="field-hint">Concurrent patient threads</span>
-                </div>
-              </div>
-              <div class="field">
-                <div class="toggle-wrap">
-                  <div class="toggle-info">
-                    <div class="toggle-info-name">Incremental Mode</div>
-                    <div class="toggle-info-desc">Skip patients already successfully migrated in previous sessions</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" id="vs_incremental" onchange="saveConfig()"><span class="toggle-track"></span></label>
-                </div>
-              </div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="btn btn-ghost btn-sm" onclick="testDbConnection()"><i class="bi bi-plug"></i> Test DB Connection</button>
-                <button class="btn btn-ghost btn-sm" onclick="validateConfig()"><i class="bi bi-check-circle"></i> Validate</button>
-              </div>
-            </div>
+          <div id="cfg-source-body">
+            <div class="alert-box alert-info"><i class="bi bi-hourglass-split"></i> <span>Loading configuration…</span></div>
           </div>
         </div>
-
-        <!-- Target config: DTX Studio -->
+ 
+        <!-- Target config — rendered dynamically from /api/config/schema -->
         <div id="cfg-target" class="tab-pane">
-          <div class="card">
-            <div class="card-header"><i class="bi bi-diagram-3"></i> DTX Studio Configuration</div>
-            <div class="card-body">
-              <div class="field">
-                <label>Core URL</label>
-                <input type="text" id="dtx_url" placeholder="https://core.dtxstudio.local" oninput="saveConfig()">
-                <span class="field-hint">DTX Studio Core API base URL</span>
-              </div>
-              <div class="form-row">
-                <div class="field">
-                  <label>Username</label>
-                  <input type="text" id="dtx_user" placeholder="admin" oninput="saveConfig()">
-                </div>
-                <div class="field">
-                  <label>Password</label>
-                  <input type="password" id="dtx_pass" placeholder="••••••••" oninput="saveConfig()">
-                </div>
-              </div>
-              <div class="field">
-                <label>Practice / Site</label>
-                <input type="text" id="dtx_practice" placeholder="e.g. Main Practice" oninput="saveConfig()">
-                <span class="field-hint">DTX Studio site/practice name to migrate into</span>
-              </div>
-              <div class="form-row">
-                <div class="field">
-                  <label>Timeout (s)</label>
-                  <input type="number" id="dtx_timeout" value="30" min="5" max="300" oninput="saveConfig()">
-                </div>
-                <div class="field">
-                  <label>Upload Retries</label>
-                  <input type="number" id="dtx_retries" value="3" min="1" max="10" oninput="saveConfig()">
-                </div>
-              </div>
-              <div class="field">
-                <div class="toggle-wrap">
-                  <div class="toggle-info">
-                    <div class="toggle-info-name">Skip Existing Patients</div>
-                    <div class="toggle-info-desc">Do not overwrite patients that already exist in DTX Studio</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" id="dtx_skip_existing" checked onchange="saveConfig()"><span class="toggle-track"></span></label>
-                </div>
-              </div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="btn btn-ghost btn-sm" onclick="testTargetConnection()"><i class="bi bi-plug"></i> Test Connection</button>
-                <button class="btn btn-ghost btn-sm" onclick="validateConfig()"><i class="bi bi-check-circle"></i> Validate</button>
-              </div>
-            </div>
+          <div id="cfg-target-body">
+            <div class="alert-box alert-info"><i class="bi bi-hourglass-split"></i> <span>Loading configuration…</span></div>
           </div>
         </div>
-
+ 
         <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
           <button class="btn btn-primary" onclick="saveAndProceed()">
-            Save & Load Data <i class="bi bi-arrow-right"></i>
+            Save &amp; Load Data <i class="bi bi-arrow-right"></i>
           </button>
         </div>
-      </div>
 
       <!-- ─── LOAD DATASOURCE ───────────────────────────────── -->
       <div class="page" id="page-loaddatasource">
@@ -2113,6 +2027,7 @@ function nav(id) {
   if (id === 'overview')   loadOverview();
   if (id === 'patients')   loadPatients();
   if (id === 'coremigration') loadHistory();
+  if (id === 'configuredatasource') loadConfigSchema();
 }
 
 /* ── SERVER STATUS ──────────────────────────────────────────── */
@@ -2165,34 +2080,245 @@ function switchTab(groupId, btn, paneId) {
   document.getElementById(paneId).classList.add('active');
 }
 
-/* ── CONFIG PERSISTENCE ─────────────────────────────────────── */
-function saveConfig() {
-  const cfg = {
-    source: _selectedSource, target: _selectedTarget,
-    vs_media_path: v('vs_media_path'), vs_encoding: v('vs_encoding'),
-    vs_max_parallel: v('vs_max_parallel'), vs_incremental: document.getElementById('vs_incremental').checked,
-    dtx_url: v('dtx_url'), dtx_user: v('dtx_user'), dtx_pass: v('dtx_pass'),
-    dtx_practice: v('dtx_practice'), dtx_timeout: v('dtx_timeout'), dtx_retries: v('dtx_retries'),
-    dtx_skip_existing: document.getElementById('dtx_skip_existing').checked,
-  };
-  localStorage.setItem('migration_config', JSON.stringify(cfg));
-}
-
-function loadStoredConfig() {
+/* ── DYNAMIC CONFIG RENDERER ────────────────────────────────── */
+ 
+// Cached schema for the current source/target pair
+let _cfgSchema = { source_config: [], target_config: [] };
+ 
+/**
+ * Called when navigating to the configuredatasource page.
+ * Fetches the schema for the selected pair and renders both tabs.
+ */
+async function loadConfigSchema() {
+  document.getElementById('cfg-source-body').innerHTML =
+    '<div class="alert-box alert-info"><i class="bi bi-hourglass-split"></i> <span>Loading…</span></div>';
+  document.getElementById('cfg-target-body').innerHTML =
+    '<div class="alert-box alert-info"><i class="bi bi-hourglass-split"></i> <span>Loading…</span></div>';
+ 
   try {
-    const c = JSON.parse(localStorage.getItem('migration_config') || '{}');
-    if (c.vs_media_path) sv('vs_media_path', c.vs_media_path);
-    if (c.vs_encoding)   sv('vs_encoding', c.vs_encoding);
-    if (c.vs_max_parallel) sv('vs_max_parallel', c.vs_max_parallel);
-    if (c.dtx_url)  sv('dtx_url', c.dtx_url);
-    if (c.dtx_user) sv('dtx_user', c.dtx_user);
-    if (c.dtx_pass) sv('dtx_pass', c.dtx_pass);
-    if (c.dtx_practice) sv('dtx_practice', c.dtx_practice);
-    if (c.dtx_timeout)  sv('dtx_timeout', c.dtx_timeout);
-    if (c.dtx_retries)  sv('dtx_retries', c.dtx_retries);
-    if (c.vs_incremental) document.getElementById('vs_incremental').checked = c.vs_incremental;
-    if (c.dtx_skip_existing !== undefined) document.getElementById('dtx_skip_existing').checked = c.dtx_skip_existing;
-  } catch {}
+    const d = await api('GET',
+      `/config/schema?source=${encodeURIComponent(_selectedSource)}&target=${encodeURIComponent(_selectedTarget)}`
+    );
+    _cfgSchema = d;
+    _renderConfigPane('cfg-source-body', d.source_config, _selectedSource, 'source');
+    _renderConfigPane('cfg-target-body', d.target_config, _selectedTarget, 'target');
+ 
+    // Restore any previously saved values on top of schema defaults
+    _restoreConfigValues('source', d.source_config);
+    _restoreConfigValues('target', d.target_config);
+  } catch (e) {
+    const msg = `<div class="alert-box alert-error"><i class="bi bi-exclamation-triangle-fill"></i> <span>Could not load config schema: ${escHtml(e.message)}</span></div>`;
+    document.getElementById('cfg-source-body').innerHTML = msg;
+    document.getElementById('cfg-target-body').innerHTML = msg;
+  }
+}
+ 
+/**
+ * Render a list of ConfigurationItem dicts into a container div.
+ * Groups items by their `group` field and renders appropriate input types.
+ */
+function _renderConfigPane(containerId, fields, datasourceName, role) {
+  const container = document.getElementById(containerId);
+  if (!fields || !fields.length) {
+    container.innerHTML = '<div class="alert-box alert-info"><i class="bi bi-info-circle-fill"></i> <span>No configuration required for this datasource.</span></div>';
+    return;
+  }
+ 
+  // Group fields
+  const groups = {};
+  const groupOrder = [];
+  for (const f of fields) {
+    if (f.hidden) continue;
+    const g = f.group || 'General';
+    if (!groups[g]) { groups[g] = []; groupOrder.push(g); }
+    groups[g].push(f);
+  }
+ 
+  // Source icon mapping
+  const icons = {
+    'VistaSoft': 'bi-folder2-open',
+    'DTX Studio': 'bi-diagram-3',
+    'SOPRO': 'bi-camera',
+  };
+  const icon = icons[datasourceName] || (role === 'source' ? 'bi-database' : 'bi-database-up');
+ 
+  let html = '';
+  const primaryGroup = groupOrder[0];
+  const otherGroups = groupOrder.slice(1);
+ 
+  // Main card (first group)
+  html += `<div class="card mb-16">
+    <div class="card-header"><i class="bi ${icon}"></i> ${escHtml(datasourceName)} Configuration</div>
+    <div class="card-body">`;
+  html += _renderFields(groups[primaryGroup], role);
+  html += _renderButtons(role);
+  html += `</div></div>`;
+ 
+  // Additional group cards
+  for (const g of otherGroups) {
+    const isAdvanced = g.toLowerCase().includes('advanced');
+    html += `<details class="card mb-16" ${isAdvanced ? '' : 'open'}>
+      <summary class="card-header" style="cursor:pointer;user-select:none;">
+        <i class="bi bi-sliders"></i> ${escHtml(g)}
+      </summary>
+      <div class="card-body">`;
+    html += _renderFields(groups[g], role);
+    html += `</div></details>`;
+  }
+ 
+  container.innerHTML = html;
+}
+ 
+function _renderFields(fields, role) {
+  let html = '';
+  for (const f of fields) {
+    const inputId = `cfg-field-${role}-${f.key}`;
+    html += `<div class="field" data-cfg-role="${role}" data-cfg-key="${f.key}">`;
+    html += `<label>${escHtml(f.name)}</label>`;
+ 
+    switch (f.type) {
+      case 'path':
+        html += `<div class="field-row">
+          <input type="text" id="${inputId}" data-key="${f.key}" data-role="${role}"
+            placeholder="${escHtml(f.placeholder || '')}" value="${escHtml(f.value || '')}"
+            oninput="saveConfig()" autocomplete="off">
+          <button class="btn btn-ghost btn-sm" onclick="browsePath('${inputId}')"><i class="bi bi-folder"></i></button>
+        </div>`;
+        break;
+ 
+      case 'password':
+        html += `<input type="password" id="${inputId}" data-key="${f.key}" data-role="${role}"
+          placeholder="${escHtml(f.placeholder || '••••••••')}" value="${escHtml(f.value || '')}"
+          oninput="saveConfig()" autocomplete="new-password">`;
+        break;
+ 
+      case 'select':
+        html += `<select id="${inputId}" data-key="${f.key}" data-role="${role}" onchange="saveConfig()">`;
+        for (const [val, label] of Object.entries(f.options || {})) {
+          const sel = f.value === val ? ' selected' : '';
+          html += `<option value="${escHtml(val)}"${sel}>${escHtml(label)}</option>`;
+        }
+        html += `</select>`;
+        break;
+ 
+      case 'switch':
+        const checked = (f.value || '').toLowerCase() === 'on' || f.value === 'true' ? ' checked' : '';
+        html += `<div class="toggle-wrap" style="padding:0;border:none;">
+          <label class="toggle">
+            <input type="checkbox" id="${inputId}" data-key="${f.key}" data-role="${role}"${checked} onchange="saveConfig()">
+            <span class="toggle-track"></span>
+          </label>
+        </div>`;
+        break;
+ 
+      case 'readonly':
+        html += `<input type="text" id="${inputId}" data-key="${f.key}" data-role="${role}"
+          value="${escHtml(f.value || '')}" readonly style="opacity:.6;cursor:default;">`;
+        break;
+ 
+      case 'connection_string':
+        html += `<textarea id="${inputId}" data-key="${f.key}" data-role="${role}"
+          rows="3" placeholder="${escHtml(f.placeholder || '')}"
+          oninput="saveConfig()" style="font-family:monospace;font-size:11px;">${escHtml(f.value || '')}</textarea>`;
+        break;
+ 
+      default: // 'text' and anything else
+        html += `<input type="text" id="${inputId}" data-key="${f.key}" data-role="${role}"
+          placeholder="${escHtml(f.placeholder || '')}" value="${escHtml(f.value || '')}"
+          oninput="saveConfig()" autocomplete="off">`;
+    }
+ 
+    if (f.description) html += `<span class="field-hint">${escHtml(f.description)}</span>`;
+    html += `</div>`;
+  }
+  return html;
+}
+ 
+function _renderButtons(role) {
+  if (role === 'source') {
+    return `<div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="testDbConnection()"><i class="bi bi-plug"></i> Test Connection</button>
+      <button class="btn btn-ghost btn-sm" onclick="validateConfig()"><i class="bi bi-check-circle"></i> Validate</button>
+    </div>`;
+  } else {
+    return `<div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="testTargetConnection()"><i class="bi bi-plug"></i> Test Connection</button>
+      <button class="btn btn-ghost btn-sm" onclick="validateConfig()"><i class="bi bi-check-circle"></i> Validate</button>
+    </div>`;
+  }
+}
+ 
+/* ── CONFIG PERSISTENCE (schema-driven) ─────────────────────── */
+ 
+/**
+ * Collect all rendered config fields and save to localStorage.
+ * Keyed by "source:target" so different pairs don't clobber each other.
+ */
+function saveConfig() {
+  const storageKey = `cfg:${_selectedSource}:${_selectedTarget}`;
+  const values = {};
+ 
+  document.querySelectorAll('[data-cfg-key]').forEach(el => {
+    const key = el.dataset.key;
+    const role = el.dataset.role;
+    if (!key || !role) return;
+    const fullKey = `${role}:${key}`;
+    if (el.type === 'checkbox') {
+      values[fullKey] = el.checked ? 'On' : 'Off';
+    } else {
+      values[fullKey] = el.value || '';
+    }
+  });
+ 
+  localStorage.setItem(storageKey, JSON.stringify(values));
+}
+ 
+/**
+ * After rendering a config pane, restore previously saved values from localStorage.
+ */
+function _restoreConfigValues(role, fields) {
+  const storageKey = `cfg:${_selectedSource}:${_selectedTarget}`;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
+ 
+  for (const f of (fields || [])) {
+    const fullKey = `${role}:${f.key}`;
+    if (!(fullKey in saved)) continue;
+    const el = document.getElementById(`cfg-field-${role}-${f.key}`);
+    if (!el) continue;
+    if (el.type === 'checkbox') {
+      el.checked = saved[fullKey] === 'On' || saved[fullKey] === 'true';
+    } else {
+      el.value = saved[fullKey];
+    }
+  }
+}
+ 
+// Legacy stub — kept so any existing calls don't crash
+function loadStoredConfig() { /* handled by loadConfigSchema() now */ }
+ 
+/**
+ * Collect source config fields into a plain {key: value} dict for API calls.
+ */
+function getSourceConfig() {
+  const cfg = {};
+  document.querySelectorAll('[data-role="source"][data-key]').forEach(el => {
+    if (el.type === 'checkbox') cfg[el.dataset.key] = el.checked ? 'On' : 'Off';
+    else cfg[el.dataset.key] = el.value || '';
+  });
+  return cfg;
+}
+ 
+/**
+ * Collect target config fields into a plain {key: value} dict for API calls.
+ */
+function getTargetConfig() {
+  const cfg = {};
+  document.querySelectorAll('[data-role="target"][data-key]').forEach(el => {
+    if (el.type === 'checkbox') cfg[el.dataset.key] = el.checked ? 'On' : 'Off';
+    else cfg[el.dataset.key] = el.value || '';
+  });
+  return cfg;
 }
 
 /* ── CONNECTION TESTS ───────────────────────────────────────── */
@@ -2991,26 +3117,6 @@ function animateProgress(barId, msgId, steps) {
     if (i < steps.length) setTimeout(tick, 600 + Math.random()*400);
   };
   tick();
-}
-
-function getSourceConfig() {
-  return {
-    MediaPath: v('vs_media_path'),
-    Encoding: v('vs_encoding'),
-    MaxParallelism: v('vs_max_parallel'),
-    Incremental: document.getElementById('vs_incremental').checked,
-  };
-}
-function getTargetConfig() {
-  return {
-    CoreUrl: v('dtx_url'),
-    Username: v('dtx_user'),
-    Password: v('dtx_pass'),
-    Practice: v('dtx_practice'),
-    Timeout: v('dtx_timeout'),
-    Retries: v('dtx_retries'),
-    SkipExisting: document.getElementById('dtx_skip_existing').checked,
-  };
 }
 
 /* ── KEYBOARD ───────────────────────────────────────────────── */
