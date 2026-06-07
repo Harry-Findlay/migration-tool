@@ -24,90 +24,132 @@ from core.models import ConfigurationItem, ConfigurationType
 def _jpeg_to_dcm(jpeg_bytes: bytes, sop_uid: str = "",
                   patient_name: str = "", acq_date: str = "") -> bytes:
     """
-    Wrap JPEG bytes in a DICOM container.
-    Tries dcmtk (img2dcm) first, falls back to pydicom.
+    Convert JPEG/PNG bytes to a 16-bit greyscale uncompressed DICOM file.
+
+    VistaSoft stores intraoral images as 16-bit greyscale MONOCHROME2 DICOM
+    (Explicit VR Little Endian, uncompressed). This matches what VistaSoft's
+    own import pipeline produces and is what the sidecar expects:
+      OriginalColorDepth: Gray16
+      BitsAllocated: 16, BitsStored: 16, HighBit: 15
+      SamplesPerPixel: 1
+      PhotometricInterpretation: MONOCHROME2
+      SOPClassUID: 1.2.840.10008.5.1.4.1.1.1 (Digital X-Ray)
     """
-    import io as _io, tempfile, os, subprocess, shutil
+    import io as _io, struct as _st, uuid as _uuid
+    import numpy as _np
+    from PIL import Image as _PIL
 
-    # Try dcmtk img2dcm — bundled in project dcmtk/ folder or on PATH
-    _this_dir   = os.path.dirname(os.path.abspath(__file__))
-    _project    = os.path.dirname(_this_dir)  # datasources/ -> project root
-    _bundled    = os.path.join(_project, "lib", "dcmtk", "bin", "img2dcm.exe")
-    img2dcm     = _bundled if os.path.isfile(_bundled) else shutil.which("img2dcm")
-    if img2dcm:
-        try:
-            with tempfile.TemporaryDirectory() as tmp:
-                jpg_in  = os.path.join(tmp, "in.jpg")
-                dcm_out = os.path.join(tmp, "out.dcm")
-                with open(jpg_in, "wb") as f:
-                    f.write(jpeg_bytes)
-                result = subprocess.run(
-                    [img2dcm, jpg_in, dcm_out],
-                    capture_output=True, timeout=30
-                )
-                if result.returncode == 0 and os.path.isfile(dcm_out):
-                    with open(dcm_out, "rb") as f:
-                        return f.read()
-        except Exception:
-            pass
+    # Open image and convert to 8-bit greyscale
+    img = _PIL.open(_io.BytesIO(jpeg_bytes)).convert('L')
+    w, h = img.size
 
-    # Fall back to pydicom
+    # Scale 8-bit (0-255) to 16-bit (0-65535)
+    arr = _np.array(img, dtype=_np.uint16) * 257
+    pixel_data = arr.tobytes()
+
+    sop_instance = sop_uid or str(_uuid.uuid4())
+    # Use Digital X-Ray IOD — matches what VistaSoft uses for intraoral images
+    sop_class    = '1.2.840.10008.5.1.4.1.1.1'
+    ts_uid       = '1.2.840.10008.1.2.1'  # Explicit VR Little Endian
+
+    def _tag(grp, elm, vr, val):
+        hdr = _st.pack('<HH', grp, elm) + vr.encode('ascii')
+        if vr in ('OB','OW','SQ','UC','UR','UT','UN'):
+            return hdr + b'\x00\x00' + _st.pack('<I', len(val)) + val
+        return hdr + _st.pack('<H', len(val)) + val
+
+    def _ui(s):
+        b = s.encode('ascii'); return b + (b'\x00' if len(b) % 2 else b'')
+    def _cs(s):
+        b = s.encode('ascii'); return b + (b' '  if len(b) % 2 else b'')
+    def _us(v):  return _st.pack('<H', v)
+    def _ul(v):  return _st.pack('<I', v)
+    def _ds(v):
+        b = str(v).encode('ascii'); return b + (b' ' if len(b) % 2 else b'')
+    def _lo(s):
+        b = s.encode('ascii'); return b + (b' ' if len(b) % 2 else b'')
+
+    # File meta group (0002)
+    meta = (
+        _tag(0x0002, 0x0002, 'UI', _ui(sop_class)) +
+        _tag(0x0002, 0x0003, 'UI', _ui(sop_instance)) +
+        _tag(0x0002, 0x0010, 'UI', _ui(ts_uid)) +
+        _tag(0x0002, 0x0012, 'UI', _ui('1.2.3.999.1')) +
+        _tag(0x0002, 0x0013, 'SH', _cs('ITInfinity'))
+    )
+    meta = _tag(0x0002, 0x0000, 'UL', _ul(len(meta))) + meta
+
+    # Build acquisition date/time strings
+    acq_d = acq_date[:10].replace('-', '')[:8] if acq_date else ''
+    acq_t = ''
+    if acq_date and 'T' in acq_date:
+        acq_t = acq_date.split('T')[1].replace(':', '')[:6]
+
+    # Dataset
+    ds = (
+        _tag(0x0008, 0x0016, 'UI', _ui(sop_class)) +
+        _tag(0x0008, 0x0018, 'UI', _ui(sop_instance)) +
+        _tag(0x0008, 0x0020, 'DA', _cs(acq_d)) +
+        _tag(0x0008, 0x0023, 'DA', _cs(acq_d)) +
+        _tag(0x0008, 0x0030, 'TM', _cs(acq_t)) +
+        _tag(0x0008, 0x0033, 'TM', _cs(acq_t)) +
+        _tag(0x0008, 0x0060, 'CS', _cs('IO')) +
+        _tag(0x0010, 0x0010, 'PN', _lo(patient_name)) +
+        _tag(0x0028, 0x0002, 'US', _us(1)) +           # SamplesPerPixel
+        _tag(0x0028, 0x0004, 'CS', _cs('MONOCHROME2')) +
+        _tag(0x0028, 0x0010, 'US', _us(h)) +            # Rows
+        _tag(0x0028, 0x0011, 'US', _us(w)) +            # Columns
+        _tag(0x0028, 0x0100, 'US', _us(16)) +           # BitsAllocated
+        _tag(0x0028, 0x0101, 'US', _us(16)) +           # BitsStored
+        _tag(0x0028, 0x0102, 'US', _us(15)) +           # HighBit
+        _tag(0x0028, 0x0103, 'US', _us(0)) +            # PixelRepresentation
+        _tag(0x0028, 0x1052, 'DS', _ds(0.0)) +          # RescaleIntercept
+        _tag(0x0028, 0x1053, 'DS', _ds(1.0)) +          # RescaleSlope
+        _tag(0x0028, 0x1054, 'LO', _lo('US')) +         # RescaleType
+        # Pixel data
+        _tag(0x7FE0, 0x0010, 'OW', pixel_data)
+    )
+
+    return b'\x00' * 128 + b'DICM' + meta + ds
+
+
+def _read_dicom_pixel_info(data: bytes) -> dict:
+    """
+    Parse DICOM tag group 0028 to extract pixel geometry.
+    Returns dict with rows, cols, spp, photo, bits.
+    Works on any valid DICOM file produced by dcmtk or pydicom.
+    """
+    import struct as _st
+    result = {"rows": 0, "cols": 0, "spp": 1, "photo": "", "bits": 8}
     try:
-        import pydicom
-        from pydicom.dataset import FileDataset, FileMetaDataset
-        from pydicom.uid import JPEGBaseline8Bit, generate_uid, SecondaryCaptureImageStorage
-        from pydicom.encaps import encapsulate
-        from PIL import Image as _PIL
-
-        img  = _PIL.open(_io.BytesIO(jpeg_bytes))
-        w, h = img.size
-        # Ensure RGB
-        if img.mode not in ("RGB", "L"):
-            img = img.convert("RGB")
-        # Re-encode as JPEG to get clean bytes
-        buf = _io.BytesIO()
-        img.save(buf, format="JPEG", quality=95)
-        jpeg_bytes = buf.getvalue()
-        spp   = 3 if img.mode == "RGB" else 1
-        photo = "YBR_FULL_422" if spp == 3 else "MONOCHROME2"
-        uid   = sop_uid or str(generate_uid())
-
-        meta = FileMetaDataset()
-        meta.MediaStorageSOPClassUID    = SecondaryCaptureImageStorage
-        meta.MediaStorageSOPInstanceUID = uid
-        meta.TransferSyntaxUID          = JPEGBaseline8Bit
-
-        ds = FileDataset("", {}, file_meta=meta, preamble=b"\x00" * 128)
-        ds.is_implicit_VR   = False
-        ds.is_little_endian = True
-        ds.SOPClassUID    = SecondaryCaptureImageStorage
-        ds.SOPInstanceUID = uid
-        ds.PatientName    = patient_name
-        ds.SamplesPerPixel           = spp
-        ds.PhotometricInterpretation = photo
-        ds.Rows    = h
-        ds.Columns = w
-        ds.BitsAllocated  = 8
-        ds.BitsStored     = 8
-        ds.HighBit        = 7
-        ds.PixelRepresentation = 0
-        if spp == 3:
-            ds.PlanarConfiguration = 0
-        ds.LossyImageCompression      = "01"
-        ds.LossyImageCompressionRatio = "10"
-        ds.Modality = "XC"
-        if acq_date:
-            d = acq_date[:10].replace("-", "")
-            ds.AcquisitionDate = d
-            ds.ContentDate     = d
-        ds.PixelData = encapsulate([jpeg_bytes])
-        ds["PixelData"].is_undefined_length = True
-
-        out = _io.BytesIO()
-        pydicom.dcmwrite(out, ds)
-        return out.getvalue()
-    except Exception as exc:
-        raise RuntimeError(f"JPEG->DICOM conversion failed: {exc}") from exc
+        i = 132  # skip 128-byte preamble + 'DICM'
+        while i < len(data) - 12:
+            grp = _st.unpack('<H', data[i:i+2])[0]
+            elm = _st.unpack('<H', data[i+2:i+4])[0]
+            vr  = data[i+4:i+6].decode('ascii', errors='?')
+            if vr in ('OB', 'OW', 'SQ', 'UC', 'UR', 'UT', 'UN'):
+                length = _st.unpack('<I', data[i+8:i+12])[0]
+                vs = i + 12
+            else:
+                length = _st.unpack('<H', data[i+6:i+8])[0]
+                vs = i + 8
+            if grp == 0x0028:
+                if elm == 0x0002:  # SamplesPerPixel
+                    result["spp"]   = _st.unpack('<H', data[vs:vs+2])[0]
+                elif elm == 0x0004:  # PhotometricInterpretation
+                    result["photo"] = data[vs:vs+length].rstrip(b'\x00 ').decode('ascii', 'replace').strip()
+                elif elm == 0x0010:  # Rows
+                    result["rows"]  = _st.unpack('<H', data[vs:vs+2])[0]
+                elif elm == 0x0011:  # Columns
+                    result["cols"]  = _st.unpack('<H', data[vs:vs+2])[0]
+                elif elm == 0x0100:  # BitsAllocated
+                    result["bits"]  = _st.unpack('<H', data[vs:vs+2])[0]
+            if grp > 0x0028:
+                break
+            i = vs + length
+    except Exception:
+        pass
+    return result
 
 
 def _uuid_to_ms_hex(uid: str) -> str:
@@ -227,7 +269,6 @@ class VistaSoftTarget(BaseDatasource):
             return False, f"Database not found at: {self._get_db_path()}"
         if not os.path.isdir(self._get_images_path()):
             return False, f"Images folder not found at: {self._get_images_path()}"
-        # Auto-detect institution if not set
         if not self.get_config_value("InstitutionUID"):
             self._auto_detect_institution()
         return True, "VistaSoft target configuration is valid."
@@ -256,7 +297,6 @@ class VistaSoftTarget(BaseDatasource):
                 pass
             return False
 
-        # Fast path: check specific known subpaths relative to MediaPath
         d = media_path
         for _ in range(6):
             for sub in [
@@ -269,7 +309,6 @@ class VistaSoftTarget(BaseDatasource):
             if d == os.path.dirname(d):
                 break
 
-        # Recursive search under the drive root (slower but thorough)
         drive = os.path.splitdrive(media_path)[0] + os.sep
         skip = {"Windows", "System32", "SysWOW64", "Program Files", "ProgramData",
                 "Users", "temp", "Temp", "$Recycle.Bin"}
@@ -307,43 +346,36 @@ class VistaSoftTarget(BaseDatasource):
         if cancel_flag is None:
             cancel_flag = lambda: False
 
-        db_path_remote   = self._get_db_path()
-        images_path      = self._get_images_path()
+        db_path_remote  = self._get_db_path()
+        images_path     = self._get_images_path()
         institution_uid  = self.get_config_value("InstitutionUID") or ""
         institution_name = self.get_config_value("InstitutionName") or ""
- 
+
         if not os.path.isfile(db_path_remote):
             raise FileNotFoundError(f"VistaSoft DB not found: {db_path_remote}")
- 
+
         # FbBridge embedded can only open local paths — copy to temp if UNC/network
         from datasources.fb_client import _get_db_copy
         import shutil as _shutil
-        import tempfile as _tempfile
- 
+
         _is_network = db_path_remote.startswith("\\\\") or (
             len(db_path_remote) > 1 and db_path_remote[1] != ":"
         )
         if _is_network:
-            self.logger.info(f"  Network path detected — copying DB to local temp for FbBridge")
-            db_path = _get_db_copy(db_path_remote)
+            self.logger.info("  Network path detected — copying DB to local temp for FbBridge")
+            db_path    = _get_db_copy(db_path_remote)
             _db_is_temp = True
         else:
-            db_path = db_path_remote
+            db_path    = db_path_remote
             _db_is_temp = False
 
         written = skipped = errors = images_written = images_missing = 0
         total = len(patients)
 
         def _q(s, n=1020):
-            """Escape and truncate string for SQL literal."""
             return (s or "").replace("'", "''")[:n]
 
-        def _hex(uid):
-            """Straight big-endian hex — what VistaSoft stores."""
-            return uid.replace("-", "")
-
         def _dt(s):
-            """ISO datetime → Firebird TIMESTAMP literal."""
             if not s:
                 return "NULL"
             s2 = _re.sub(r'T', ' ', s).rstrip('Z').strip()
@@ -360,7 +392,7 @@ class VistaSoftTarget(BaseDatasource):
             dtx_id = patient.get("dtx_id") or patient.get("uid", "")
 
             try:
-                # Dedup
+                # ── Dedup check ───────────────────────────────────────────
                 if incremental:
                     found = _run("find_patient", db_path, dtx_id)
                     if found.get("uid"):
@@ -369,12 +401,14 @@ class VistaSoftTarget(BaseDatasource):
                             progress_callback(i+1, total, f"Skipped: {name}")
                         continue
 
-                # New patient UUID — stored as straight hex
+                # ── Insert PATIENT row ────────────────────────────────────
                 p_uid = str(_uuid_mod.uuid4())
-                ph    = _uuid_to_ms_hex(p_uid)  # MS-endian so GetGuid returns p_uid
+                ph    = _uuid_to_ms_hex(p_uid)
                 sex   = {"MALE":77,"FEMALE":70,"OTHER":79}.get(
                           (patient.get("gender") or "").upper(), "NULL")
-                bd    = f"'{patient.get('date_of_birth') or patient.get('birth_date')}'" if (patient.get("date_of_birth") or patient.get("birth_date")) else "NULL"
+                bd    = (f"'{patient.get('date_of_birth') or patient.get('birth_date')}'"
+                         if (patient.get("date_of_birth") or patient.get("birth_date"))
+                         else "NULL")
                 pms   = _q(patient.get("pms_id") or patient.get("id") or "")
                 src_i = _q(dtx_id)
 
@@ -387,12 +421,11 @@ class VistaSoftTarget(BaseDatasource):
                      f"'{pms}','{src_i}',0,0,1)")
                 self.logger.info(f"  Wrote patient {name} → {p_uid[:8]}…")
 
-                # Folder = Patient.Uid.ToString() = p_uid
-                self.logger.info(f"  p_uid={p_uid}  folder={p_uid}")
+                # ── Create patient image folder ───────────────────────────
                 folder = os.path.join(images_path, p_uid)
                 os.makedirs(folder, exist_ok=True)
 
-                # Write Patient.json — required by VistaSoft Core
+                # ── Write Patient.json ────────────────────────────────────
                 patient_json = {
                     "PatientUID":    p_uid,
                     "PatientID":     patient.get("pms_id") or patient.get("id") or "",
@@ -407,9 +440,10 @@ class VistaSoftTarget(BaseDatasource):
                 with open(os.path.join(folder, "Patient.json"), "w", encoding="utf-8-sig") as fh:
                     _json.dump(patient_json, fh, indent=2)
 
+                # ── Process studies ───────────────────────────────────────
                 for study in patient.get("studies", {}).values():
                     s_uid = str(_uuid_mod.uuid4())
-                    sh    = _uuid_to_ms_hex(s_uid)  # MS-endian so GetGuid returns s_uid
+                    sh    = _uuid_to_ms_hex(s_uid)
                     siuid = _q(study.get("study_instance") or str(_uuid_mod.uuid4()), 256)
 
                     sdt = study.get("study_datetime") or ""
@@ -423,12 +457,12 @@ class VistaSoftTarget(BaseDatasource):
                          f"INSERT INTO STUDY(UID,PATIENTUID,STUDYINSTANCEUID,STUDYDATETIME)"
                          f"VALUES(X'{sh}',X'{ph}','{siuid}',{_dt(sdt)})")
 
-                    # Write Study_{uid}.json — required by VistaSoft Core
-                    study_dt = sdt or ""
-                    study_date = _re.sub(r'[-T :].*', '', study_dt).replace('-','')[:8]
+                    # ── Write Study JSON ──────────────────────────────────
+                    study_dt   = sdt or ""
+                    study_date = _re.sub(r'[-T :].*', '', study_dt).replace('-', '')[:8]
                     study_time = ""
                     if "T" in study_dt:
-                        study_time = study_dt.split("T")[1].rstrip("Z").replace(":","")[:6]
+                        study_time = study_dt.split("T")[1].rstrip("Z").replace(":", "")[:6]
                     study_json = {
                         "StudyInstanceUID": siuid,
                         "StudyDate":        study_date,
@@ -438,6 +472,7 @@ class VistaSoftTarget(BaseDatasource):
                               "w", encoding="utf-8-sig") as fh:
                         _json.dump(study_json, fh, indent=2)
 
+                    # ── Process media ─────────────────────────────────────
                     for series in study.get("series", {}).values():
                         for media in series.get("media", []):
                             if cancel_flag():
@@ -447,17 +482,12 @@ class VistaSoftTarget(BaseDatasource):
                             mh      = _uuid_to_ms_hex(m_uid)
                             dtx_mid = media.get("uid", "")
 
-                            # All sources must normalise these fields before handing to target:
-                            #   media["modality"]     — DTX Studio enum (INTRAORAL, PANORAMIC etc.)
-                            #   media["image_class"]  — VistaSoft class (Intra, Pano etc.)
-                            #   media["acq_datetime"] — ISO 8601 datetime string
                             dtx_modality = (media.get("modality") or "")
                             iclass       = (media.get("image_class") or
                                             _modality_to_class(dtx_modality))
                             acq_dt       = media.get("acq_datetime") or ""
                             sop          = media.get("sop_instance") or str(_uuid_mod.uuid4())
 
-                            # DICOM modality code for sidecar (XC, IO, PX etc.)
                             _dtx_to_dicom_code = {
                                 "PANORAMIC": "PX", "CEPHALOGRAM": "DX", "INTRAORAL": "IO",
                                 "VOLUME": "DX", "PICTURE": "XC", "MOVIE": "XC",
@@ -467,7 +497,7 @@ class VistaSoftTarget(BaseDatasource):
                                 or _dtx_to_dicom_code.get(dtx_modality.upper(), "XC")
                             )
 
-                            # Fetch file data — from _fetch callable or file_path
+                            # ── Fetch raw file data ───────────────────────
                             data = media.get("_file_data")
                             if data is None:
                                 fn = media.get("_fetch")
@@ -486,7 +516,6 @@ class VistaSoftTarget(BaseDatasource):
                                 images_missing += 1
                                 continue
 
-                            # File paths — Image.Uid.ToString() = m_uid (GetGuid returns m_uid for ms_hex storage)
                             disk_uid  = m_uid
                             dcm_path  = os.path.join(folder, disk_uid + ".dcm")
                             json_path = os.path.join(folder, disk_uid + ".json")
@@ -495,23 +524,48 @@ class VistaSoftTarget(BaseDatasource):
                             if not acq_e:
                                 acq_e = "2000-01-01 00:00:00"
                             at_e = _q(_class_to_acq_type(iclass), 256)
-                            # ISMOVIE=1 only for actual video files, never for photos
                             mv   = 1 if (dtx_modality.upper() == "MOVIE" and
                                          media.get("content_type", "").startswith("video/")) else 0
 
-                            # Build JSONDATA / sidecar — must be populated for VistaSoft to read image
+                            # ── Convert JPEG/PNG to DICOM first ───────────
+                            # Must happen before building the sidecar so we can
+                            # read the actual pixel dimensions from the DICOM.
+                            ct = media.get("content_type") or "application/dicom"
+                            _is_jpeg = (("jpeg" in ct or "jpg" in ct)
+                                        or (len(data) >= 2
+                                            and data[0] == 0xFF and data[1] == 0xD8))
+                            _is_png  = (("png" in ct)
+                                        or (len(data) >= 4
+                                            and data[:4] == b'\x89PNG'))
+                            if _is_jpeg or _is_png:
+                                data = _jpeg_to_dcm(data, sop_uid=sop,
+                                                    patient_name=name,
+                                                    acq_date=acq_dt)
+
+                            # ── Read actual pixel geometry from DICOM ─────
+                            pinfo = _read_dicom_pixel_info(data)
+
+                            # ── Build sidecar metadata ────────────────────
                             dtags = media.get("dicom_tags") or {}
-                            bits  = dtags.get("bitsAllocated") or dtags.get("bitsStored") or 8
-                            spp   = dtags.get("samplesPerPixel") or 1
-                            photo = dtags.get("photometricInterpretation") or "MONOCHROME2"
-                            if photo in ("RGB","YBR_FULL","YBR_FULL_422") or spp == 3:
-                                cdepth = f"Rgb{bits * spp}"
-                            elif bits == 16:
+                            # JPEG/PNG sources are converted to 16-bit greyscale DICOM
+                            # to match VistaSoft's native import format exactly.
+                            if _is_jpeg or _is_png:
+                                bits   = 16
+                                spp    = 1
+                                photo  = "MONOCHROME2"
                                 cdepth = "Gray16"
                             else:
-                                cdepth = f"Gray{bits}"
+                                bits  = dtags.get("bitsAllocated") or dtags.get("bitsStored") or pinfo["bits"]
+                                spp   = dtags.get("samplesPerPixel") or pinfo["spp"] or 1
+                                photo = (dtags.get("photometricInterpretation")
+                                         or pinfo["photo"] or "MONOCHROME2")
+                                if photo in ("RGB", "YBR_FULL", "YBR_FULL_422") or spp == 3:
+                                    cdepth = f"Rgb{bits * spp}"
+                                elif bits == 16:
+                                    cdepth = "Gray16"
+                                else:
+                                    cdepth = f"Gray{bits}"
 
-                            # Extract date/time from ISO datetime e.g. "2014-12-19T16:06:30.0000000"
                             acq_date = ""
                             acq_time = ""
                             if acq_dt:
@@ -529,7 +583,9 @@ class VistaSoftTarget(BaseDatasource):
 
                             sidecar = {
                                 "SpecificCharacterSet": ["ISO_IR 192"],
-                                "SOPClassUID":       dtags.get("sopClassUid", "1.2.840.10008.5.1.4.1.1.7"),
+                                "SOPClassUID":       ("1.2.840.10008.5.1.4.1.1.1"
+                                                      if (_is_jpeg or _is_png)
+                                                      else dtags.get("sopClassUid", "1.2.840.10008.5.1.4.1.1.7")),
                                 "SOPInstanceUID":    sop,
                                 "AcquisitionDate":   acq_date,
                                 "AcquisitionDateTime": acq_date + acq_time,
@@ -542,7 +598,7 @@ class VistaSoftTarget(BaseDatasource):
                                 "ImageClass":        iclass,
                                 "ImageSource":       "FileImport",
                                 "AcquisitionTypeName": _class_to_acq_type(iclass),
-                                "OriginalCodec":     "DICOM",  # always DICOM after conversion
+                                "OriginalCodec":     "DICOM",
                                 "OriginalColorDepth": cdepth,
                                 "ImageCompression":  "Lossless",
                                 "XrayStationUID":    "00000000-0000-0000-0000-000000000000",
@@ -576,11 +632,11 @@ class VistaSoftTarget(BaseDatasource):
                                 "InstanceNumber":    1,
                                 "SamplesPerPixel":   spp,
                                 "PhotometricInterpretation": photo,
-                                "Rows":              dtags.get("rows") or 0,
-                                "Columns":           dtags.get("columns") or 0,
+                                "Rows":    dtags.get("rows") or pinfo["rows"],
+                                "Columns": dtags.get("columns") or pinfo["cols"],
                                 "BitsAllocated":     bits,
-                                "BitsStored":        dtags.get("bitsStored") or bits,
-                                "HighBit":           dtags.get("highBit") or (bits - 1),
+                                "BitsStored":        bits,
+                                "HighBit":           bits - 1,
                                 "PixelRepresentation": dtags.get("pixelRepresentation") or 0,
                                 "ImageLaterality":   "B",
                                 "RescaleIntercept":  0.0,
@@ -598,6 +654,7 @@ class VistaSoftTarget(BaseDatasource):
                             }
                             jsondata_str = _json.dumps(sidecar, ensure_ascii=False)
 
+                            # ── Insert IMAGE row ──────────────────────────
                             try:
                                 _run("execute", db_path,
                                      f"INSERT INTO IMAGE"
@@ -614,21 +671,11 @@ class VistaSoftTarget(BaseDatasource):
                                 self.logger.error(f"    IMAGE insert failed: {dbe}")
                                 continue
 
-                            # Convert non-DICOM data to DICOM for VistaSoft
-                            # Detect by content_type OR by magic bytes (FF D8 = JPEG)
-                            ct = media.get("content_type") or "application/dicom"
-                            _is_jpeg = (("jpeg" in ct or "jpg" in ct)
-                                        or (len(data) >= 2 and data[0] == 0xFF and data[1] == 0xD8))
-                            _is_png  = (("png" in ct)
-                                        or (len(data) >= 4 and data[:4] == b'\x89PNG'))
-                            if _is_jpeg or _is_png:
-                                data = _jpeg_to_dcm(data, sop_uid=sop,
-                                                    patient_name=name,
-                                                    acq_date=acq_dt)
+                            # ── Write DICOM file to disk ──────────────────
                             with open(dcm_path, "wb") as fh:
                                 fh.write(data)
 
-                            # Write preview (.jpg alongside the image)
+                            # ── Write preview (.jpg alongside the image) ──
                             preview_fn = media.get("_fetch_preview")
                             if preview_fn:
                                 try:
@@ -639,11 +686,11 @@ class VistaSoftTarget(BaseDatasource):
                                 except Exception as pe:
                                     self.logger.debug(f"      Preview fetch failed: {pe}")
 
+                            # ── Write sidecar JSON to disk ────────────────
                             with open(json_path, "w", encoding="utf-8-sig") as fh:
                                 _json.dump(sidecar, fh, indent=2, ensure_ascii=False)
 
-                            # INSERT PRESENTATIONSTATE rows — VistaSoft requires TYPE=3 (Last)
-                            # TYPE: 1=Original, 2=Initial, 3=Last
+                            # ── Insert PRESENTATIONSTATE rows ─────────────
                             if iclass == "Dvt":
                                 _processing_obj = {
                                     "$type": "Duerr.Imaging.Contracts.ImageProcessing3DInfo, Duerr.Imaging.Contracts",
@@ -675,10 +722,10 @@ class VistaSoftTarget(BaseDatasource):
                                 ps_uid = str(_uuid_mod.uuid4())
                                 ps_h   = _uuid_to_ms_hex(ps_uid)
                                 if ps_sop:
-                                    sop_col  = f"SOPINSTANCEUID,"
-                                    sop_val  = f"'{ps_sop}',"
-                                    ser_col  = f"SERIESINSTANCEUID,"
-                                    ser_val  = f"'{ps_series}',"
+                                    sop_col = "SOPINSTANCEUID,"
+                                    sop_val = f"'{ps_sop}',"
+                                    ser_col = "SERIESINSTANCEUID,"
+                                    ser_val = f"'{ps_series}',"
                                 else:
                                     sop_col = sop_val = ser_col = ser_val = ""
                                 try:
@@ -705,7 +752,7 @@ class VistaSoftTarget(BaseDatasource):
                 if progress_callback:
                     progress_callback(i+1, total, f"Failed: {name}")
 
-        # Copy temp DB back to remote location if we used a local copy
+        # Copy temp DB back to remote if we used a local copy
         if _db_is_temp and os.path.isfile(db_path):
             try:
                 _shutil.copy2(db_path, db_path_remote)
@@ -719,6 +766,12 @@ class VistaSoftTarget(BaseDatasource):
                     pass
 
         self.logger.info(
-            f"VistaSoft write complete — {written} written, {skipped} skipped, {errors} errors, {images_written} images")
-        return {"success": written, "failed": errors,
-                "media_uploaded": images_written, "media_missing": images_missing, "errors": []}
+            f"VistaSoft write complete — {written} written, {skipped} skipped, "
+            f"{errors} errors, {images_written} images")
+        return {
+            "success":        written,
+            "failed":         errors,
+            "media_uploaded": images_written,
+            "media_missing":  images_missing,
+            "errors":         [],
+        }

@@ -234,6 +234,42 @@ def _get_or_build_target(name: str) -> object:
 def _push_log(msg: str, level: str = "info"):
         ts = datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M:%S")
 
+def _local_db_path(remote_path: str):
+        """
+        Context manager. If remote_path is a UNC/network path, copies the .fdb
+        to a local temp file, yields the local path, then copies it back.
+        If it's already local, yields it unchanged.
+ 
+        Usage:
+            with _local_db_path(db_path) as local:
+                _run("execute", local, sql)
+        """
+        import contextlib, shutil, tempfile
+ 
+        @contextlib.contextmanager
+        def _ctx():
+            is_network = remote_path.startswith("\\\\") or (
+                len(remote_path) > 1 and remote_path[1] != ":"
+            )
+            if not is_network:
+                yield remote_path
+                return
+ 
+            from datasources.fb_client import _get_db_copy
+            tmp = _get_db_copy(remote_path)
+            try:
+                yield tmp
+                # Copy back so writes are persisted
+                shutil.copy2(tmp, remote_path)
+                logger.debug(f"_local_db_path: copied back to {remote_path}")
+            finally:
+                try:
+                    os.remove(tmp)
+                except Exception:
+                    pass
+ 
+        return _ctx()
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Frontend
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -671,8 +707,17 @@ def api_load():
                      user_email=_current_user().get("email"))
     logger.info(f"Loaded {len(patients)} patients from {source.name} in {elapsed}s")
 
-    return _ok(**_app.load_meta)
-
+    # Include a lightweight patient list (uid + name only) for the raw cache
+    raw_list = [
+        {
+            "uid":         p.get("uid", ""),
+            "given_names": p.get("given_names", ""),
+            "family_name": p.get("family_name", ""),
+            "studies":     p.get("studies", {}),
+        }
+        for p in patients
+    ]
+    return _ok(patients=raw_list, **_app.load_meta)
 
 @app.route("/api/patients")
 @require_auth
@@ -1202,6 +1247,67 @@ def api_dicom_status():
             message=_app.dicom_message,
         )
 
+@app.route("/api/media/preview")
+@require_auth
+def api_media_preview():
+    """
+    Serve a thumbnail/preview for a media item by patient UID and media UID.
+    Reads preview_path or file_path from the in-memory patient list.
+    Returns the image bytes with the correct content-type.
+    Query params: patient_uid, media_uid
+    """
+    from flask import Response
+    patient_uid = request.args.get("patient_uid", "")
+    media_uid   = request.args.get("media_uid", "")
+
+    if not patient_uid or not media_uid:
+        return _err("patient_uid and media_uid are required", 400)
+
+    with _state_lock:
+        patients = _app.loaded_patients
+
+    # Find the patient
+    patient = next((p for p in patients if p.get("uid") == patient_uid), None)
+    if not patient:
+        return _err("Patient not found", 404)
+
+    # Find the media item
+    media_item = None
+    for study in patient.get("studies", {}).values():
+        for series in study.get("series", {}).values():
+            for m in series.get("media", []):
+                if m.get("uid") == media_uid:
+                    media_item = m
+                    break
+
+    if not media_item:
+        return _err("Media not found", 404)
+
+    # Try preview_path first (JPEG thumbnail), then file_path
+    for path_key in ("preview_path", "file_path"):
+        path = media_item.get(path_key)
+        if path and os.path.isfile(path):
+            try:
+                import mimetypes
+                ct = mimetypes.guess_type(path)[0] or "application/octet-stream"
+                # For DICOM files, we can't display directly — skip to next
+                if "dicom" in ct or path.lower().endswith(".dcm"):
+                    continue
+                with open(path, "rb") as f:
+                    data = f.read()
+                return Response(data, mimetype=ct,
+                                headers={"Cache-Control": "max-age=300"})
+            except Exception as e:
+                logger.warning(f"Preview read failed for {path}: {e}")
+                continue
+
+    # No previewable file found — return a 1x1 transparent PNG placeholder
+    import base64
+    placeholder = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    )
+    return Response(placeholder, mimetype="image/png",
+                    headers={"Cache-Control": "max-age=60"})
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # API — VistaSoft: clear migrated data
@@ -1211,8 +1317,8 @@ def api_dicom_status():
 @require_auth
 def api_clear_migrated():
     """
-    Delete SOURCE=1 patients from the VistaSoft Firebird DB.
-    Only available when a VistaSoftTarget is configured.
+    Delete SOURCE=1 patients (and all their studies/images/disk files)
+    from the VistaSoft Firebird DB. Works for both local and UNC paths.
     """
     with _state_lock:
         target = _app.target
@@ -1222,14 +1328,18 @@ def api_clear_migrated():
 
     try:
         from datasources.fb_client import _run
-        db_path = target._get_db_path()
+        db_path_remote = target._get_db_path()
+        images_path    = target._get_images_path()
 
         p_where = "(SELECT UID FROM PATIENT WHERE SOURCE=1)"
-        s_where = "(SELECT STUDY.UID FROM STUDY JOIN PATIENT ON STUDY.PATIENTUID=PATIENT.UID WHERE PATIENT.SOURCE=1)"
+        s_where = ("(SELECT STUDY.UID FROM STUDY "
+                    "JOIN PATIENT ON STUDY.PATIENTUID=PATIENT.UID "
+                    "WHERE PATIENT.SOURCE=1)")
         i_where = ("(SELECT IMAGE.UID FROM IMAGE "
-                   "JOIN STUDY ON IMAGE.STUDYUID=STUDY.UID "
-                   "JOIN PATIENT ON STUDY.PATIENTUID=PATIENT.UID "
-                   "WHERE PATIENT.SOURCE=1)")
+                    "JOIN STUDY ON IMAGE.STUDYUID=STUDY.UID "
+                    "JOIN PATIENT ON STUDY.PATIENTUID=PATIENT.UID "
+                    "WHERE PATIENT.SOURCE=1)")
+
         stmts = [
             f"DELETE FROM PRESENTATIONSTATE WHERE IMAGEUID IN {i_where}",
             f"DELETE FROM IMAGE WHERE STUDYUID IN {s_where}",
@@ -1241,21 +1351,51 @@ def api_clear_migrated():
             f"DELETE FROM PATIENTCONSENT WHERE PATIENTUID IN {p_where}",
             "DELETE FROM PATIENT WHERE SOURCE=1",
         ]
-        for sql in stmts:
-            try:
-                _run("execute", db_path, sql)
-            except Exception:
-                pass
+
+        deleted = 0
+        errors_list = []
+        with _local_db_path(db_path_remote) as db_path:
+            for sql in stmts:
+                try:
+                    _run("execute", db_path, sql)
+                    deleted += 1
+                except Exception as e:
+                    errors_list.append(str(e))
+                    logger.warning(f"clear_migrated stmt failed: {e}")
+
+        # Delete disk folders for SOURCE=1 patients.
+        # Each patient folder is named by their UID — collect them first,
+        # then remove after the DB is cleaned.
+        if os.path.isdir(images_path):
+            removed_dirs = 0
+            for entry in os.scandir(images_path):
+                if entry.is_dir():
+                    # Check for Patient.json with PatientSource=Import
+                    pj = os.path.join(entry.path, "Patient.json")
+                    try:
+                        import json as _j
+                        with open(pj, encoding="utf-8-sig") as f:
+                            pdata = _j.load(f)
+                        if pdata.get("PatientSource") == "Import":
+                            import shutil
+                            shutil.rmtree(entry.path, ignore_errors=True)
+                            removed_dirs += 1
+                    except Exception:
+                        pass
+            logger.info(f"Removed {removed_dirs} patient image folder(s).")
 
         _app.store.audit("clear_migrated_data",
-                         f"db={db_path}",
-                         user_email=_current_user().get("email"))
-        logger.info("Cleared migrated data from VistaSoft DB.")
-        return _ok(message="Migrated data cleared from VistaSoft DB.")
+                            f"db={db_path_remote}",
+                            user_email=_current_user().get("email"))
+        logger.info(f"Cleared migrated data: {deleted} SQL statements executed.")
+        msg = "Migrated data cleared from VistaSoft DB."
+        if errors_list:
+            msg += f" ({len(errors_list)} minor errors — some tables may not exist)"
+        return _ok(message=msg)
+
     except Exception as e:
         logger.exception("Clear migrated data failed")
         return _err(str(e))
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # API — Audit log
