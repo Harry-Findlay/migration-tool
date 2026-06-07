@@ -2022,14 +2022,13 @@ function nav(id) {
   });
   const t = document.getElementById('topbarTitle');
   if (t) t.textContent = PAGE_TITLES[id] || id;
-
+ 
   // Lazy load actions
   if (id === 'overview')            loadOverview();
   if (id === 'patients')            loadPatients();
   if (id === 'coremigration')       loadHistory();
   if (id === 'configuredatasource') loadConfigSchema();
   if (id === 'loaddatasource') {
-    // Always reflect the current source selection
     const lbl = document.getElementById('loadSourceLabel');
     if (lbl) lbl.textContent = _selectedSource;
   }
@@ -2707,16 +2706,16 @@ async function validateConfig() {
 }
 
 async function saveAndProceed() {
-    saveConfig();                        // save to localStorage immediately
-    appLog('Saving configuration…', 'info');
-    try {
-      await saveConfigToServer();        // wait for server to acknowledge
-      appLog('Configuration saved.', 'success');
-    } catch (e) {
-      appLog('Warning: config save may not have reached server: ' + e.message, 'warning');
-    }
-    nav('loaddatasource');
+  saveConfig();
+  appLog('Saving configuration…', 'info');
+  try {
+    await saveConfigToServer();
+    appLog('Configuration saved.', 'success');
+  } catch (e) {
+    appLog('Warning: config may not have reached server: ' + e.message, 'warning');
   }
+  nav('loaddatasource');
+}
 
 async function saveConfigToServer() {
   try {
@@ -2738,9 +2737,11 @@ async function loadData() {
   const btn = document.getElementById('loadBtn');
   btn.disabled = true;
   btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading…';
-  document.getElementById('loadProgress').style.display = 'block';
-  document.getElementById('loadResultCard').style.display = 'none';
-  document.getElementById('loadResultCard').innerHTML = `
+ 
+  // Reset result card to its default structure before each attempt
+  const resultCard = document.getElementById('loadResultCard');
+  resultCard.style.display = 'none';
+  resultCard.innerHTML = `
     <div class="card-header"><i class="bi bi-check-circle"></i> Load Results</div>
     <div class="card-body">
       <div class="stat-grid">
@@ -2763,7 +2764,9 @@ async function loadData() {
         </button>
       </div>
     </div>`;
-
+ 
+  document.getElementById('loadProgress').style.display = 'block';
+ 
   const start = Date.now();
   animateProgress('loadBar', 'loadMsg', [
     [10,'Connecting to source…'],
@@ -2772,42 +2775,42 @@ async function loadData() {
     [75,'Building patient list…'],
     [90,'Finalising…'],
   ]);
-
+ 
   try {
     const d = await api('POST', '/load', { source: _selectedSource, config: getSourceConfig() });
     const elapsed = ((Date.now() - start) / 1000).toFixed(1) + 's';
-
+ 
     _loadedPatients = d.patients || [];
-    const patCount  = d.patients_count ?? _loadedPatients.length;
+    const patCount   = d.patients_count ?? _loadedPatients.length;
     const mediaCount = d.media ?? 0;
-    const sizeGb    = d.size_gb ?? '—';
-
+    const sizeGb     = d.size_gb ?? '—';
+ 
     sv('loadPatientsFound', patCount);
-    sv('loadMediaFound', mediaCount);
-    sv('loadTime', elapsed);
-    document.getElementById('loadResultCard').style.display = 'block';
-
-    // Update overview stats
+    sv('loadMediaFound',    mediaCount);
+    sv('loadTime',          elapsed);
+    resultCard.style.display = 'block';
+ 
     sv('statPatients', patCount.toLocaleString());
-    sv('statMedia', mediaCount.toLocaleString());
-    sv('statSize', sizeGb + ' GB');
+    sv('statMedia',    mediaCount.toLocaleString());
+    sv('statSize',     sizeGb + ' GB');
     sv('statMigrated', '0');
-
-    document.getElementById('loadBar').style.width = '100%';
-    document.getElementById('loadMsg').textContent = `Loaded ${patCount} patients, ${mediaCount} media files.`;
+ 
+    document.getElementById('loadBar').style.width  = '100%';
+    document.getElementById('loadMsg').textContent  = `Loaded ${patCount} patients, ${mediaCount} media files.`;
     appLog(`Load complete: ${patCount} patients, ${mediaCount} media files in ${elapsed}`, 'success');
-
+ 
     renderMediaTypes(_loadedPatients);
     renderPatientTable(_loadedPatients);
-  } catch(e) {
+ 
+  } catch (e) {
     const errMsg = e.message || 'Unknown error';
-    document.getElementById('loadMsg').textContent = 'Error: ' + errMsg;
     document.getElementById('loadBar').style.width = '0%';
+    document.getElementById('loadMsg').textContent = 'Load failed: ' + errMsg;
     appLog('Load failed: ' + errMsg, 'error');
  
-    // Show the result card as an error state so it's not invisible
-    document.getElementById('loadResultCard').style.display = 'block';
-    document.getElementById('loadResultCard').innerHTML = `
+    // Replace result card with a visible error state
+    resultCard.style.display = 'block';
+    resultCard.innerHTML = `
       <div class="card-header" style="color:var(--red);">
         <i class="bi bi-exclamation-triangle-fill"></i> Load Failed
       </div>
@@ -2817,10 +2820,14 @@ async function loadData() {
           <span>${escHtml(errMsg)}</span>
         </div>
         <p style="font-size:12px;color:var(--text-3);margin-top:8px;">
-          Check that the source path is correct and the connection was tested successfully.
-          See the application log for more details.
+          Check the source path is correct and the connection was tested.
+          Open the application log for full details.
         </p>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="openLog()">
+          <i class="bi bi-terminal"></i> Open Log
+        </button>
       </div>`;
+ 
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-play-fill"></i> Load Now';
