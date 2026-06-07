@@ -2024,10 +2024,15 @@ function nav(id) {
   if (t) t.textContent = PAGE_TITLES[id] || id;
 
   // Lazy load actions
-  if (id === 'overview')   loadOverview();
-  if (id === 'patients')   loadPatients();
-  if (id === 'coremigration') loadHistory();
+  if (id === 'overview')            loadOverview();
+  if (id === 'patients')            loadPatients();
+  if (id === 'coremigration')       loadHistory();
   if (id === 'configuredatasource') loadConfigSchema();
+  if (id === 'loaddatasource') {
+    // Always reflect the current source selection
+    const lbl = document.getElementById('loadSourceLabel');
+    if (lbl) lbl.textContent = _selectedSource;
+  }
 }
 
 /* ── SERVER STATUS ──────────────────────────────────────────── */
@@ -2701,12 +2706,17 @@ async function validateConfig() {
   } catch(e) { appLog('Validation failed: ' + e.message, 'error'); }
 }
 
-function saveAndProceed() {
-  saveConfig();                // save to localStorage
-  saveConfigToServer();        // save to server state
-  appLog('Configuration saved.', 'success');
-  nav('loaddatasource');
-}
+async function saveAndProceed() {
+    saveConfig();                        // save to localStorage immediately
+    appLog('Saving configuration…', 'info');
+    try {
+      await saveConfigToServer();        // wait for server to acknowledge
+      appLog('Configuration saved.', 'success');
+    } catch (e) {
+      appLog('Warning: config save may not have reached server: ' + e.message, 'warning');
+    }
+    nav('loaddatasource');
+  }
 
 async function saveConfigToServer() {
   try {
@@ -2730,6 +2740,29 @@ async function loadData() {
   btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading…';
   document.getElementById('loadProgress').style.display = 'block';
   document.getElementById('loadResultCard').style.display = 'none';
+  document.getElementById('loadResultCard').innerHTML = `
+    <div class="card-header"><i class="bi bi-check-circle"></i> Load Results</div>
+    <div class="card-body">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Patients Found</div>
+          <div class="stat-value green" id="loadPatientsFound">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Media Files</div>
+          <div class="stat-value accent" id="loadMediaFound">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Load Time</div>
+          <div class="stat-value" id="loadTime">—</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="btn btn-primary btn-sm" onclick="nav('overview')">
+          <i class="bi bi-clipboard-data"></i> View Overview
+        </button>
+      </div>
+    </div>`;
 
   const start = Date.now();
   animateProgress('loadBar', 'loadMsg', [
@@ -2767,8 +2800,27 @@ async function loadData() {
     renderMediaTypes(_loadedPatients);
     renderPatientTable(_loadedPatients);
   } catch(e) {
-    document.getElementById('loadMsg').textContent = 'Error: ' + e.message;
-    appLog('Load failed: ' + e.message, 'error');
+    const errMsg = e.message || 'Unknown error';
+    document.getElementById('loadMsg').textContent = 'Error: ' + errMsg;
+    document.getElementById('loadBar').style.width = '0%';
+    appLog('Load failed: ' + errMsg, 'error');
+ 
+    // Show the result card as an error state so it's not invisible
+    document.getElementById('loadResultCard').style.display = 'block';
+    document.getElementById('loadResultCard').innerHTML = `
+      <div class="card-header" style="color:var(--red);">
+        <i class="bi bi-exclamation-triangle-fill"></i> Load Failed
+      </div>
+      <div class="card-body">
+        <div class="alert-box alert-error">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>${escHtml(errMsg)}</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-3);margin-top:8px;">
+          Check that the source path is correct and the connection was tested successfully.
+          See the application log for more details.
+        </p>
+      </div>`;
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-play-fill"></i> Load Now';
