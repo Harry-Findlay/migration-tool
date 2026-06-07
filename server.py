@@ -232,12 +232,7 @@ def _get_or_build_target(name: str) -> object:
     return cls()
 
 def _push_log(msg: str, level: str = "info"):
-    ts = datetime.datetime.utcnow().strftime("%H:%M:%S")
-    with _state_lock:
-        _app.migration_log.append({"ts": ts, "msg": msg, "level": level})
-        if len(_app.migration_log) > 1000:
-            _app.migration_log = _app.migration_log[-800:]
-
+        ts = datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M:%S")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Frontend
@@ -771,28 +766,31 @@ def _on_progress(current, total, message, counters=None):
     _push_log(message, "info")
 
 
-def _on_complete(result):
-    with _state_lock:
-        _app.migration_status  = result.status.value
-        _app.migration_pct     = 100 if result.status == MigrationStatus.COMPLETED else _app.migration_pct
-        _app.migration_message = result.message
-        _app.session_id        = result.session_id
-    level = "success" if result.status == MigrationStatus.COMPLETED else "warning"
-    _push_log(result.message, level)
-    _app.store.audit(
-        f"migration_{result.status.value}",
-        result.message,
-        session_id=result.session_id,
-        user_email=_current_user().get("email") if _current_user() else None,
-    )
-
-
-def _on_error(error_msg):
-    with _state_lock:
-        _app.migration_status  = "failed"
-        _app.migration_message = error_msg
-    _push_log(error_msg, "error")
-
+def _make_migration_callbacks(user_email: str):
+        """Create on_complete/on_error callbacks that don't need request context."""
+ 
+        def _on_complete(result):
+            with _state_lock:
+                _app.migration_status  = result.status.value
+                _app.migration_pct     = 100 if result.status == MigrationStatus.COMPLETED else _app.migration_pct
+                _app.migration_message = result.message
+                _app.session_id        = result.session_id
+            level = "success" if result.status == MigrationStatus.COMPLETED else "warning"
+            _push_log(result.message, level)
+            _app.store.audit(
+                f"migration_{result.status.value}",
+                result.message,
+                session_id=result.session_id,
+                user_email=user_email,
+            )
+ 
+        def _on_error(error_msg):
+            with _state_lock:
+                _app.migration_status  = "failed"
+                _app.migration_message = error_msg
+            _push_log(error_msg, "error")
+ 
+        return _on_complete, _on_error
 
 @app.route("/api/migrate/start", methods=["POST"])
 @require_auth
@@ -822,6 +820,9 @@ def api_migrate_start():
         _app.migration_counters = {}
         _app.migration_log      = []
 
+    _user_email = _current_user().get("email", "")
+    _on_complete, _on_error = _make_migration_callbacks(_user_email)
+ 
     _app.engine.run(
         source=source, target=target,
         max_parallelism=max_par,
@@ -879,6 +880,9 @@ def api_migrate_resume():
             _app.migration_log      = []
 
         _app.engine = MigrationEngine(store=_app.store)
+        _user_email = _current_user().get("email", "")
+        _on_complete, _on_error = _make_migration_callbacks(_user_email)
+ 
         _app.engine.run(
             source=source, target=target,
             resume_session_id=session_id,

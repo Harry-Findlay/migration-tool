@@ -32,7 +32,7 @@ def _jpeg_to_dcm(jpeg_bytes: bytes, sop_uid: str = "",
     # Try dcmtk img2dcm — bundled in project dcmtk/ folder or on PATH
     _this_dir   = os.path.dirname(os.path.abspath(__file__))
     _project    = os.path.dirname(_this_dir)  # datasources/ -> project root
-    _bundled    = os.path.join(_project, "lib", "dcmtk", "img2dcm.exe")
+    _bundled    = os.path.join(_project, "lib", "dcmtk", "bin", "img2dcm.exe")
     img2dcm     = _bundled if os.path.isfile(_bundled) else shutil.which("img2dcm")
     if img2dcm:
         try:
@@ -307,13 +307,29 @@ class VistaSoftTarget(BaseDatasource):
         if cancel_flag is None:
             cancel_flag = lambda: False
 
-        db_path          = self._get_db_path()
+        db_path_remote   = self._get_db_path()
         images_path      = self._get_images_path()
         institution_uid  = self.get_config_value("InstitutionUID") or ""
         institution_name = self.get_config_value("InstitutionName") or ""
-
-        if not os.path.isfile(db_path):
-            raise FileNotFoundError(f"VistaSoft DB not found: {db_path}")
+ 
+        if not os.path.isfile(db_path_remote):
+            raise FileNotFoundError(f"VistaSoft DB not found: {db_path_remote}")
+ 
+        # FbBridge embedded can only open local paths — copy to temp if UNC/network
+        from datasources.fb_client import _get_db_copy
+        import shutil as _shutil
+        import tempfile as _tempfile
+ 
+        _is_network = db_path_remote.startswith("\\\\") or (
+            len(db_path_remote) > 1 and db_path_remote[1] != ":"
+        )
+        if _is_network:
+            self.logger.info(f"  Network path detected — copying DB to local temp for FbBridge")
+            db_path = _get_db_copy(db_path_remote)
+            _db_is_temp = True
+        else:
+            db_path = db_path_remote
+            _db_is_temp = False
 
         written = skipped = errors = images_written = images_missing = 0
         total = len(patients)
@@ -688,6 +704,19 @@ class VistaSoftTarget(BaseDatasource):
                 self.logger.error(f"  Failed {name}: {exc}")
                 if progress_callback:
                     progress_callback(i+1, total, f"Failed: {name}")
+
+        # Copy temp DB back to remote location if we used a local copy
+        if _db_is_temp and os.path.isfile(db_path):
+            try:
+                _shutil.copy2(db_path, db_path_remote)
+                self.logger.info(f"  Copied temp DB back to {db_path_remote}")
+            except Exception as _ce:
+                self.logger.error(f"  Failed to copy DB back: {_ce}")
+            finally:
+                try:
+                    os.remove(db_path)
+                except Exception:
+                    pass
 
         self.logger.info(
             f"VistaSoft write complete — {written} written, {skipped} skipped, {errors} errors, {images_written} images")

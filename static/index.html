@@ -1221,14 +1221,17 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         </div>
 
         <div class="card">
-          <div class="card-header"><i class="bi bi-grid-3x3-gap"></i> Media Browser</div>
-          <div class="card-body">
-            <div class="empty-state">
-              <i class="bi bi-image"></i>
-              <p>Load data to browse media files</p>
+            <div class="card-header" style="justify-content:space-between;">
+              <span><i class="bi bi-grid-3x3-gap"></i> Media Browser</span>
+              <span id="mediaBrowserCount" style="font-size:11px;color:var(--text-3);"></span>
+            </div>
+            <div class="card-body" id="mediaBrowserBody">
+              <div class="empty-state">
+                <i class="bi bi-image"></i>
+                <p>Load data to browse media files</p>
+              </div>
             </div>
           </div>
-        </div>
       </div>
 
       <!-- ─── PMS DATA IMPORT ──────────────────────────────── -->
@@ -2029,6 +2032,10 @@ function nav(id) {
   if (id === 'patients')            loadPatients();
   if (id === 'coremigration')       loadHistory();
   if (id === 'configuredatasource') loadConfigSchema();
+    if (id === 'media' && _loadedPatients.length) {
+      renderMediaTypes(_loadedPatients);
+      renderMediaBrowser(_loadedPatients);
+    }
   if (id === 'loaddatasource') {
     const lbl = document.getElementById('loadSourceLabel');
     if (lbl) lbl.textContent = _selectedSource;
@@ -2806,6 +2813,7 @@ async function loadData() {
       _loadedPatients = pd.patients || _loadedPatients;
     } catch { /* keep existing list */ }
     renderMediaTypes(_loadedPatients);
+    renderMediaBrowser(_loadedPatients);
     renderPatientTable(_loadedPatients);
  
   } catch (e) {
@@ -2873,6 +2881,57 @@ function renderMediaTypes(patients) {
   document.getElementById('modalityBreakdown').innerHTML = html;
   document.getElementById('fileTypeBreakdown').innerHTML = html;
 }
+
+function renderMediaBrowser(patients) {
+      const body = document.getElementById('mediaBrowserBody');
+      const countLbl = document.getElementById('mediaBrowserCount');
+      if (!body) return;
+ 
+      const items = [];
+      patients.forEach(p => {
+        const name = [p.given_names, p.family_name].filter(Boolean).join(' ') || p.uid || '—';
+        (p.modalities || (p.modality ? [p.modality] : [])).forEach(mod => {
+          // Count how many images this patient has of this modality
+          const count = p.media_count || 0;
+          items.push({ name, uid: p.uid, modality: mod, count, dob: p.dob || '—' });
+        });
+        if (!p.media_count) return; // skip patients with no media
+      });
+ 
+      if (!items.length) {
+        body.innerHTML = '<div class="empty-state"><i class="bi bi-image"></i><p>No media loaded.</p></div>';
+        if (countLbl) countLbl.textContent = '';
+        return;
+      }
+ 
+      if (countLbl) countLbl.textContent = `${items.length} patient(s) with media`;
+ 
+      const modIcons = {
+        INTRAORAL: 'bi-camera', PANORAMIC: 'bi-aspect-ratio',
+        PICTURE: 'bi-image', MOVIE: 'bi-camera-video',
+        Intra: 'bi-camera', Snapshot: 'bi-image', Video: 'bi-camera-video',
+        Unknown: 'bi-file-earmark',
+      };
+ 
+      body.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+          ${items.map(item => `
+            <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:12px;">
+              <div style="font-size:28px;text-align:center;margin-bottom:8px;color:var(--accent);">
+                <i class="bi ${modIcons[item.modality] || 'bi-file-earmark'}"></i>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:var(--text-1);text-align:center;margin-bottom:2px;">
+                ${escHtml(item.name)}
+              </div>
+              <div style="font-size:10px;color:var(--text-3);text-align:center;">
+                ${escHtml(item.modality)} · ${item.count} file(s)
+              </div>
+              <div style="font-size:10px;color:var(--text-3);text-align:center;">
+                DOB: ${escHtml(item.dob)}
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }
 
 /* ── PATIENTS PAGE ──────────────────────────────────────────── */
 async function loadPatients() {
