@@ -1217,33 +1217,43 @@ def api_dicom_load_patients():
     try:
         client = dtx._make_client()
         raw_patients = client.get_patients()
-        patients = []
-        for rp in raw_patients:
-                uid  = rp.get("id", "")
-                name = rp.get("fullName") or rp.get("name") or ""
-                fn   = (rp.get("firstname") or rp.get("firstName") or
-                        rp.get("givenName") or "")
-                ln   = (rp.get("lastname") or rp.get("lastName") or
-                        rp.get("familyName") or "")
-                # DTX returns dateOfBirth in ISO format e.g. "1985-06-15T00:00:00"
-                dob_raw = (rp.get("dateOfBirth") or rp.get("birthDate") or
-                           rp.get("dob") or "")
-                dob = dob_raw[:10] if dob_raw else ""
-                # Fallback name parsing if firstname/lastname not present
-                if not fn and not ln and name:
-                    parts = name.strip().split()
-                    fn = parts[0] if parts else ""
-                    ln = parts[-1] if len(parts) > 1 else ""
-                pid = (rp.get("dicomId") or rp.get("pmsId") or
-                       rp.get("referenceId") or rp.get("patientReferenceId") or uid)
-                patients.append({
-                    "uid":         uid,
-                    "id":          pid,
-                    "given_names": fn,
-                    "family_name": ln,
-                    "birth_date":  dob,
-                    "media_count": None,
-                })
+        import concurrent.futures as _cf
+ 
+        def _load_one(rp):
+            uid  = rp.get("id", "")
+            name = rp.get("fullName") or rp.get("name") or ""
+            fn   = (rp.get("firstname") or rp.get("firstName") or
+                    rp.get("givenName") or "")
+            ln   = (rp.get("lastname") or rp.get("lastName") or
+                    rp.get("familyName") or "")
+            dob_raw = (rp.get("dateOfBirth") or rp.get("birthDate") or
+                       rp.get("dob") or "")
+            dob = dob_raw[:10] if dob_raw else ""
+            if not fn and not ln and name:
+                parts = name.strip().split()
+                fn = parts[0] if parts else ""
+                ln = parts[-1] if len(parts) > 1 else ""
+            pid = (rp.get("dicomId") or rp.get("pmsId") or
+                   rp.get("referenceId") or rp.get("patientReferenceId") or uid)
+            media_count = None
+            try:
+                media_list = client.get_patient_media(uid)
+                media_count = len([m for m in (media_list or [])
+                                   if m.get("mediaType") in ("IMAGE", "VOLUME", None)])
+            except Exception:
+                pass
+            return {
+                "uid":         uid,
+                "id":          pid,
+                "given_names": fn,
+                "family_name": ln,
+                "birth_date":  dob,
+                "media_count": media_count,
+            }
+ 
+        with _cf.ThreadPoolExecutor(max_workers=8) as pool:
+            patients = list(pool.map(_load_one, raw_patients))
+ 
         return _ok(patients=patients, total=len(patients))
     except Exception as e:
         logger.exception("dicom_load_patients failed")
@@ -1338,21 +1348,32 @@ def api_dicom_export():
                         modality = (media.get("modality") or "").upper()
                         if modality_filter and modality != modality_filter:
                             continue
+                        if media.get("mediaType") not in ("IMAGE", "VOLUME", None):
+                            continue
                         try:
                             dcm_data = client.get_media_data(mid)
                             if not dcm_data:
                                 continue
-                            # Filename: media ID or SOP instance UID
-                            sop = (media.get("sopInstanceUid") or mid or
-                                   str(__import__("uuid").uuid4()))
-                            fname = sop.replace(".", "_") + ".dcm"
  
-                            # Anonymise if requested — zero out patient tags
-                            # This is a basic approach: replace name/DOB in the
-                            # DICOM header. A full anonymisation would use deid tools.
+                            # Fetch DICOM tags and inject patient demographics
+                            try:
+                                dtags = client.get_media_dicom_tags(mid) or {}
+                                dcm_data = _inject_dicom_tags(
+                                    dcm_data, dtags,
+                                    patient_name=f"{ln}^{fn}",
+                                    patient_id=pid,
+                                    patient_dob=rp.get("dateOfBirth", "")[:10].replace("-", ""),
+                                    patient_sex=rp.get("gender", ""),
+                                )
+                            except Exception as te:
+                                logger.debug(f"  Tag inject failed for {mid}: {te}")
+ 
                             if anonymise:
                                 dcm_data = _anonymise_dicom(dcm_data, pat_uid)
  
+                            sop = (media.get("sopInstanceUid") or mid or
+                                   str(__import__("uuid").uuid4()))
+                            fname = sop.replace(".", "_") + ".dcm"
                             with open(os.path.join(patient_dir, fname), "wb") as f:
                                 f.write(dcm_data)
                             exported += 1
@@ -1388,7 +1409,86 @@ def api_dicom_export():
     threading.Thread(target=_export_worker, daemon=True).start()
     return _ok(message="DICOM export started.")
  
+def _inject_dicom_tags(data: bytes, dtags: dict,
+                        patient_name: str = "", patient_id: str = "",
+                        patient_dob: str = "", patient_sex: str = "") -> bytes:
+    """
+    Inject patient-level DICOM tags into a DICOM file.
+    DTX get_media_data() returns the raw DICOM binary but patient demographic
+    tags (PatientName, PatientID, DOB, Sex) may be empty — DTX stores them
+    separately and returns them via get_media_dicom_tags(). This function
+    writes them into the file only if the existing tag value is empty.
+    """
+    import struct as _st
  
+    def _set_tag_if_empty(d: bytes, grp: int, elm: int, vr: str, value: bytes) -> bytes:
+        if not value:
+            return d
+        # Pad to even length
+        pad = b' ' if vr in ('LO','PN','SH','CS','DA','TM','LT','ST') else b'\x00'
+        if len(value) % 2:
+            value += pad
+ 
+        tag_bytes = _st.pack('<HH', grp, elm)
+        pos = d.find(tag_bytes)
+        if pos >= 0:
+            try:
+                existing_vr = d[pos+4:pos+6].decode('ascii', errors='?')
+                if existing_vr in ('OB','OW','SQ','UC','UR','UT','UN'):
+                    old_len = _st.unpack('<I', d[pos+8:pos+12])[0]
+                    vs = pos + 12
+                else:
+                    old_len = _st.unpack('<H', d[pos+6:pos+8])[0]
+                    vs = pos + 8
+                # Only overwrite if currently blank/empty
+                existing_val = d[vs:vs+old_len].rstrip(b'\x00 ')
+                if existing_val:
+                    return d  # already populated — don't touch it
+                # Overwrite with new value (same length padding)
+                new_val = value[:old_len].ljust(old_len, pad)
+                return d[:vs] + new_val + d[vs+old_len:]
+            except Exception:
+                return d
+        else:
+            # Tag not present — insert before the first tag with a higher address
+            insert_pos = 132
+            try:
+                i = 132
+                while i < len(d) - 8:
+                    g = _st.unpack('<H', d[i:i+2])[0]
+                    e = _st.unpack('<H', d[i+2:i+4])[0]
+                    if (g > grp) or (g == grp and e > elm):
+                        insert_pos = i
+                        break
+                    evr = d[i+4:i+6].decode('ascii', errors='?')
+                    if evr in ('OB','OW','SQ','UC','UR','UT','UN'):
+                        l = _st.unpack('<I', d[i+8:i+12])[0]; i += 12 + l
+                    else:
+                        l = _st.unpack('<H', d[i+6:i+8])[0]; i += 8 + l
+                    if g > 0x0050:  # don't scan past group 0050
+                        break
+            except Exception:
+                pass
+            new_tag = tag_bytes + vr.encode('ascii') + _st.pack('<H', len(value)) + value
+            return d[:insert_pos] + new_tag + d[insert_pos:]
+ 
+    sex_map = {"MALE": "M", "FEMALE": "F", "OTHER": "O"}
+    sex_byte = sex_map.get((patient_sex or "").upper(), "").encode('ascii')
+ 
+    if patient_name:
+        data = _set_tag_if_empty(data, 0x0010, 0x0010, 'PN',
+                                  patient_name[:64].encode('ascii', errors='replace'))
+    if patient_id:
+        data = _set_tag_if_empty(data, 0x0010, 0x0020, 'LO',
+                                  patient_id[:64].encode('ascii', errors='replace'))
+    if patient_dob and patient_dob.isdigit() and len(patient_dob) == 8:
+        data = _set_tag_if_empty(data, 0x0010, 0x0030, 'DA',
+                                  patient_dob.encode('ascii'))
+    if sex_byte:
+        data = _set_tag_if_empty(data, 0x0010, 0x0040, 'CS', sex_byte)
+ 
+    return data
+
 def _anonymise_dicom(data: bytes, anon_id: str) -> bytes:
     """
     Basic DICOM anonymisation — blanks patient name, DOB, and ID tags.
