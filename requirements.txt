@@ -1,0 +1,23 @@
+# requirements.txt
+# IT INFINITY Migration Tool
+
+# Web framework
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Microsoft 365 authentication
+msal>=1.28.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
+
+# Windows service host
+pywin32>=306
+
+# Firebird database client
+# NOTE: The embedded Firebird client DLLs are in lib/fb_bridge/
+# FbBridge.exe handles the actual connection — fdb is not required.
+# fdb>=2.0.2    # only needed if you switch away from FbBridge
+
+# DICOM export (optional — uncomment to enable full DICOM writing)
+# pydicom>=2.4.4

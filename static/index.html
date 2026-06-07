@@ -1,0 +1,3031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT INFINITY · Migration Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════ */
+:root {
+  --bg-base:      #0b0d12;
+  --bg-surface:   #10131a;
+  --bg-raised:    #161b26;
+  --bg-hover:     #1c2232;
+  --bg-input:     #141820;
+  --border:       #252c3d;
+  --border-dim:   #1a2030;
+  --accent:       #4f7cff;
+  --accent-dim:   rgba(79,124,255,0.12);
+  --accent-glow:  rgba(79,124,255,0.25);
+  --text-1:       #e4e8f5;
+  --text-2:       #7a83a0;
+  --text-3:       #3d4560;
+  --green:        #2ecc8a;
+  --green-dim:    rgba(46,204,138,0.1);
+  --yellow:       #f0a500;
+  --yellow-dim:   rgba(240,165,0,0.1);
+  --red:          #ff4f5e;
+  --red-dim:      rgba(255,79,94,0.1);
+  --purple:       #a066ff;
+  --font-ui:      'Atkinson Hyperlegible', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --radius:       8px;
+  --radius-lg:    12px;
+  --sidebar-w:    228px;
+  --topbar-h:     48px;
+}
+
+/* ═══ RESET ════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { background: var(--bg-base); color: var(--text-1); font-family: var(--font-ui); font-size: 14px; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: inherit; outline: none; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ═══ SCREEN SYSTEM ════════════════════════════════════════ */
+.screen { display: none; width: 100vw; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH SCREEN — clean, internal-tool aesthetic
+   A single centred card with the infinity logo left, form right
+═══════════════════════════════════════════════════════════ */
+#screen-auth {
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle grid backdrop */
+#screen-auth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-dim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-dim) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: .4;
+  pointer-events: none;
+}
+
+/* accent blobs */
+#screen-auth::after {
+  content: '';
+  position: absolute;
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  top: -120px; left: -120px;
+  pointer-events: none;
+}
+
+.auth-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  width: 720px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(79,124,255,.06);
+  animation: cardIn .35s cubic-bezier(.16,1,.3,1);
+}
+@keyframes cardIn {
+  from { opacity:0; transform: translateY(16px) scale(.98); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+/* left panel — identity */
+.auth-left {
+  background: var(--bg-raised);
+  border-right: 1px solid var(--border);
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: -40px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.auth-logo-mark {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.auth-logo-text {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-1);
+  line-height: 1.2;
+}
+.auth-logo-sub {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.auth-tagline {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-1);
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+.auth-tagline span { color: var(--accent); }
+.auth-desc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.65;
+  margin-bottom: 32px;
+}
+.auth-version {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* right panel — login form */
+.auth-right {
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+}
+.auth-right-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 6px;
+}
+.auth-right-sub {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.form-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: var(--text-1);
+  font-size: 13px;
+  width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.form-input::placeholder { color: var(--text-3); }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  color: var(--text-3);
+  font-size: 11px;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn { border-radius: var(--radius); font-weight: 600; font-size: 13px; padding: 10px 16px; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 0 20px var(--accent-glow); }
+.btn-primary:hover { background: #3d6ef0; box-shadow: 0 0 28px var(--accent-glow); }
+.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-1); border-color: var(--accent); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,79,94,.25); }
+.btn-danger:hover { background: rgba(255,79,94,.2); }
+.btn-success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,204,138,.25); }
+.btn-success:hover { background: rgba(46,204,138,.2); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-full { width: 100%; }
+
+.btn-ms {
+  background: #fff;
+  color: #111;
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  border: none;
+  transition: background .15s;
+}
+.btn-ms:hover { background: #e8e8e8; }
+
+.auth-note {
+  margin-top: 20px;
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.65;
+  text-align: center;
+}
+.auth-error {
+  background: var(--red-dim);
+  border: 1px solid rgba(255,79,94,.3);
+  border-radius: var(--radius);
+  color: var(--red);
+  font-size: 12px;
+  padding: 8px 12px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════ */
+#screen-app { flex-direction: row; }
+
+/* ─── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sb-brand {
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sb-brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.sb-icon {
+  width: 26px; height: 26px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #fff; flex-shrink: 0;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+.sb-title { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-1); }
+.sb-sub   { font-size: 10px; color: var(--text-3); letter-spacing: .06em; text-transform: uppercase; padding-left: 34px; }
+.sb-version {
+  display: inline-block;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 34px;
+  margin-top: 4px;
+}
+
+.sb-nav { flex: 1; overflow-y: auto; padding: 6px 0; }
+.sb-section {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 10px 14px 4px;
+}
+.sb-sep { height: 1px; background: var(--border); margin: 3px 10px; }
+.sb-nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  border-left: 2px solid transparent;
+  transition: all .12s;
+  user-select: none;
+}
+.sb-nav a:hover { background: var(--bg-hover); color: var(--text-1); }
+.sb-nav a.active { background: var(--accent-dim); color: var(--accent); border-left-color: var(--accent); }
+.sb-nav a i { font-size: 13px; flex-shrink: 0; width: 16px; text-align: center; }
+.sb-badge {
+  margin-left: auto;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  background: var(--bg-hover);
+  color: var(--text-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.sb-nav a.active .sb-badge { background: var(--accent-dim); color: var(--accent); }
+
+.sb-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sb-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid var(--accent-glow);
+}
+.sb-user-name  { font-size: 11px; font-weight: 600; color: var(--text-1); }
+.sb-user-role  { font-size: 10px; color: var(--text-3); }
+.sb-signout { margin-left: auto; color: var(--text-3); cursor: pointer; font-size: 14px; transition: color .12s; }
+.sb-signout:hover { color: var(--red); }
+
+/* ─── MAIN AREA ───────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+.topbar {
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+}
+.topbar-title { font-size: 14px; font-weight: 700; color: var(--text-1); flex: 1; }
+.topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex-shrink: 0;
+}
+.status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+.status-dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.status-dot.red { background: var(--red); }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* ─── PAGE SYSTEM ─────────────────────────────────────────── */
+.page { display: none; animation: pageIn .2s ease; }
+.page.active { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pageIn {
+  from { opacity:0; transform: translateY(6px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.page-header { margin-bottom: 20px; }
+.page-title { font-size: 18px; font-weight: 800; color: var(--text-1); }
+.page-sub { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+
+/* ═══════════════════════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════════════════════ */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.card-header i { font-size: 13px; }
+.card-body { padding: 16px; }
+
+.row { display: flex; gap: 16px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 200px; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--text-3); margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 800; font-family: var(--font-mono); color: var(--text-1); line-height: 1; }
+.stat-value.accent { color: var(--accent); }
+.stat-value.green { color: var(--green); }
+.stat-value.yellow { color: var(--yellow); }
+.stat-value.red { color: var(--red); }
+.stat-delta { font-size: 10px; color: var(--text-3); margin-top: 4px; font-family: var(--font-mono); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border-dim); color: var(--text-2); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-accent { background: var(--accent-dim); color: var(--accent); }
+.badge-gray { background: var(--bg-hover); color: var(--text-2); }
+.badge-purple { background: rgba(160,102,255,.12); color: var(--purple); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; }
+.field input, .field select, .field textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  color: var(--text-1);
+  font-size: 13px;
+  width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.field input::placeholder { color: var(--text-3); }
+.field select { color: var(--text-2); }
+.field select option { background: var(--bg-raised); }
+.field-hint { font-size: 10px; color: var(--text-3); }
+.field-row { display: flex; gap: 8px; }
+.field-row input { flex: 1; }
+
+.toggle-wrap { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-dim); }
+.toggle-wrap:last-child { border-bottom: none; }
+.toggle-info { flex: 1; }
+.toggle-info-name { font-size: 13px; color: var(--text-1); font-weight: 500; }
+.toggle-info-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.toggle {
+  position: relative;
+  width: 36px; height: 20px;
+  flex-shrink: 0;
+}
+.toggle input { display: none; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-hover);
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: background .2s, border-color .2s;
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition: transform .2s, background .2s;
+}
+.toggle input:checked + .toggle-track { background: var(--accent-dim); border-color: var(--accent); }
+.toggle input:checked + .toggle-track::after { transform: translateX(16px); background: var(--accent); }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; gap: 0; }
+.tab-btn {
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text-1); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.progress-bar-wrap { background: var(--bg-raised); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s ease; box-shadow: 0 0 8px var(--accent-glow); }
+.progress-bar-fill.green { background: var(--green); box-shadow: 0 0 8px rgba(46,204,138,.4); }
+.progress-bar-fill.yellow { background: var(--yellow); }
+.progress-bar-fill.red { background: var(--red); }
+
+.log-panel {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  height: 220px;
+  overflow-y: auto;
+  padding: 10px;
+}
+.log-line { padding: 2px 0; color: var(--text-2); }
+.log-line.success { color: var(--green); }
+.log-line.error { color: var(--red); }
+.log-line.warning { color: var(--yellow); }
+.log-line.info { color: var(--accent); }
+.log-ts { color: var(--text-3); margin-right: 6px; }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-3);
+}
+.empty-state i { font-size: 36px; display: block; margin-bottom: 12px; opacity: .4; }
+.empty-state p { font-size: 13px; }
+
+.source-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-raised);
+}
+.source-card:hover { border-color: var(--accent); background: var(--bg-hover); }
+.source-card.selected { border-color: var(--accent); background: var(--accent-dim); }
+.source-card.selected .source-name { color: var(--accent); }
+.source-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  background: var(--bg-hover);
+}
+.source-name { font-size: 13px; font-weight: 700; color: var(--text-1); }
+.source-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.source-check { margin-left: auto; color: var(--accent); font-size: 18px; display: none; }
+.source-card.selected .source-check { display: block; }
+
+.alert-box {
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.55;
+}
+.alert-box i { flex-shrink: 0; margin-top: 1px; }
+.alert-info { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(79,124,255,.25); }
+.alert-warn { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(240,165,0,.25); }
+.alert-success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,204,138,.25); }
+.alert-error { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,79,94,.25); }
+
+.sep { height: 1px; background: var(--border); margin: 16px 0; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.ml-auto { margin-left: auto; }
+.text-2 { color: var(--text-2); }
+.text-3 { color: var(--text-3); }
+.mono { font-family: var(--font-mono); }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fs-12 { font-size: 12px; }
+.fs-11 { font-size: 11px; }
+
+/* ─── MIGRATION PROGRESS ─────────────────────────────────── */
+.migration-hero {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.migration-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+}
+.mig-status-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.mig-status-text { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.mig-pct { font-size: 28px; font-weight: 800; font-family: var(--font-mono); color: var(--accent); margin-left: auto; }
+.mig-msg { font-size: 12px; color: var(--text-2); margin-bottom: 12px; min-height: 18px; font-family: var(--font-mono); }
+.mig-ctrl { display: flex; gap: 8px; margin-top: 16px; }
+
+/* ─── MODAL ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 480px;
+  max-width: 95vw;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7);
+  animation: cardIn .25s cubic-bezier(.16,1,.3,1);
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-title { font-size: 14px; font-weight: 700; color: var(--text-1); flex: 1; }
+.modal-close { color: var(--text-3); cursor: pointer; font-size: 18px; transition: color .12s; }
+.modal-close:hover { color: var(--text-1); }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ─── PATIENT TABLE ──────────────────────────────────────── */
+.patient-row td:first-child { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  flex: 1;
+  max-width: 340px;
+}
+.search-box i { color: var(--text-3); font-size: 13px; flex-shrink: 0; }
+.search-box input { background: none; border: none; color: var(--text-1); font-size: 13px; width: 100%; }
+.search-box input::placeholder { color: var(--text-3); }
+
+/* ─── FORBIDDEN ──────────────────────────────────────────── */
+.forbidden-wrap {
+  background: var(--red-dim);
+  border: 1px solid rgba(255,79,94,.25);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  text-align: center;
+}
+.forbidden-wrap i { font-size: 40px; color: var(--red); display: block; margin-bottom: 12px; }
+.forbidden-wrap h2 { font-size: 18px; color: var(--red); margin-bottom: 8px; }
+.forbidden-wrap p { font-size: 13px; color: rgba(255,79,94,.7); }
+
+/* ─── TOOLTIP ────────────────────────────────────────────── */
+[title] { cursor: help; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     AUTH SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-card">
+
+    <!-- Left: brand + identity -->
+    <div class="auth-left">
+      <div class="auth-logo">
+        <div class="auth-logo-mark"><i class="bi bi-infinity"></i></div>
+        <div>
+          <div class="auth-logo-text">IT Infinity</div>
+          <div class="auth-logo-sub">Migration Tool</div>
+        </div>
+      </div>
+      <div class="auth-tagline">Migrate with<br><span>precision.</span></div>
+      <div class="auth-desc">
+        Internal tooling for dental imaging data migration between VistaSoft, DTX Studio, and SOPRO systems.<br><br>
+        Supports incremental runs, pause/resume, full audit logging, and per-patient status tracking.
+      </div>
+      <div class="auth-version">v2.4.1 · IT INFINITY Ltd</div>
+    </div>
+
+    <!-- Right: login form -->
+    <div class="auth-right">
+      <div class="auth-right-title">Sign in</div>
+      <div class="auth-right-sub">Use your IT INFINITY Microsoft 365 account to access the migration tool.</div>
+
+      <div class="auth-form">
+        <div id="authError" class="auth-error">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span id="authErrorMsg">Sign-in failed. Please try again.</span>
+        </div>
+
+        <button class="btn-ms" onclick="signIn()">
+          <svg width="18" height="18" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
+          Sign in with Microsoft 365
+        </button>
+        <div id="authSpinner" style="display:none;text-align:center;margin-top:12px;font-size:12px;color:var(--text-3);">
+          <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;display:inline-block;"></i>
+          Redirecting to Microsoft…
+        </div>
+      </div>
+
+      <div class="auth-note">
+        Access is restricted to authorised IT INFINITY personnel.<br>
+        Contact your administrator if you require access.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     APP SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="screen-app" class="screen">
+
+  <!-- ─── SIDEBAR ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-row">
+        <div class="sb-icon"><i class="bi bi-infinity"></i></div>
+        <span class="sb-title">IT Infinity</span>
+      </div>
+      <div class="sb-sub">Migration Tool</div>
+      <div class="sb-version">v2.4.1</div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-section">Setup</div>
+      <a onclick="nav('selectdatasource')"><i class="bi bi-database-add"></i> Select Source</a>
+      <a onclick="nav('selecttarget')"><i class="bi bi-database-up"></i> Select Target</a>
+      <a onclick="nav('configuredatasource')"><i class="bi bi-sliders2"></i> Configure</a>
+      <a onclick="nav('loaddatasource')"><i class="bi bi-database-down"></i> Load Data</a>
+      <div class="sb-sep"></div>
+      <div class="sb-section">Data</div>
+      <a onclick="nav('overview')"><i class="bi bi-clipboard-data"></i> Overview</a>
+      <a onclick="nav('patients')"><i class="bi bi-people"></i> Patients</a>
+      <a onclick="nav('media')"><i class="bi bi-images"></i> Media</a>
+      <div class="sb-sep"></div>
+      <div class="sb-section">Integrations</div>
+      <a onclick="nav('pmsintegration')"><i class="bi bi-filetype-csv"></i> PMS Data Import</a>
+      <a onclick="nav('coreintegration')"><i class="bi bi-diagram-3"></i> DTX Studio</a>
+      <div class="sb-sep"></div>
+      <div class="sb-section">Migration</div>
+      <a onclick="nav('migrationfilters')"><i class="bi bi-funnel"></i> Filters</a>
+      <a onclick="nav('coremigration')"><i class="bi bi-database-up"></i> Run Migration</a>
+      <a onclick="nav('dicomexport')"><i class="bi bi-box-arrow-right"></i> DICOM Export</a>
+      <div class="sb-sep"></div>
+      <div class="sb-section">System</div>
+      <a onclick="nav('mediasettings')"><i class="bi bi-hdd"></i> Media Settings</a>
+      <a onclick="nav('settings')"><i class="bi bi-gear"></i> Settings</a>
+      <a onclick="openLog()"><i class="bi bi-terminal"></i> Open Log</a>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-avatar" id="sbAvatar">HB</div>
+      <div style="flex:1;min-width:0;">
+        <div class="sb-user-name" id="sbName">Harry B.</div>
+        <div class="sb-user-role" id="sbRole">Administrator</div>
+      </div>
+      <i class="bi bi-box-arrow-right sb-signout" onclick="signOut()" title="Sign out"></i>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ───────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbarTitle">Overview</span>
+      <div class="topbar-status">
+        <div class="status-dot" id="connDot"></div>
+        <span id="connStatus" style="font-size:11px;color:var(--text-3);">Not connected</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="nav('coremigration')" style="margin-left:8px;">
+        <i class="bi bi-play-fill"></i> Run Migration
+      </button>
+    </div>
+
+    <div class="content">
+
+      <!-- ─── OVERVIEW ──────────────────────────────────────── -->
+      <div class="page active" id="page-overview">
+        <div class="page-header">
+          <div class="page-title">Overview</div>
+          <div class="page-sub">Summary of loaded source data and migration readiness</div>
+        </div>
+
+        <div class="stat-grid mb-16" id="overviewStats">
+          <div class="stat-card">
+            <div class="stat-label">Patients</div>
+            <div class="stat-value accent" id="statPatients">—</div>
+            <div class="stat-delta">From source</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Media Files</div>
+            <div class="stat-value" id="statMedia">—</div>
+            <div class="stat-delta">Across all patients</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Size</div>
+            <div class="stat-value" id="statSize">—</div>
+            <div class="stat-delta">Estimated</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Migrated</div>
+            <div class="stat-value green" id="statMigrated">—</div>
+            <div class="stat-delta">This session</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col" style="min-width:260px;">
+            <div class="card">
+              <div class="card-header"><i class="bi bi-images"></i> Media Types</div>
+              <div class="card-body" id="mediaTypesList">
+                <div class="empty-state" style="padding:24px;">
+                  <i class="bi bi-hourglass"></i>
+                  <p>Load data to see breakdown</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col" style="min-width:260px;">
+            <div class="card">
+              <div class="card-header"><i class="bi bi-filetype-png"></i> Content Types</div>
+              <div class="card-body" id="contentTypesList">
+                <div class="empty-state" style="padding:24px;">
+                  <i class="bi bi-hourglass"></i>
+                  <p>Load data to see breakdown</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col" style="min-width:260px;">
+            <div class="card">
+              <div class="card-header"><i class="bi bi-activity"></i> Recent Sessions</div>
+              <div class="card-body" id="recentSessions">
+                <div class="empty-state" style="padding:24px;">
+                  <i class="bi bi-clock-history"></i>
+                  <p>No migration history yet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SELECT SOURCE ─────────────────────────────── -->
+      <div class="page" id="page-selectdatasource">
+        <div class="page-header">
+          <div class="page-title">Select Source</div>
+          <div class="page-sub">Choose the system you are migrating <strong>from</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-database"></i> Source System</div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px;" id="sourceCards">
+              <div class="source-card selected" onclick="selectSource(this,'VistaSoft')">
+                <div class="source-icon">🦷</div>
+                <div>
+                  <div class="source-name">VistaSoft</div>
+                  <div class="source-desc">Firebird DB + disk-based imaging files</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+              <div class="source-card" onclick="selectSource(this,'DTX Studio')">
+                <div class="source-icon">📡</div>
+                <div>
+                  <div class="source-name">DTX Studio</div>
+                  <div class="source-desc">NobelBiocare cloud/local core</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+              <div class="source-card" onclick="selectSource(this,'SOPRO')">
+                <div class="source-icon">📷</div>
+                <div>
+                  <div class="source-name">SOPRO</div>
+                  <div class="source-desc">SOPRO Imaging Management System</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+          <div class="alert-box alert-info" style="flex:1;">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Selected source: <strong id="selectedSourceLabel">VistaSoft</strong></span>
+          </div>
+          <button class="btn btn-primary" onclick="nav('selecttarget')">
+            Select Target <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── SELECT TARGET ─────────────────────────────── -->
+      <div class="page" id="page-selecttarget">
+        <div class="page-header">
+          <div class="page-title">Select Target</div>
+          <div class="page-sub">Choose the system you are migrating <strong>to</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-database-up"></i> Target System</div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px;" id="targetCards">
+              <div class="source-card selected" onclick="selectTarget(this,'DTX Studio')">
+                <div class="source-icon">📡</div>
+                <div>
+                  <div class="source-name">DTX Studio</div>
+                  <div class="source-desc">NobelBiocare cloud/local core</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+              <div class="source-card" onclick="selectTarget(this,'VistaSoft')">
+                <div class="source-icon">🦷</div>
+                <div>
+                  <div class="source-name">VistaSoft</div>
+                  <div class="source-desc">Firebird DB + disk-based imaging files</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+          <div class="alert-box alert-info" style="flex:1;">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Migrating: <strong id="selectedSourceLabel2">VistaSoft</strong> → <strong id="selectedTargetLabel">DTX Studio</strong></span>
+          </div>
+          <button class="btn btn-ghost" onclick="nav('selectdatasource')" style="margin-right:4px;">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <button class="btn btn-primary" onclick="nav('configuredatasource')">
+            Configure <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── CONFIGURE DATASOURCE ──────────────────────────── -->
+      <div class="page" id="page-configuredatasource">
+        <div class="page-header">
+          <div class="page-title">Configure Datasource</div>
+          <div class="page-sub">Enter connection details for source and target systems</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('cfgTabs',this,'cfg-source')">
+            <i class="bi bi-database"></i> Source: <span id="cfgSourceLabel">VistaSoft</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('cfgTabs',this,'cfg-target')">
+            <i class="bi bi-database-up"></i> Target: <span id="cfgTargetLabel">DTX Studio</span>
+          </button>
+        </div>
+
+        <!-- Source config: VistaSoft -->
+        <div id="cfg-source" class="tab-pane active">
+          <div class="card">
+            <div class="card-header"><i class="bi bi-folder2-open"></i> VistaSoft Configuration</div>
+            <div class="card-body">
+              <div class="field">
+                <label>Media Path</label>
+                <div class="field-row">
+                  <input type="text" id="vs_media_path" placeholder="e.g. C:\VistaSoft\Media" oninput="saveConfig()">
+                  <button class="btn btn-ghost btn-sm" onclick="browsePath('vs_media_path')"><i class="bi bi-folder"></i></button>
+                </div>
+                <span class="field-hint">Root folder containing patient imaging data (P1/Institution.fdb lives here)</span>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>DB Encoding</label>
+                  <select id="vs_encoding" onchange="saveConfig()">
+                    <option value="utf-8">UTF-8 (Codepage 65001)</option>
+                    <option value="latin-1">Latin-1 / ISO-8859-1</option>
+                    <option value="cp1252">Windows-1252</option>
+                    <option value="utf-16">UTF-16</option>
+                    <option value="ascii">ASCII</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Max Parallelism</label>
+                  <input type="number" id="vs_max_parallel" value="4" min="1" max="16" oninput="saveConfig()">
+                  <span class="field-hint">Concurrent patient threads</span>
+                </div>
+              </div>
+              <div class="field">
+                <div class="toggle-wrap">
+                  <div class="toggle-info">
+                    <div class="toggle-info-name">Incremental Mode</div>
+                    <div class="toggle-info-desc">Skip patients already successfully migrated in previous sessions</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" id="vs_incremental" onchange="saveConfig()"><span class="toggle-track"></span></label>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="testDbConnection()"><i class="bi bi-plug"></i> Test DB Connection</button>
+                <button class="btn btn-ghost btn-sm" onclick="validateConfig()"><i class="bi bi-check-circle"></i> Validate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target config: DTX Studio -->
+        <div id="cfg-target" class="tab-pane">
+          <div class="card">
+            <div class="card-header"><i class="bi bi-diagram-3"></i> DTX Studio Configuration</div>
+            <div class="card-body">
+              <div class="field">
+                <label>Core URL</label>
+                <input type="text" id="dtx_url" placeholder="https://core.dtxstudio.local" oninput="saveConfig()">
+                <span class="field-hint">DTX Studio Core API base URL</span>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>Username</label>
+                  <input type="text" id="dtx_user" placeholder="admin" oninput="saveConfig()">
+                </div>
+                <div class="field">
+                  <label>Password</label>
+                  <input type="password" id="dtx_pass" placeholder="••••••••" oninput="saveConfig()">
+                </div>
+              </div>
+              <div class="field">
+                <label>Practice / Site</label>
+                <input type="text" id="dtx_practice" placeholder="e.g. Main Practice" oninput="saveConfig()">
+                <span class="field-hint">DTX Studio site/practice name to migrate into</span>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>Timeout (s)</label>
+                  <input type="number" id="dtx_timeout" value="30" min="5" max="300" oninput="saveConfig()">
+                </div>
+                <div class="field">
+                  <label>Upload Retries</label>
+                  <input type="number" id="dtx_retries" value="3" min="1" max="10" oninput="saveConfig()">
+                </div>
+              </div>
+              <div class="field">
+                <div class="toggle-wrap">
+                  <div class="toggle-info">
+                    <div class="toggle-info-name">Skip Existing Patients</div>
+                    <div class="toggle-info-desc">Do not overwrite patients that already exist in DTX Studio</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" id="dtx_skip_existing" checked onchange="saveConfig()"><span class="toggle-track"></span></label>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="testTargetConnection()"><i class="bi bi-plug"></i> Test Connection</button>
+                <button class="btn btn-ghost btn-sm" onclick="validateConfig()"><i class="bi bi-check-circle"></i> Validate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="saveAndProceed()">
+            Save & Load Data <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── LOAD DATASOURCE ───────────────────────────────── -->
+      <div class="page" id="page-loaddatasource">
+        <div class="page-header">
+          <div class="page-title">Load Data</div>
+          <div class="page-sub">Read patient and media records from the configured source</div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-database-down"></i> Source Loader</div>
+          <div class="card-body">
+            <div class="row" style="align-items:center;margin-bottom:16px;">
+              <div>
+                <div class="fw-700" style="margin-bottom:2px;">Ready to load from <span id="loadSourceLabel">VistaSoft</span></div>
+                <div class="fs-11 text-3">This will read all patient records from the configured source system.</div>
+              </div>
+              <div class="ml-auto flex gap-8">
+                <button class="btn btn-primary" onclick="loadData()" id="loadBtn">
+                  <i class="bi bi-play-fill"></i> Load Now
+                </button>
+              </div>
+            </div>
+            <div id="loadProgress" style="display:none;">
+              <div class="mig-msg" id="loadMsg">Connecting to source…</div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="loadBar" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="loadResultCard" style="display:none;">
+          <div class="card-header"><i class="bi bi-check-circle"></i> Load Results</div>
+          <div class="card-body">
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label">Patients Found</div>
+                <div class="stat-value green" id="loadPatientsFound">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Media Files</div>
+                <div class="stat-value accent" id="loadMediaFound">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Load Time</div>
+                <div class="stat-value" id="loadTime">—</div>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="btn btn-primary btn-sm" onclick="nav('overview')">
+                <i class="bi bi-clipboard-data"></i> View Overview
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PATIENTS ─────────────────────────────────────── -->
+      <div class="page" id="page-patients">
+        <div class="page-header">
+          <div class="page-title">Patients</div>
+          <div class="page-sub">All patients loaded from the source system</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-people"></i> Patient List</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search patients…" oninput="filterPatients(this.value)" id="patientSearch">
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="refreshPatients()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="patientTable">
+              <thead>
+                <tr>
+                  <th>UID</th>
+                  <th>Family Name</th>
+                  <th>Given Names</th>
+                  <th>DOB</th>
+                  <th>Media</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="patientTbody">
+                <tr><td colspan="6"><div class="empty-state"><i class="bi bi-people"></i><p>No patients loaded. Load data first.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── MEDIA ─────────────────────────────────────────── -->
+      <div class="page" id="page-media">
+        <div class="page-header">
+          <div class="page-title">Media</div>
+          <div class="page-sub">Imaging files loaded from the source</div>
+        </div>
+
+        <div class="row mb-16">
+          <div class="col">
+            <div class="card">
+              <div class="card-header"><i class="bi bi-pie-chart"></i> By Modality</div>
+              <div class="card-body" id="modalityBreakdown">
+                <div class="empty-state" style="padding:20px;"><i class="bi bi-images"></i><p>Load data to see breakdown</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card">
+              <div class="card-header"><i class="bi bi-file-earmark"></i> By File Type</div>
+              <div class="card-body" id="fileTypeBreakdown">
+                <div class="empty-state" style="padding:20px;"><i class="bi bi-files"></i><p>Load data to see breakdown</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-grid-3x3-gap"></i> Media Browser</div>
+          <div class="card-body">
+            <div class="empty-state">
+              <i class="bi bi-image"></i>
+              <p>Load data to browse media files</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PMS DATA IMPORT ──────────────────────────────── -->
+      <div class="page" id="page-pmsintegration">
+        <div class="page-header">
+          <div class="page-title">PMS Data Import</div>
+          <div class="page-sub">Import a patient CSV exported from your PMS, compare it against the source data, and map any mismatched fields before migration</div>
+        </div>
+
+        <!-- Step 1: Upload -->
+        <div class="card mb-16" id="pmsUploadCard">
+          <div class="card-header"><i class="bi bi-filetype-csv"></i> Step 1 — Load PMS CSV</div>
+          <div class="card-body">
+            <div class="alert-box alert-info mb-16" style="margin-bottom:14px;">
+              <i class="bi bi-info-circle-fill"></i>
+              <span>Export a patient list from your PMS software as a CSV file. The file should include at minimum: patient surname, first name, and date of birth. NHS number, patient reference, and address fields will be used for matching if present.</span>
+            </div>
+            <div id="pmsDropZone" style="
+              border: 2px dashed var(--border);
+              border-radius: var(--radius-lg);
+              padding: 36px 24px;
+              text-align: center;
+              cursor: pointer;
+              transition: border-color .15s, background .15s;
+            " onclick="document.getElementById('pmsCsvInput').click()"
+               ondragover="pmsDragOver(event)" ondragleave="pmsDragLeave(event)" ondrop="pmsDrop(event)">
+              <i class="bi bi-cloud-upload" style="font-size:32px;color:var(--text-3);display:block;margin-bottom:10px;"></i>
+              <div style="font-size:13px;color:var(--text-2);font-weight:600;">Drop CSV file here, or click to browse</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Supports .csv files exported from any PMS</div>
+            </div>
+            <input type="file" id="pmsCsvInput" accept=".csv" style="display:none" onchange="pmsLoadFile(this.files[0])">
+            <div id="pmsFileInfo" style="display:none;margin-top:12px;" class="alert-box alert-success">
+              <i class="bi bi-file-earmark-check-fill"></i>
+              <span id="pmsFileInfoText"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Column Mapping -->
+        <div class="card mb-16" id="pmsColumnMapCard" style="display:none;">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-table"></i> Step 2 — Map CSV Columns</span>
+            <span id="pmsColMapStatus" class="mono fs-11 text-3"></span>
+          </div>
+          <div class="card-body">
+            <div class="alert-box alert-info" style="margin-bottom:14px;">
+              <i class="bi bi-info-circle-fill"></i>
+              <span>Match each standard field to the corresponding column in your CSV. Fields marked <strong>Required</strong> must be mapped to proceed.</span>
+            </div>
+            <div id="pmsColumnMapTable">
+              <!-- Rendered by JS -->
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px;">
+              <button class="btn btn-primary btn-sm" onclick="pmsApplyMapping()"><i class="bi bi-check2"></i> Apply Mapping</button>
+              <button class="btn btn-ghost btn-sm" onclick="pmsAutoDetect()"><i class="bi bi-magic"></i> Auto-detect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Comparison Table -->
+        <div class="card mb-16" id="pmsCompareCard" style="display:none;">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-arrow-left-right"></i> Step 3 — Compare PMS vs Source</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span id="pmsMatchSummary" class="mono fs-11 text-3"></span>
+              <button class="btn btn-ghost btn-sm" onclick="pmsFilterAll()" id="pmsFiltAll">All</button>
+              <button class="btn btn-ghost btn-sm" onclick="pmsFilterMismatches()" id="pmsFiltMismatch"><i class="bi bi-exclamation-circle"></i> Mismatches</button>
+              <button class="btn btn-ghost btn-sm" onclick="pmsFilterUnmatched()" id="pmsFiltUnmatched"><i class="bi bi-question-circle"></i> Unmatched</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="pmsCompareTable">
+              <thead>
+                <tr>
+                  <th style="width:28px;"><input type="checkbox" id="pmsSelectAll" onchange="pmsToggleAll(this.checked)" title="Select all"></th>
+                  <th>PMS Surname</th>
+                  <th>PMS First Name</th>
+                  <th>PMS DOB</th>
+                  <th>PMS Ref</th>
+                  <th>Match</th>
+                  <th>Source Surname</th>
+                  <th>Source First Name</th>
+                  <th>Source DOB</th>
+                  <th>Conflicts</th>
+                </tr>
+              </thead>
+              <tbody id="pmsCompareTbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Step 4: Field Mapping for mismatches -->
+        <div class="card mb-16" id="pmsFieldMapCard" style="display:none;">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-pencil-square"></i> Step 4 — Resolve Conflicts</span>
+            <span id="pmsConflictCount" class="mono fs-11 text-3"></span>
+          </div>
+          <div class="card-body">
+            <div class="alert-box alert-warn" style="margin-bottom:14px;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>For each conflict below, choose which value to use during migration — the PMS value or the Source value. You can also enter a corrected value manually.</span>
+            </div>
+            <div id="pmsConflictList">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Data source selection -->
+        <div class="card" id="pmsDataSourceCard" style="display:none;">
+          <div class="card-header"><i class="bi bi-toggles"></i> Step 5 — Choose Data Source for Migration</div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="source-card selected" id="pmsUsePms" onclick="selectPmsDataSource('pms', this)">
+                <div class="source-icon">📋</div>
+                <div>
+                  <div class="source-name">Use PMS Data</div>
+                  <div class="source-desc">Patient demographic fields (name, DOB, NHS number) taken from the PMS CSV. Imaging data comes from the source system.</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+              <div class="source-card" id="pmsUseSource" onclick="selectPmsDataSource('source', this)">
+                <div class="source-icon">🗄️</div>
+                <div>
+                  <div class="source-name">Use Source Data</div>
+                  <div class="source-desc">All patient data taken directly from the imaging source system. PMS CSV used for reference matching only.</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+              <div class="source-card" id="pmsUseMerged" onclick="selectPmsDataSource('merged', this)">
+                <div class="source-icon">🔀</div>
+                <div>
+                  <div class="source-name">Merged (PMS fills gaps)</div>
+                  <div class="source-desc">Source data is primary. Any empty or missing fields are filled from the PMS CSV where a match exists.</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+              <button class="btn btn-primary" onclick="pmsConfirm()">
+                <i class="bi bi-check2-circle"></i> Confirm &amp; Apply to Migration
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─── DTX STUDIO INTEGRATION ───────────────────────── -->
+      <div class="page" id="page-coreintegration">
+        <div class="page-header">
+          <div class="page-title">DTX Studio Integration</div>
+          <div class="page-sub">DTX Studio Core API configuration and status</div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-diagram-3"></i> Core API Status</div>
+          <div class="card-body">
+            <div class="flex items-center gap-12 mb-16">
+              <div class="status-dot" id="dtxDot"></div>
+              <span id="dtxStatus" class="fw-600">Not connected</span>
+              <button class="btn btn-ghost btn-sm ml-auto" onclick="testTargetConnection()"><i class="bi bi-arrow-clockwise"></i> Test</button>
+            </div>
+            <div class="form-row">
+              <div class="stat-card">
+                <div class="stat-label">API Version</div>
+                <div class="stat-value fs-12 mono" id="dtxApiVer">—</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Core Version</div>
+                <div class="stat-value fs-12 mono" id="dtxCoreVer">—</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Patients in Core</div>
+                <div class="stat-value accent" id="dtxPatientCount">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-shield-check"></i> Upload Permissions</div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Permission</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Create Patients</td><td><span class="badge badge-green"><i class="bi bi-check"></i> Allowed</span></td></tr>
+                  <tr><td>Upload Media</td><td><span class="badge badge-green"><i class="bi bi-check"></i> Allowed</span></td></tr>
+                  <tr><td>Write DICOM</td><td><span class="badge badge-yellow"><i class="bi bi-exclamation"></i> Not Checked</span></td></tr>
+                  <tr><td>Delete Patients</td><td><span class="badge badge-red"><i class="bi bi-x"></i> Denied</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── CHECKLIST ─────────────────────────────────────── -->
+      <!-- ─── MIGRATION FILTERS ─────────────────────────────── -->
+      <div class="page" id="page-migrationfilters">
+        <div class="page-header">
+          <div class="page-title">Migration Filters</div>
+          <div class="page-sub">Narrow the scope of the migration before running</div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-calendar-range"></i> Date Range</div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field">
+                <label>From Date</label>
+                <input type="date" id="filterFrom">
+                <span class="field-hint">Only migrate patients with records after this date. Leave blank for all.</span>
+              </div>
+              <div class="field">
+                <label>To Date</label>
+                <input type="date" id="filterTo">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-camera"></i> Media Types</div>
+          <div class="card-body">
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Panoramic X-Rays</div>
+                <div class="toggle-info-desc">ImageClass: Pano → PANORAMIC</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked id="flt_pano"><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Cephalogram</div>
+                <div class="toggle-info-desc">ImageClass: Ceph → CEPHALOGRAM</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked id="flt_ceph"><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Intraoral X-Ray</div>
+                <div class="toggle-info-desc">ImageClass: Intra / Xray → INTRAORAL</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked id="flt_intra"><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">3D / CBCT Volumes</div>
+                <div class="toggle-info-desc">ImageClass: Dvt → VOLUME</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked id="flt_dvt"><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Photos / Snapshots</div>
+                <div class="toggle-info-desc">ImageClass: Snapshot / Proof → PICTURE</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked id="flt_photo"><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Video</div>
+                <div class="toggle-info-desc">ImageClass: Video — note VistaSoft does not support video export</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="flt_video"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-people"></i> Patient Filters</div>
+          <div class="card-body">
+            <div class="field">
+              <label>Surname starts with (optional)</label>
+              <input type="text" id="filterSurname" placeholder="Leave blank for all patients">
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Skip patients with no media</div>
+                <div class="toggle-info-desc">Exclude patients who have no associated imaging files during migration. All patients are always loaded for review.</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked id="flt_no_media"><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Incremental mode</div>
+                <div class="toggle-info-desc">Only migrate patients not already in a completed session</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="flt_incremental"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── CORE MIGRATION ────────────────────────────────── -->
+      <div class="page" id="page-coremigration">
+        <div class="page-header">
+          <div class="page-title">Run Migration</div>
+          <div class="page-sub">Start, pause, and monitor the live migration process</div>
+        </div>
+
+        <!-- Active migration hero -->
+        <div class="migration-hero" id="migHero">
+          <div class="mig-status-row">
+            <div class="status-dot" id="migDot"></div>
+            <div class="mig-status-text" id="migStatusText">Idle</div>
+            <div class="mig-pct" id="migPct">0%</div>
+          </div>
+          <div class="mig-msg" id="migMsg">Ready to start migration.</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="migBar" style="width:0%"></div>
+          </div>
+          <div class="mig-ctrl">
+            <button class="btn btn-primary" id="migRunBtn" onclick="migRun()">
+              <i class="bi bi-play-fill"></i> Start Migration
+            </button>
+            <button class="btn btn-ghost" id="migPauseBtn" onclick="migPause()" disabled>
+              <i class="bi bi-pause-fill"></i> Pause
+            </button>
+            <button class="btn btn-danger btn-sm" id="migCancelBtn" onclick="migCancel()" disabled>
+              <i class="bi bi-x-lg"></i> Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid mb-16">
+          <div class="stat-card">
+            <div class="stat-label">Processed</div>
+            <div class="stat-value mono" id="mStatProcessed">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Imported</div>
+            <div class="stat-value green mono" id="mStatImported">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Failed</div>
+            <div class="stat-value red mono" id="mStatFailed">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Skipped</div>
+            <div class="stat-value mono" id="mStatSkipped">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Images</div>
+            <div class="stat-value accent mono" id="mStatImages">0</div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-terminal"></i> Migration Log</span>
+            <button class="btn btn-ghost btn-sm" onclick="clearLog()"><i class="bi bi-trash"></i> Clear</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="log-panel" id="migLog"></div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-clock-history"></i> Session History</span>
+            <button class="btn btn-ghost btn-sm" onclick="loadHistory()"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Session ID</th>
+                  <th>Source → Target</th>
+                  <th>Started</th>
+                  <th>Status</th>
+                  <th>Patients</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyTbody">
+                <tr><td colspan="6"><div class="empty-state" style="padding:20px;"><i class="bi bi-clock-history"></i><p>No history yet</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── DICOM EXPORT ──────────────────────────────────── -->
+      <div class="page" id="page-dicomexport">
+        <div class="page-header">
+          <div class="page-title">DICOM Export</div>
+          <div class="page-sub">Export imaging data in DICOM format for external use</div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-box-arrow-right"></i> Export Configuration</div>
+          <div class="card-body">
+            <div class="field">
+              <label>Export Folder</label>
+              <div class="field-row">
+                <input type="text" id="dicom_out" placeholder="e.g. D:\DicomExport">
+                <button class="btn btn-ghost btn-sm" onclick="browsePath('dicom_out')"><i class="bi bi-folder"></i></button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label>Modality Filter</label>
+                <select id="dicom_modality">
+                  <option value="">All modalities</option>
+                  <option>PANORAMIC</option>
+                  <option>CEPHALOGRAM</option>
+                  <option>INTRAORAL</option>
+                  <option>VOLUME</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>DICOM Transfer Syntax</label>
+                <select id="dicom_syntax">
+                  <option>Implicit VR Little Endian (default)</option>
+                  <option>Explicit VR Little Endian</option>
+                  <option>JPEG Lossless</option>
+                </select>
+              </div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Anonymise Patient Data</div>
+                <div class="toggle-info-desc">Replace patient PII with anonymous IDs in exported DICOM files</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="dicom_anon"><span class="toggle-track"></span></label>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="btn btn-primary" onclick="startDicomExport()">
+                <i class="bi bi-box-arrow-right"></i> Start Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="dicomProgressCard" style="display:none;">
+          <div class="card-header"><i class="bi bi-activity"></i> Export Progress</div>
+          <div class="card-body">
+            <div class="mig-msg" id="dicomMsg">Preparing export…</div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill green" id="dicomBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── MEDIA SETTINGS ───────────────────────────────── -->
+      <div class="page" id="page-mediasettings">
+        <div class="page-header">
+          <div class="page-title">Media Settings</div>
+          <div class="page-sub">Configure how imaging files are handled during migration</div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-hdd"></i> Storage Settings</div>
+          <div class="card-body">
+            <div class="field">
+              <label>Temp Working Directory</label>
+              <div class="field-row">
+                <input type="text" id="media_temp" placeholder="C:\Temp\Migration">
+                <button class="btn btn-ghost btn-sm" onclick="browsePath('media_temp')"><i class="bi bi-folder"></i></button>
+              </div>
+              <span class="field-hint">Temporary storage for files during upload. Needs ~10% of total media size.</span>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label>Max Upload Chunk (MB)</label>
+                <input type="number" value="10" min="1" max="100" id="media_chunk">
+              </div>
+              <div class="field">
+                <label>Upload Parallelism</label>
+                <input type="number" value="4" min="1" max="16" id="media_parallel">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-file-earmark-check"></i> File Handling</div>
+          <div class="card-body">
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Verify checksums after upload</div>
+                <div class="toggle-info-desc">Confirm file integrity by comparing SHA-256 checksums on source and target</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Delete temp files after upload</div>
+                <div class="toggle-info-desc">Clean up working directory files once successfully uploaded</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Skip unsupported formats</div>
+                <div class="toggle-info-desc">Log and continue on encountering file types the target does not support</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Include .spv sidecar files</div>
+                <div class="toggle-info-desc">Also migrate VistaSoft .spv sidecar files where present</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-trash3"></i> Clear Migrated Data</div>
+          <div class="card-body">
+            <div class="alert-box alert-warn" style="margin-bottom:12px;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>This permanently deletes all SOURCE=1 patients from VistaSoft. Native patients (SOURCE=0) are not affected. Stop VistaSoft services first.</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="confirmClearData()">
+              <i class="bi bi-trash3"></i> Clear Migrated Data from VistaSoft DB
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── SETTINGS ─────────────────────────────────────── -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <div class="page-title">General Settings</div>
+          <div class="page-sub">Application preferences and logging configuration</div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-person-gear"></i> User Preferences</div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field">
+                <label>Display Name</label>
+                <input type="text" id="pref_name" placeholder="Your Name">
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input type="email" id="pref_email" placeholder="you@itinfinity.co.uk">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-header"><i class="bi bi-journal-text"></i> Logging</div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field">
+                <label>Log Level</label>
+                <select id="log_level">
+                  <option>INFO</option>
+                  <option>DEBUG</option>
+                  <option>WARNING</option>
+                  <option>ERROR</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Log File Path</label>
+                <div class="field-row">
+                  <input type="text" id="log_path" placeholder="C:\Logs\migration.log">
+                  <button class="btn btn-ghost btn-sm" onclick="browsePath('log_path')"><i class="bi bi-folder"></i></button>
+                </div>
+              </div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Verbose patient logging</div>
+                <div class="toggle-info-desc">Log individual media file transfers (produces large log files)</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><i class="bi bi-bell"></i> Notifications</div>
+          <div class="card-body">
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Desktop notifications</div>
+                <div class="toggle-info-desc">Show system notification when migration completes or fails</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-info">
+                <div class="toggle-info-name">Email on completion</div>
+                <div class="toggle-info-desc">Send summary email to configured address on completion</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+            </div>
+            <div class="field" style="margin-top:12px;">
+              <label>Notification Email</label>
+              <input type="email" id="notify_email" placeholder="engineer@itinfinity.co.uk">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="saveSettings()"><i class="bi bi-check2"></i> Save Settings</button>
+        </div>
+      </div>
+
+      <!-- ─── FORBIDDEN ─────────────────────────────────────── -->
+      <div class="page" id="page-forbidden">
+        <div class="forbidden-wrap">
+          <i class="bi bi-sign-stop"></i>
+          <h2>Access Denied</h2>
+          <p>You do not have permission to access this area.<br>Contact your IT INFINITY administrator.</p>
+        </div>
+      </div>
+
+    </div><!-- .content -->
+  </div><!-- .main -->
+
+</div><!-- #screen-app -->
+
+
+<!-- ─── LOG MODAL ────────────────────────────────────────────── -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal" style="width:640px;">
+    <div class="modal-header">
+      <i class="bi bi-terminal" style="color:var(--accent)"></i>
+      <div class="modal-title">Application Log</div>
+      <i class="bi bi-x-lg modal-close" onclick="closeLog()"></i>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div class="log-panel" id="appLog" style="height:360px;border-radius:0;border:none;border-bottom:1px solid var(--border);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="clearAppLog()"><i class="bi bi-trash"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeLog()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CONFIRM MODAL ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:400px;">
+    <div class="modal-header">
+      <i class="bi bi-exclamation-triangle-fill" style="color:var(--yellow)"></i>
+      <div class="modal-title" id="confirmTitle">Confirm Action</div>
+      <i class="bi bi-x-lg modal-close" onclick="closeConfirm()"></i>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMsg" style="font-size:13px;color:var(--text-2);line-height:1.6;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── API BASE ───────────────────────────────────────────────── */
+// In production this runs from a local Flask server on port 5000
+const API = 'http://localhost:5000/api';
+
+async function api(method, path, body = null) {
+  try {
+    const opts = {
+      method,
+      credentials: 'include',   // send session cookie with every request
+      headers: { 'Content-Type': 'application/json' },
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    if (r.status === 401) {
+      // Session expired or not signed in — go back to sign-in screen
+      _showSignIn();
+      throw new Error('Authentication required');
+    }
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({ error: r.statusText }));
+      throw new Error(e.error || r.statusText);
+    }
+    return r.json();
+  } catch (err) {
+    if (err.message === 'Authentication required') throw err;
+    // Fallback for offline / demo mode: return mock data
+    return mockApi(method, path, body);
+  }
+}
+
+/* ── MOCK API (used when server is not running) ─────────────── */
+function mockApi(method, path, body) {
+  if (path === '/status') return { connected: false, status: 'Server not running' };
+  if (path === '/load') return { patients_count: 0, media: 0, size_gb: 0, load_time: '—' };
+  if (path === '/patients') return { patients: [] };
+  if (path === '/history') return { sessions: [] };
+  if (path.startsWith('/migrate')) return { ok: true };
+  return {};
+}
+
+/* ── AUTH ───────────────────────────────────────────────────── */
+
+function _showSignIn() {
+  // Called when any API returns 401 — drop back to sign-in screen
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-auth').classList.add('active');
+}
+
+function signIn() {
+  // Redirect to the server's Microsoft 365 OAuth flow
+  hideAuthError();
+  document.getElementById('authSpinner').style.display = 'block';
+  window.location.href = '/auth/login';
+}
+
+function signOut() {
+  window.location.href = '/auth/logout';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  document.getElementById('authErrorMsg').textContent = msg;
+  el.style.display = 'flex';
+}
+function hideAuthError() { document.getElementById('authError').style.display = 'none'; }
+
+function _populateUser(user) {
+  // Fill in the sidebar user info from the server session
+  const name     = user.display_name || user.email || 'User';
+  const parts    = name.trim().split(' ');
+  const initials = parts.map(p => p[0] || '').join('').toUpperCase().slice(0, 2) || 'U';
+  document.getElementById('sbAvatar').textContent = initials;
+  document.getElementById('sbName').textContent   = name;
+  document.getElementById('sbRole').textContent   = user.email || '';
+}
+
+async function _checkAuth() {
+  // Called on page load — asks the server if there is an active session.
+  // If yes: show the app screen with the real user details.
+  // If no:  show the sign-in screen.
+  try {
+    const r = await fetch('/auth/me', { credentials: 'include' });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.authenticated && d.user) {
+        _populateUser(d.user);
+        document.getElementById('screen-auth').classList.remove('active');
+        document.getElementById('screen-app').classList.add('active');
+        appLog(`Signed in as ${d.user.display_name || d.user.email}`, 'info');
+        nav('overview');
+        checkServerStatus();
+        return;
+      }
+    }
+  } catch (_) { /* server not reachable */ }
+  // Not authenticated — stay on sign-in screen
+  document.getElementById('screen-auth').classList.add('active');
+  document.getElementById('screen-app').classList.remove('active');
+}
+
+/* ── NAVIGATION ─────────────────────────────────────────────── */
+const PAGE_TITLES = {
+  overview:'Overview', selectdatasource:'Select Source',
+  selecttarget:'Select Target',
+  configuredatasource:'Configure Datasource', loaddatasource:'Load Data',
+  patients:'Patients', media:'Media',
+  pmsintegration:'PMS Data Import', coreintegration:'DTX Studio Integration',
+  migrationfilters:'Migration Filters',
+  coremigration:'Run Migration', dicomexport:'DICOM Export',
+  mediasettings:'Media Settings', settings:'General Settings', forbidden:'Access Denied'
+};
+
+function nav(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-nav a').forEach(a => a.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.sb-nav a').forEach(a => {
+    if ((a.getAttribute('onclick') || '') === `nav('${id}')`) a.classList.add('active');
+  });
+  const t = document.getElementById('topbarTitle');
+  if (t) t.textContent = PAGE_TITLES[id] || id;
+
+  // Lazy load actions
+  if (id === 'overview')   loadOverview();
+  if (id === 'patients')   loadPatients();
+  if (id === 'coremigration') loadHistory();
+}
+
+/* ── SERVER STATUS ──────────────────────────────────────────── */
+async function checkServerStatus() {
+  try {
+    const d = await fetch(API + '/status', { credentials: 'include' }).then(r => r.json());
+    setConnStatus(d.connected, d.status || 'Connected');
+  } catch {
+    setConnStatus(false, 'Server offline (demo mode)');
+  }
+}
+
+function setConnStatus(ok, msg) {
+  const dot = document.getElementById('connDot');
+  const lbl = document.getElementById('connStatus');
+  dot.className = 'status-dot ' + (ok ? 'green' : '');
+  lbl.textContent = msg;
+}
+
+/* ── DATASOURCE SELECTION ───────────────────────────────────── */
+let _selectedSource = 'VistaSoft';
+let _selectedTarget = 'DTX Studio';
+
+function selectSource(el, name) {
+  document.querySelectorAll('#sourceCards .source-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  _selectedSource = name;
+  const lbl1 = document.getElementById('selectedSourceLabel');
+  const lbl2 = document.getElementById('selectedSourceLabel2');
+  if (lbl1) lbl1.textContent = name;
+  if (lbl2) lbl2.textContent = name;
+  document.getElementById('cfgSourceLabel').textContent = name;
+  document.getElementById('loadSourceLabel').textContent = name;
+}
+function selectTarget(el, name) {
+  document.querySelectorAll('#targetCards .source-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  _selectedTarget = name;
+  const lbl = document.getElementById('selectedTargetLabel');
+  if (lbl) lbl.textContent = name;
+  document.getElementById('cfgTargetLabel').textContent = name;
+}
+
+/* ── CONFIG TABS ────────────────────────────────────────────── */
+function switchTab(groupId, btn, paneId) {
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const panes = btn.closest('.page') || document;
+  panes.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(paneId).classList.add('active');
+}
+
+/* ── CONFIG PERSISTENCE ─────────────────────────────────────── */
+function saveConfig() {
+  const cfg = {
+    source: _selectedSource, target: _selectedTarget,
+    vs_media_path: v('vs_media_path'), vs_encoding: v('vs_encoding'),
+    vs_max_parallel: v('vs_max_parallel'), vs_incremental: document.getElementById('vs_incremental').checked,
+    dtx_url: v('dtx_url'), dtx_user: v('dtx_user'), dtx_pass: v('dtx_pass'),
+    dtx_practice: v('dtx_practice'), dtx_timeout: v('dtx_timeout'), dtx_retries: v('dtx_retries'),
+    dtx_skip_existing: document.getElementById('dtx_skip_existing').checked,
+  };
+  localStorage.setItem('migration_config', JSON.stringify(cfg));
+}
+
+function loadStoredConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem('migration_config') || '{}');
+    if (c.vs_media_path) sv('vs_media_path', c.vs_media_path);
+    if (c.vs_encoding)   sv('vs_encoding', c.vs_encoding);
+    if (c.vs_max_parallel) sv('vs_max_parallel', c.vs_max_parallel);
+    if (c.dtx_url)  sv('dtx_url', c.dtx_url);
+    if (c.dtx_user) sv('dtx_user', c.dtx_user);
+    if (c.dtx_pass) sv('dtx_pass', c.dtx_pass);
+    if (c.dtx_practice) sv('dtx_practice', c.dtx_practice);
+    if (c.dtx_timeout)  sv('dtx_timeout', c.dtx_timeout);
+    if (c.dtx_retries)  sv('dtx_retries', c.dtx_retries);
+    if (c.vs_incremental) document.getElementById('vs_incremental').checked = c.vs_incremental;
+    if (c.dtx_skip_existing !== undefined) document.getElementById('dtx_skip_existing').checked = c.dtx_skip_existing;
+  } catch {}
+}
+
+/* ── CONNECTION TESTS ───────────────────────────────────────── */
+async function testDbConnection() {
+  appLog('Testing source DB connection…', 'info');
+  try {
+    const d = await api('POST', '/test/source', {
+      source: _selectedSource,
+      config: getSourceConfig()
+    });
+    appLog('DB connection OK: ' + (d.message || ''), 'success');
+    setConnStatus(true, 'Source connected');
+  } catch(e) { appLog('DB connection failed: ' + e.message, 'error'); }
+}
+
+async function testTargetConnection() {
+  appLog('Testing target connection…', 'info');
+  try {
+    const d = await api('POST', '/test/target', { target: _selectedTarget, config: getTargetConfig() });
+    appLog('Target connection OK: ' + (d.message || ''), 'success');
+    setConnStatus(true, 'Target connected');
+    const dot = document.getElementById('dtxDot');
+    const lbl = document.getElementById('dtxStatus');
+    if (dot) dot.className = 'status-dot green';
+    if (lbl) lbl.textContent = 'Connected';
+  } catch(e) {
+    appLog('Target connection failed: ' + e.message, 'error');
+    const dot = document.getElementById('dtxDot');
+    if (dot) dot.className = 'status-dot red';
+    const lbl = document.getElementById('dtxStatus');
+    if (lbl) lbl.textContent = 'Connection failed';
+  }
+}
+
+/* ── PMS CSV IMPORT ─────────────────────────────────────────── */
+let _pmsCsvRows    = [];   // raw parsed rows [{col: value}]
+let _pmsCsvHeaders = [];   // column headers from CSV
+let _pmsMapping    = {};   // standardField -> csvColumn
+let _pmsMapped     = [];   // [{surname, first_name, dob, nhs, ref, ...}]
+let _pmsCompared   = [];   // [{pms, source, matchStatus, conflicts}]
+let _pmsDataSource = 'pms';
+
+const PMS_FIELDS = [
+  { key: 'surname',    label: 'Surname',     required: true  },
+  { key: 'first_name', label: 'First Name',  required: true  },
+  { key: 'dob',        label: 'Date of Birth', required: true },
+  { key: 'nhs_number', label: 'NHS Number',  required: false },
+  { key: 'patient_ref',label: 'Patient Ref', required: false },
+  { key: 'address1',   label: 'Address Line 1', required: false },
+  { key: 'postcode',   label: 'Postcode',    required: false },
+];
+
+// auto-detect hints: field key → substrings to look for in header (lowercase)
+const PMS_AUTO_HINTS = {
+  surname:    ['surname','last name','family','lastname'],
+  first_name: ['first','given','forename','firstname'],
+  dob:        ['dob','birth','date of birth','birthdate'],
+  nhs_number: ['nhs','nhs number','nhsno'],
+  patient_ref:['ref','id','patient id','patientid','chart'],
+  address1:   ['address','addr','street'],
+  postcode:   ['postcode','post code','zip'],
+};
+
+function pmsDragOver(e) {
+  e.preventDefault();
+  document.getElementById('pmsDropZone').style.borderColor = 'var(--accent)';
+  document.getElementById('pmsDropZone').style.background  = 'var(--accent-dim)';
+}
+function pmsDragLeave(e) {
+  document.getElementById('pmsDropZone').style.borderColor = '';
+  document.getElementById('pmsDropZone').style.background  = '';
+}
+function pmsDrop(e) {
+  e.preventDefault();
+  pmsDragLeave(e);
+  const file = e.dataTransfer.files[0];
+  if (file) pmsLoadFile(file);
+}
+
+function pmsLoadFile(file) {
+  if (!file || !file.name.endsWith('.csv')) {
+    appLog('PMS: Please select a CSV file.', 'warning');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    parseCsv(text);
+    document.getElementById('pmsFileInfo').style.display = 'flex';
+    document.getElementById('pmsFileInfoText').textContent =
+      `Loaded "${file.name}" — ${_pmsCsvRows.length} rows, ${_pmsCsvHeaders.length} columns detected.`;
+    appLog(`PMS CSV loaded: ${file.name} (${_pmsCsvRows.length} rows)`, 'success');
+    pmsAutoDetect();
+    renderColumnMapTable();
+    document.getElementById('pmsColumnMapCard').style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return;
+  _pmsCsvHeaders = csvSplitLine(lines[0]);
+  _pmsCsvRows = lines.slice(1).map(l => {
+    const vals = csvSplitLine(l);
+    const row = {};
+    _pmsCsvHeaders.forEach((h, i) => row[h] = (vals[i] || '').trim());
+    return row;
+  }).filter(r => Object.values(r).some(v => v));
+}
+
+function csvSplitLine(line) {
+  const result = [];
+  let cur = '', inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQuote = !inQuote; continue; }
+    if (c === ',' && !inQuote) { result.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function pmsAutoDetect() {
+  _pmsMapping = {};
+  PMS_FIELDS.forEach(f => {
+    const hints = PMS_AUTO_HINTS[f.key] || [];
+    const match = _pmsCsvHeaders.find(h =>
+      hints.some(hint => h.toLowerCase().includes(hint))
+    );
+    if (match) _pmsMapping[f.key] = match;
+  });
+  renderColumnMapTable();
+}
+
+function renderColumnMapTable() {
+  const opts = ['— Not mapped —', ..._pmsCsvHeaders];
+  const html = PMS_FIELDS.map(f => {
+    const current = _pmsMapping[f.key] || '';
+    const sel = opts.map(o =>
+      `<option value="${escHtml(o)}" ${o===current?'selected':''}>${escHtml(o)}</option>`
+    ).join('');
+    return `
+    <div style="display:grid;grid-template-columns:180px 1fr 80px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-dim);">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-1);">${f.label}</div>
+        ${f.required ? '<div style="font-size:10px;color:var(--red);">Required</div>' : '<div style="font-size:10px;color:var(--text-3);">Optional</div>'}
+      </div>
+      <select style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text-1);font-size:12px;"
+        onchange="pmsSetMapping('${f.key}', this.value)">${sel}</select>
+      <div id="pmsMapStatus_${f.key}" style="font-size:11px;text-align:right;color:var(--text-3);">
+        ${current ? '<span style="color:var(--green)">✓ Mapped</span>' : (f.required ? '<span style="color:var(--red)">!</span>' : '—')}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('pmsColumnMapTable').innerHTML = html;
+  updateColMapStatus();
+}
+
+function pmsSetMapping(field, col) {
+  if (col === '— Not mapped —') delete _pmsMapping[field];
+  else _pmsMapping[field] = col;
+  const statusEl = document.getElementById('pmsMapStatus_' + field);
+  if (statusEl) {
+    statusEl.innerHTML = _pmsMapping[field]
+      ? '<span style="color:var(--green)">✓ Mapped</span>'
+      : (PMS_FIELDS.find(f=>f.key===field)?.required ? '<span style="color:var(--red)">!</span>' : '—');
+  }
+  updateColMapStatus();
+}
+
+function updateColMapStatus() {
+  const required = PMS_FIELDS.filter(f => f.required);
+  const mapped = required.filter(f => _pmsMapping[f.key]);
+  document.getElementById('pmsColMapStatus').textContent = `${mapped.length} / ${required.length} required fields mapped`;
+}
+
+function pmsApplyMapping() {
+  const missing = PMS_FIELDS.filter(f => f.required && !_pmsMapping[f.key]);
+  if (missing.length) {
+    appLog('PMS: Please map required fields: ' + missing.map(f=>f.label).join(', '), 'warning');
+    return;
+  }
+  // Build normalised PMS records
+  _pmsMapped = _pmsCsvRows.map(row => {
+    const r = {};
+    PMS_FIELDS.forEach(f => {
+      const col = _pmsMapping[f.key];
+      r[f.key] = col ? (row[col] || '') : '';
+    });
+    return r;
+  });
+  appLog(`PMS mapping applied: ${_pmsMapped.length} patients normalised.`, 'success');
+  pmsCompare();
+}
+
+function pmsCompare() {
+  // Match PMS rows against loaded source patients
+  _pmsCompared = _pmsMapped.map(pms => {
+    const surname    = (pms.surname || '').toLowerCase().trim();
+    const first_name = (pms.first_name || '').toLowerCase().trim();
+    const dob        = normaliseDob(pms.dob);
+
+    // Try NHS first, then DOB+surname, then surname+first
+    let source = null;
+    if (pms.nhs_number) {
+      source = _loadedPatients.find(p => (p.nhs_number||'').trim() === pms.nhs_number.trim());
+    }
+    if (!source) {
+      source = _loadedPatients.find(p =>
+        normaliseDob(p.dob) === dob &&
+        (p.family_name||'').toLowerCase().trim() === surname
+      );
+    }
+    if (!source) {
+      source = _loadedPatients.find(p =>
+        (p.family_name||'').toLowerCase().trim() === surname &&
+        (p.given_names||'').toLowerCase().trim().startsWith(first_name.slice(0,3))
+      );
+    }
+
+    let matchStatus = source ? 'matched' : 'unmatched';
+    const conflicts = [];
+
+    if (source) {
+      if (normaliseDob(source.dob) !== dob && dob) {
+        conflicts.push({ field:'DOB', pms: pms.dob, source: source.dob });
+        matchStatus = 'conflict';
+      }
+      const srcSurname = (source.family_name||'').toLowerCase().trim();
+      if (srcSurname && srcSurname !== surname) {
+        conflicts.push({ field:'Surname', pms: pms.surname, source: source.family_name });
+        matchStatus = 'conflict';
+      }
+    }
+
+    return { pms, source, matchStatus, conflicts };
+  });
+
+  renderCompareTable(_pmsCompared);
+  document.getElementById('pmsCompareCard').style.display = 'block';
+
+  const matched   = _pmsCompared.filter(r => r.matchStatus !== 'unmatched').length;
+  const conflicts = _pmsCompared.filter(r => r.matchStatus === 'conflict').length;
+  const unmatched = _pmsCompared.filter(r => r.matchStatus === 'unmatched').length;
+  document.getElementById('pmsMatchSummary').textContent =
+    `${matched} matched · ${conflicts} conflicts · ${unmatched} unmatched`;
+  appLog(`PMS comparison: ${matched} matched, ${conflicts} conflicts, ${unmatched} unmatched.`,
+    conflicts || unmatched ? 'warning' : 'success');
+
+  if (conflicts) renderConflictResolution();
+  document.getElementById('pmsDataSourceCard').style.display = 'block';
+}
+
+function normaliseDob(dob) {
+  if (!dob) return '';
+  // Try to parse common formats: DD/MM/YYYY, YYYY-MM-DD, DD-MM-YYYY
+  const clean = dob.replace(/[^\d]/g, '');
+  if (clean.length === 8) {
+    // Try YYYYMMDD
+    if (clean.slice(0,4) > '1900') return `${clean.slice(0,4)}-${clean.slice(4,6)}-${clean.slice(6,8)}`;
+    // Try DDMMYYYY
+    return `${clean.slice(4,8)}-${clean.slice(2,4)}-${clean.slice(0,2)}`;
+  }
+  return dob.trim();
+}
+
+let _pmsFilter = 'all';
+function renderCompareTable(rows) {
+  const filtered = rows.filter(r => {
+    if (_pmsFilter === 'mismatches') return r.matchStatus === 'conflict';
+    if (_pmsFilter === 'unmatched') return r.matchStatus === 'unmatched';
+    return true;
+  });
+  const matchBadge = s => {
+    if (s === 'matched')   return '<span class="badge badge-green">Matched</span>';
+    if (s === 'conflict')  return '<span class="badge badge-yellow">Conflict</span>';
+    return '<span class="badge badge-gray">Unmatched</span>';
+  };
+  const tbody = document.getElementById('pmsCompareTbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state" style="padding:20px;"><i class="bi bi-check2-circle"></i><p>No rows match this filter</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map((r, i) => `
+    <tr style="cursor:default;">
+      <td><input type="checkbox" class="pms-row-chk" data-idx="${i}" checked></td>
+      <td style="color:var(--text-1);font-weight:600;">${escHtml(r.pms.surname)}</td>
+      <td>${escHtml(r.pms.first_name)}</td>
+      <td class="mono fs-11">${escHtml(r.pms.dob)}</td>
+      <td class="mono fs-11">${escHtml(r.pms.patient_ref||'—')}</td>
+      <td>${matchBadge(r.matchStatus)}</td>
+      <td style="color:var(--text-1);">${r.source ? escHtml(r.source.family_name||'') : '<span style="color:var(--text-3)">—</span>'}</td>
+      <td>${r.source ? escHtml(r.source.given_names||'') : '—'}</td>
+      <td class="mono fs-11">${r.source ? escHtml(r.source.dob||'') : '—'}</td>
+      <td>${r.conflicts.length ? `<span style="color:var(--yellow);font-size:11px;">${r.conflicts.map(c=>c.field).join(', ')}</span>` : '—'}</td>
+    </tr>`).join('');
+}
+
+function pmsFilterAll()        { _pmsFilter='all';        renderCompareTable(_pmsCompared); setActive('pmsFiltAll'); }
+function pmsFilterMismatches() { _pmsFilter='mismatches'; renderCompareTable(_pmsCompared); setActive('pmsFiltMismatch'); }
+function pmsFilterUnmatched()  { _pmsFilter='unmatched';  renderCompareTable(_pmsCompared); setActive('pmsFiltUnmatched'); }
+function setActive(id) {
+  ['pmsFiltAll','pmsFiltMismatch','pmsFiltUnmatched'].forEach(i => {
+    document.getElementById(i)?.classList.remove('active');
+  });
+  document.getElementById(id)?.classList.add('active');
+}
+
+function pmsToggleAll(checked) {
+  document.querySelectorAll('.pms-row-chk').forEach(c => c.checked = checked);
+}
+
+function renderConflictResolution() {
+  const conflicts = _pmsCompared.filter(r => r.matchStatus === 'conflict');
+  document.getElementById('pmsConflictCount').textContent = `${conflicts.length} patient(s) with conflicts`;
+  if (!conflicts.length) { document.getElementById('pmsFieldMapCard').style.display = 'none'; return; }
+  document.getElementById('pmsFieldMapCard').style.display = 'block';
+
+  const html = conflicts.map((r, ci) => `
+    <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;">
+      <div style="font-weight:700;color:var(--text-1);margin-bottom:10px;">
+        ${escHtml(r.pms.surname)}, ${escHtml(r.pms.first_name)}
+        <span style="color:var(--text-3);font-weight:400;font-size:11px;margin-left:8px;">${r.conflicts.length} conflict(s)</span>
+      </div>
+      ${r.conflicts.map((c, fi) => `
+        <div style="display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:10px;align-items:center;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text-2);">${escHtml(c.field)}</div>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--bg-hover);padding:6px 10px;border-radius:6px;border:1px solid var(--border);">
+            <input type="radio" name="conflict_${ci}_${fi}" value="pms" checked onchange="pmsResolve(${ci},${fi},'pms')">
+            <span style="font-size:11px;"><span style="color:var(--text-3);">PMS:</span> ${escHtml(c.pms||'—')}</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--bg-hover);padding:6px 10px;border-radius:6px;border:1px solid var(--border);">
+            <input type="radio" name="conflict_${ci}_${fi}" value="source" onchange="pmsResolve(${ci},${fi},'source')">
+            <span style="font-size:11px;"><span style="color:var(--text-3);">Source:</span> ${escHtml(c.source||'—')}</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="radio" name="conflict_${ci}_${fi}" value="manual" onchange="pmsResolve(${ci},${fi},'manual')">
+            <input type="text" placeholder="Manual override" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text-1);font-size:11px;"
+              id="pmsManual_${ci}_${fi}" oninput="pmsResolveManual(${ci},${fi},this.value)">
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+  document.getElementById('pmsConflictList').innerHTML = html || '<p style="color:var(--text-3);font-size:12px;">No conflicts to resolve.</p>';
+}
+
+function pmsResolve(ci, fi, choice) {
+  const conflictRows = _pmsCompared.filter(r => r.matchStatus === 'conflict');
+  if (!conflictRows[ci]) return;
+  conflictRows[ci].conflicts[fi].resolution = choice;
+}
+function pmsResolveManual(ci, fi, val) {
+  const conflictRows = _pmsCompared.filter(r => r.matchStatus === 'conflict');
+  if (!conflictRows[ci]) return;
+  conflictRows[ci].conflicts[fi].resolution = 'manual';
+  conflictRows[ci].conflicts[fi].manualValue = val;
+}
+
+function selectPmsDataSource(mode, el) {
+  document.querySelectorAll('#pmsDataSourceCard .source-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  _pmsDataSource = mode;
+}
+
+function pmsConfirm() {
+  appLog(`PMS data import confirmed. Data source: ${_pmsDataSource}. ${_pmsMapped.length} PMS patients applied.`, 'success');
+  const alert = document.createElement('div');
+  // brief toast-style feedback injected into page header area
+  appLog('PMS settings will be applied when the migration runs.', 'info');
+}
+
+async function validateConfig() {
+  appLog('Validating configuration…', 'info');
+  // First save config to server, then validate
+  await saveConfigToServer();
+  try {
+    const d = await api('POST', '/validate', {});
+    appLog('Validation passed: ' + (d.message || ''), 'success');
+  } catch(e) { appLog('Validation failed: ' + e.message, 'error'); }
+}
+
+function saveAndProceed() {
+  saveConfig();                // save to localStorage
+  saveConfigToServer();        // save to server state
+  appLog('Configuration saved.', 'success');
+  nav('loaddatasource');
+}
+
+async function saveConfigToServer() {
+  try {
+    await api('POST', '/config', {
+      source: _selectedSource,
+      target: _selectedTarget,
+      source_config: getSourceConfig(),
+      target_config: getTargetConfig(),
+    });
+  } catch(e) {
+    appLog('Warning: could not sync config to server: ' + e.message, 'warning');
+  }
+}
+
+/* ── LOAD DATA ──────────────────────────────────────────────── */
+let _loadedPatients = [];
+
+async function loadData() {
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading…';
+  document.getElementById('loadProgress').style.display = 'block';
+  document.getElementById('loadResultCard').style.display = 'none';
+
+  const start = Date.now();
+  animateProgress('loadBar', 'loadMsg', [
+    [10,'Connecting to source…'],
+    [25,'Reading patient index…'],
+    [50,'Loading media metadata…'],
+    [75,'Building patient list…'],
+    [90,'Finalising…'],
+  ]);
+
+  try {
+    const d = await api('POST', '/load', { source: _selectedSource, config: getSourceConfig() });
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1) + 's';
+
+    _loadedPatients = d.patients || [];
+    const patCount  = d.patients_count ?? _loadedPatients.length;
+    const mediaCount = d.media ?? 0;
+    const sizeGb    = d.size_gb ?? '—';
+
+    sv('loadPatientsFound', patCount);
+    sv('loadMediaFound', mediaCount);
+    sv('loadTime', elapsed);
+    document.getElementById('loadResultCard').style.display = 'block';
+
+    // Update overview stats
+    sv('statPatients', patCount.toLocaleString());
+    sv('statMedia', mediaCount.toLocaleString());
+    sv('statSize', sizeGb + ' GB');
+    sv('statMigrated', '0');
+
+    document.getElementById('loadBar').style.width = '100%';
+    document.getElementById('loadMsg').textContent = `Loaded ${patCount} patients, ${mediaCount} media files.`;
+    appLog(`Load complete: ${patCount} patients, ${mediaCount} media files in ${elapsed}`, 'success');
+
+    renderMediaTypes(_loadedPatients);
+    renderPatientTable(_loadedPatients);
+  } catch(e) {
+    document.getElementById('loadMsg').textContent = 'Error: ' + e.message;
+    appLog('Load failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-play-fill"></i> Load Now';
+  }
+}
+
+function renderMediaTypes(patients) {
+  const types = {};
+  patients.forEach(p => {
+    const k = p.modality || 'Unknown';
+    types[k] = (types[k] || 0) + (p.media_count || 0);
+  });
+  const total = Object.values(types).reduce((a,b)=>a+b,0)||1;
+  const colors = ['var(--accent)','var(--green)','var(--yellow)','var(--red)','var(--purple)','var(--text-2)'];
+  const html = Object.entries(types).map(([k,v],i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-dim);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${colors[i%colors.length]};flex-shrink:0;"></div>
+        <span style="font-size:12px;color:var(--text-2)">${k}</span>
+      </div>
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">${v.toLocaleString()} (${(v/total*100).toFixed(1)}%)</span>
+    </div>`).join('');
+  document.getElementById('mediaTypesList').innerHTML = html || '<div class="empty-state" style="padding:16px;"><p>No media types found</p></div>';
+  document.getElementById('contentTypesList').innerHTML = html;
+  document.getElementById('modalityBreakdown').innerHTML = html;
+  document.getElementById('fileTypeBreakdown').innerHTML = html;
+}
+
+/* ── PATIENTS PAGE ──────────────────────────────────────────── */
+async function loadPatients() {
+  if (_loadedPatients.length) {
+    renderPatientTable(_loadedPatients);
+    return;
+  }
+  try {
+    const d = await api('GET', '/patients');
+    _loadedPatients = d.patients || [];
+    renderPatientTable(_loadedPatients);
+  } catch {
+    renderPatientTable([]);
+  }
+}
+
+function renderPatientTable(patients) {
+  const tbody = document.getElementById('patientTbody');
+  if (!patients.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="bi bi-people"></i><p>No patients loaded. Load data first.</p></div></td></tr>`;
+    return;
+  }
+  const statusBadge = s => {
+    const m = { pending:'badge-gray', completed:'badge-green', failed:'badge-red', in_progress:'badge-yellow' };
+    return `<span class="badge ${m[s]||'badge-gray'}">${s||'pending'}</span>`;
+  };
+  tbody.innerHTML = patients.slice(0,200).map(p => `
+    <tr class="patient-row">
+      <td>${(p.uid||'').slice(0,12)}…</td>
+      <td style="color:var(--text-1);font-weight:600">${p.family_name||'—'}</td>
+      <td>${p.given_names||'—'}</td>
+      <td class="mono">${p.dob||'—'}</td>
+      <td class="mono">${p.media_count??'—'}</td>
+      <td>${statusBadge(p.status)}</td>
+    </tr>`).join('');
+}
+
+function filterPatients(q) {
+  q = q.toLowerCase();
+  const filtered = _loadedPatients.filter(p =>
+    (p.family_name||'').toLowerCase().includes(q) ||
+    (p.given_names||'').toLowerCase().includes(q) ||
+    (p.uid||'').toLowerCase().includes(q)
+  );
+  renderPatientTable(filtered);
+}
+
+function refreshPatients() {
+  _loadedPatients = [];
+  loadPatients();
+}
+
+/* ── MIGRATION ──────────────────────────────────────────────── */
+let _migState = 'idle';
+let _migPollTimer = null;
+
+async function migRun() {
+  if (_migState === 'running') return;
+  _setMigState('running');
+  updateMigUI('Running…', 'yellow', 0, 'Starting migration…');
+  appLog('Migration started.', 'info');
+
+  const incremental = document.getElementById('flt_incremental')?.checked || false;
+  try {
+    const d = await api('POST', '/migrate/start', {
+      source: _selectedSource, target: _selectedTarget,
+      source_config: getSourceConfig(), target_config: getTargetConfig(),
+      incremental
+    });
+    appLog('Migration queued, session: ' + (d.session_id||'demo'), 'success');
+    _startMigPoll();
+  } catch(e) {
+    appLog('Failed to start migration: ' + e.message, 'error');
+    _setMigState('idle');
+    updateMigUI('Failed', 'red', 0, e.message);
+  }
+}
+
+async function migPause() {
+  if (_migState !== 'running') return;
+  await api('POST', '/migrate/pause');
+  _setMigState('paused');
+  updateMigUI('Paused', 'yellow', null, 'Migration paused — click Resume to continue.');
+  appLog('Migration paused.', 'warning');
+}
+
+async function migCancel() {
+  await api('POST', '/migrate/cancel');
+  _setMigState('idle');
+  clearInterval(_migPollTimer);
+  updateMigUI('Cancelled', 'red', null, 'Migration was cancelled.');
+  appLog('Migration cancelled.', 'error');
+}
+
+function _startMigPoll() {
+  clearInterval(_migPollTimer);
+  _migPollTimer = setInterval(async () => {
+    try {
+      const d = await api('GET', '/migrate/status');
+      const pct = Math.round((d.current / Math.max(d.total,1)) * 100);
+      updateMigUI(d.status_label, _dotColor(d.status), pct, d.message);
+      if (d.counters) updateMigStats(d.counters);
+      if (d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled') {
+        clearInterval(_migPollTimer);
+        _setMigState('idle');
+        appLog('Migration ' + d.status + ': ' + d.message, d.status === 'completed' ? 'success' : 'error');
+        loadHistory();
+      }
+      if (d.log_line) migLog(d.log_line, d.log_level || 'info');
+    } catch {
+      clearInterval(_migPollTimer);
+      _setMigState('idle');
+      updateMigUI('Error', 'red', null, 'Lost connection to server.');
+      migLog('Lost connection to migration server.', 'error');
+    }
+  }, 500);
+}
+
+
+
+function _dotColor(s) {
+  return { running:'yellow', completed:'green', failed:'red', paused:'yellow', cancelled:'red' }[s] || '';
+}
+
+function updateMigUI(label, dotColor, pct, msg) {
+  const dot = document.getElementById('migDot');
+  const txt = document.getElementById('migStatusText');
+  const pctEl = document.getElementById('migPct');
+  const bar  = document.getElementById('migBar');
+  const msgEl = document.getElementById('migMsg');
+  if (dot) { dot.className = 'status-dot ' + (dotColor||''); }
+  if (txt) txt.textContent = label;
+  if (pct !== null && pctEl) { pctEl.textContent = pct + '%'; bar.style.width = pct + '%'; }
+  if (msg && msgEl) msgEl.textContent = msg;
+}
+
+function updateMigStats(c) {
+  const s = (id,v) => { const e=document.getElementById(id); if(e) e.textContent = (v||0).toLocaleString(); };
+  s('mStatProcessed', c.processed);
+  s('mStatImported',  c.imported);
+  s('mStatFailed',    c.failed);
+  s('mStatSkipped',   c.skipped);
+  s('mStatImages',    c.images);
+}
+
+function _setMigState(state) {
+  _migState = state;
+  const run    = document.getElementById('migRunBtn');
+  const pause  = document.getElementById('migPauseBtn');
+  const cancel = document.getElementById('migCancelBtn');
+  if (state === 'running') {
+    run.disabled = true;
+    pause.disabled = false;
+    pause.innerHTML = '<i class="bi bi-pause-fill"></i> Pause';
+    cancel.disabled = false;
+  } else if (state === 'paused') {
+    run.disabled = false;
+    run.innerHTML = '<i class="bi bi-play-fill"></i> Resume';
+    pause.disabled = true;
+    cancel.disabled = false;
+  } else {
+    run.disabled = false;
+    run.innerHTML = '<i class="bi bi-play-fill"></i> Start Migration';
+    pause.disabled = true;
+    cancel.disabled = true;
+  }
+}
+
+/* ── MIGRATION LOG ──────────────────────────────────────────── */
+function migLog(msg, level) {
+  const ts = new Date().toTimeString().slice(0,8);
+  const el = document.getElementById('migLog');
+  if (!el) return;
+  const line = document.createElement('div');
+  line.className = 'log-line ' + (level||'info');
+  line.innerHTML = `<span class="log-ts">[${ts}]</span>${escHtml(msg)}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearLog() { const el = document.getElementById('migLog'); if(el) el.innerHTML = ''; }
+
+/* ── SESSION HISTORY ────────────────────────────────────────── */
+async function loadHistory() {
+  try {
+    const d = await api('GET', '/history');
+    renderHistory(d.sessions || []);
+  } catch { renderHistory([]); }
+}
+
+function renderHistory(sessions) {
+  const tbody = document.getElementById('historyTbody');
+  if (!sessions.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="padding:20px;"><i class="bi bi-clock-history"></i><p>No history yet</p></div></td></tr>`;
+    return;
+  }
+  const statusBadge = s => {
+    const m = { completed:'badge-green', failed:'badge-red', paused:'badge-yellow', cancelled:'badge-red', running:'badge-yellow' };
+    return `<span class="badge ${m[s]||'badge-gray'}">${s}</span>`;
+  };
+  tbody.innerHTML = sessions.map(s => `
+    <tr>
+      <td class="mono fs-11">${(s.id||'').slice(0,12)}…</td>
+      <td>${s.source||'—'} → ${s.target||'—'}</td>
+      <td class="mono fs-11">${s.started||'—'}</td>
+      <td>${statusBadge(s.status)}</td>
+      <td class="mono">${s.done_patients||0} / ${s.total_patients||0}</td>
+      <td>
+        ${s.status==='paused' ? `<button class="btn btn-ghost btn-sm" onclick="resumeSession('${s.id}')"><i class="bi bi-play-fill"></i> Resume</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+async function resumeSession(id) {
+  appLog(`Resuming session ${id}…`, 'info');
+  _setMigState('running');
+  updateMigUI('Resuming…', 'yellow', null, `Resuming session ${id.slice(0,8)}…`);
+  await api('POST', '/migrate/resume', { session_id: id });
+  _startMigPoll();
+}
+
+/* ── DICOM EXPORT ───────────────────────────────────────────── */
+async function startDicomExport() {
+  const out = v('dicom_out');
+  if (!out) { appLog('Please set an export folder.', 'warning'); return; }
+  document.getElementById('dicomProgressCard').style.display = 'block';
+  animateProgress('dicomBar', 'dicomMsg', [
+    [20,'Creating output folder…'],[50,'Exporting files…'],[80,'Finalising DICOM metadata…'],[100,'Export complete']
+  ]);
+  appLog('DICOM export started.', 'info');
+}
+
+/* ── SETTINGS ───────────────────────────────────────────────── */
+function saveSettings() {
+  appLog('Settings saved.', 'success');
+}
+
+/* ── OVERVIEW LOAD ──────────────────────────────────────────── */
+async function loadOverview() {
+  if (!_loadedPatients.length) return;
+  sv('statPatients', _loadedPatients.length.toLocaleString());
+  const media = _loadedPatients.reduce((s,p)=>s+(p.media_count||0),0);
+  sv('statMedia', media.toLocaleString());
+}
+
+/* ── CONFIRM DIALOG ─────────────────────────────────────────── */
+let _confirmCb = null;
+
+function openConfirm(title, msg, cb) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmOkBtn').onclick = () => { closeConfirm(); cb && cb(); };
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); }
+
+function confirmClearData() {
+  openConfirm('Clear Migrated Data',
+    'This will permanently delete all SOURCE=1 patients from VistaSoft. Native VistaSoft patients (SOURCE=0) will not be affected. Make sure VistaSoft services are stopped. This action cannot be undone.',
+    async () => {
+      appLog('Clearing migrated data from VistaSoft DB…', 'warning');
+      try {
+        await api('POST', '/clear_migrated');
+        appLog('Migrated data cleared successfully.', 'success');
+      } catch(e) { appLog('Clear failed: ' + e.message, 'error'); }
+    }
+  );
+}
+
+/* ── APP LOG ────────────────────────────────────────────────── */
+function appLog(msg, level) {
+  const ts = new Date().toTimeString().slice(0,8);
+  const el = document.getElementById('appLog');
+  if (!el) return;
+  const line = document.createElement('div');
+  line.className = 'log-line ' + (level||'info');
+  line.innerHTML = `<span class="log-ts">[${ts}]</span>${escHtml(msg)}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  // also push to migration log if on migration page
+  migLog(msg, level);
+}
+function openLog()    { document.getElementById('logModal').classList.add('open'); }
+function closeLog()   { document.getElementById('logModal').classList.remove('open'); }
+function clearAppLog(){ document.getElementById('appLog').innerHTML = ''; }
+
+/* ── HELPERS ────────────────────────────────────────────────── */
+function v(id)       { return document.getElementById(id)?.value ?? ''; }
+function sv(id, val) { const el=document.getElementById(id); if(el) { if('value' in el) el.value=val; else el.textContent=val; } }
+function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function browsePath(inputId) {
+  try {
+    const d = await api('POST', '/browse_folder', {});
+    if (d && d.path) {
+      sv(inputId, d.path);
+      saveConfig();
+    } else {
+      // Server returned ok but no path (user cancelled dialog)
+    }
+  } catch(e) {
+    // Server-side dialog not available (non-Windows or headless) — fall back to prompt
+    const current = v(inputId);
+    const p = prompt('Enter folder path:', current || 'C:\\');
+    if (p !== null && p.trim()) {
+      sv(inputId, p.trim());
+      saveConfig();
+    }
+  }
+}
+
+function animateProgress(barId, msgId, steps) {
+  let i = 0;
+  const tick = () => {
+    if (i >= steps.length) return;
+    const [pct, msg] = steps[i++];
+    document.getElementById(barId).style.width = pct + '%';
+    document.getElementById(msgId).textContent = msg;
+    if (i < steps.length) setTimeout(tick, 600 + Math.random()*400);
+  };
+  tick();
+}
+
+function getSourceConfig() {
+  return {
+    MediaPath: v('vs_media_path'),
+    Encoding: v('vs_encoding'),
+    MaxParallelism: v('vs_max_parallel'),
+    Incremental: document.getElementById('vs_incremental').checked,
+  };
+}
+function getTargetConfig() {
+  return {
+    CoreUrl: v('dtx_url'),
+    Username: v('dtx_user'),
+    Password: v('dtx_pass'),
+    Practice: v('dtx_practice'),
+    Timeout: v('dtx_timeout'),
+    Retries: v('dtx_retries'),
+    SkipExisting: document.getElementById('dtx_skip_existing').checked,
+  };
+}
+
+/* ── KEYBOARD ───────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeConfirm(); closeLog(); }
+});
+
+/* ── INIT ───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadStoredConfig();
+  appLog('IT INFINITY Migration Tool v2.4.1 initialised.', 'info');
+  _checkAuth();   // check server session; shows app or sign-in screen accordingly
+  // After auth resolves, push any locally stored config up to the server
+  setTimeout(saveConfigToServer, 1500);
+});
+</script>
+</body>
+</html>

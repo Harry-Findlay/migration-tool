@@ -1,0 +1,1213 @@
+"""
+server.py
+=========
+Flask web server that powers the IT INFINITY Migration Tool.
+
+Run with:
+    python server.py
+
+The server binds to http://localhost:5000 by default.
+The desktop shortcut created by the installer points to this address.
+
+Architecture
+------------
+  server.py         — Flask app, API routes, migration state machine
+  auth/ms365.py     — Microsoft 365 MSAL OAuth blueprint
+  core/engine.py    — Migration orchestration (unchanged background thread logic)
+  core/migration_store.py — SQLite persistence (unchanged)
+  datasources/      — Source and target datasource classes (unchanged)
+
+API surface
+-----------
+  GET  /                       Serve the frontend HTML
+  GET  /auth/login             Redirect to Microsoft 365 sign-in
+  GET  /auth/callback          Handle OAuth callback
+  GET  /auth/logout            Sign out
+  GET  /auth/me                Return current user
+
+  GET  /api/status             Server + connection status
+  GET  /api/datasources        List available source/target datasources
+  GET  /api/config             Get current datasource configuration
+  POST /api/config             Save datasource configuration
+  POST /api/test/source        Test source connection
+  POST /api/test/target        Test target connection
+  POST /api/validate           Validate both configurations
+  POST /api/browse_folder      Open native folder browser (Windows only)
+
+  POST /api/load               Load patients from source into memory
+  GET  /api/patients           Return loaded patient list
+  GET  /api/overview           Return overview stats
+
+  POST /api/migrate/start      Start a migration
+  POST /api/migrate/pause      Pause the running migration
+  POST /api/migrate/resume     Resume a paused migration
+  POST /api/migrate/cancel     Cancel the running migration
+  GET  /api/migrate/status     Poll migration progress
+  GET  /api/history            List past sessions
+  GET  /api/history/<id>       Get a specific session
+  DELETE /api/history/<id>     Delete a session
+
+  POST /api/pms/compare        Compare PMS CSV data against loaded source patients
+  POST /api/pms/confirm        Confirm PMS settings for the upcoming migration
+
+  POST /api/dicom/export       Start a DICOM export job
+  GET  /api/dicom/status       Poll DICOM export progress
+
+  POST /api/clear_migrated     Clear SOURCE=1 patients from VistaSoft DB
+
+  GET  /api/audit              Return audit log entries
+"""
+
+import os
+import sys
+import json
+import logging
+import threading
+import datetime
+from typing import Optional
+
+from flask import (Flask, jsonify, request, send_from_directory,
+                   redirect, url_for)
+from flask_cors import CORS
+
+# ── Path setup ─────────────────────────────────────────────────────────────────
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
+
+# Load .env from the project root before anything reads os.environ.
+# python-dotenv is in requirements.txt; this is a no-op if the file doesn't exist.
+try:
+    from dotenv import load_dotenv
+    _env_path = os.path.join(BASE_DIR, ".env")
+    load_dotenv(_env_path, override=False)
+except ImportError:
+    pass  # dotenv not installed yet — values must come from the environment directly
+
+from core.engine          import MigrationEngine
+from core.migration_store import MigrationStore
+from core.models          import MigrationStatus
+from auth.ms365           import auth_bp, require_auth, get_current_user
+
+# ── Datasource registry ────────────────────────────────────────────────────────
+from datasources.vistasoft_source  import VistaSoftSource
+from datasources.sopro_source      import SOPROSource
+from datasources.dtxstudio_source  import DTXStudioSource
+from datasources.dtxstudio_target  import DTXStudioTarget
+from datasources.vistasoft_target  import VistaSoftTarget
+
+SOURCE_REGISTRY = {
+    "VistaSoft":  VistaSoftSource,
+    "DTX Studio": DTXStudioSource,
+    "SOPRO":      SOPROSource,
+}
+
+TARGET_REGISTRY = {
+    "DTX Studio": DTXStudioTarget,
+    "VistaSoft":  VistaSoftTarget,
+}
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+# Create the log directory before the FileHandler tries to open the file.
+_LOG_DIR = os.path.join(os.path.expanduser("~"), ".config", "ITInfinityMigrator")
+os.makedirs(_LOG_DIR, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(
+            os.path.join(_LOG_DIR, "server.log"),
+            encoding="utf-8",
+        ),
+    ],
+)
+logger = logging.getLogger("server")
+
+
+# ── Flask app ──────────────────────────────────────────────────────────────────
+app = Flask(__name__, static_folder=os.path.join(BASE_DIR, "static"))
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(32))
+app.permanent_session_lifetime = datetime.timedelta(hours=8)
+
+# CORS — must explicitly list the origin (not wildcard) when credentials are included
+CORS(app,
+     supports_credentials=True,
+     origins=["http://localhost:5000"],
+     allow_headers=["Content-Type"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+# ── Azure AD config  (set in .env or environment before starting the server) ──
+app.config["AZURE_TENANT_ID"]     = os.environ.get("AZURE_TENANT_ID",     "")
+app.config["AZURE_CLIENT_ID"]     = os.environ.get("AZURE_CLIENT_ID",     "")
+app.config["AZURE_CLIENT_SECRET"] = os.environ.get("AZURE_CLIENT_SECRET", "")
+
+# Warn at startup if Azure credentials are missing rather than crashing later
+_missing = [k for k in ("AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET")
+            if not app.config[k]]
+if _missing:
+    logger.warning(
+        "Azure AD credentials not set: %s. "
+        "Sign-in will fail. Check your .env file at: %s",
+        ", ".join(_missing), os.path.join(BASE_DIR, ".env")
+    )
+
+app.register_blueprint(auth_bp)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# In-memory application state
+# All mutable state lives here so every request thread can access it.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_state_lock = threading.Lock()
+
+class AppState:
+    """Single global mutable state object, protected by _state_lock."""
+
+    def __init__(self):
+        self.store   = MigrationStore()
+        self.engine  = MigrationEngine(store=self.store)
+
+        # Currently selected datasource names
+        self.source_name: str = "VistaSoft"
+        self.target_name: str = "DTX Studio"
+
+        # Live datasource instances (re-created when config changes)
+        self.source: Optional[object] = SOURCE_REGISTRY["VistaSoft"]()
+        self.target: Optional[object] = TARGET_REGISTRY["DTX Studio"]()
+
+        # Patients loaded from source
+        self.loaded_patients: list = []
+        self.load_meta: dict = {}
+
+        # Live migration progress (updated by engine callbacks)
+        self.migration_status: str  = "idle"   # idle|running|paused|completed|failed|cancelled
+        self.migration_pct: int     = 0
+        self.migration_message: str = ""
+        self.migration_counters: dict = {}
+        self.migration_log: list    = []        # [{ts, msg, level}]
+        self.session_id: Optional[str] = None
+
+        # DICOM export state
+        self.dicom_status: str  = "idle"
+        self.dicom_pct: int     = 0
+        self.dicom_message: str = ""
+
+        # PMS CSV state (set by /api/pms/compare, consumed at migration start)
+        self.pms_patients: list  = []
+        self.pms_data_source: str = "source"  # "pms" | "source" | "merged"
+        self.pms_confirmed: bool  = False
+
+_app = AppState()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Helpers
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _current_user() -> dict:
+    return get_current_user() or {}
+
+def _ok(data: dict = None, **kwargs) -> tuple:
+    payload = {"ok": True}
+    if data:
+        payload.update(data)
+    payload.update(kwargs)
+    return jsonify(payload), 200
+
+def _err(message: str, code: int = 400) -> tuple:
+    return jsonify({"ok": False, "error": message}), code
+
+def _get_or_build_source(name: str) -> object:
+    cls = SOURCE_REGISTRY.get(name)
+    if not cls:
+        raise ValueError(f"Unknown source: {name}")
+    return cls()
+
+def _get_or_build_target(name: str) -> object:
+    cls = TARGET_REGISTRY.get(name)
+    if not cls:
+        raise ValueError(f"Unknown target: {name}")
+    return cls()
+
+def _push_log(msg: str, level: str = "info"):
+    ts = datetime.datetime.utcnow().strftime("%H:%M:%S")
+    with _state_lock:
+        _app.migration_log.append({"ts": ts, "msg": msg, "level": level})
+        if len(_app.migration_log) > 1000:
+            _app.migration_log = _app.migration_log[-800:]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Frontend
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/")
+def serve_frontend():
+    """Serve the single-page frontend. No auth required - the JS handles sign-in."""
+    index = os.path.join(app.static_folder, "index.html")
+    if not os.path.isfile(index):
+        return (
+            "<h2>Setup required</h2>"
+            f"<p>Place <code>index.html</code> in:<br><code>{app.static_folder}</code></p>"
+            "<p>Copy <code>migration-tool.html</code> there and rename it to"
+            " <code>index.html</code>.</p>"
+        ), 404
+    return send_from_directory(app.static_folder, "index.html")
+
+
+@app.route("/health")
+def health():
+    """Simple health check - no auth required."""
+    return jsonify({
+        "ok": True,
+        "static_folder": app.static_folder,
+        "index_exists": os.path.isfile(
+            os.path.join(app.static_folder, "index.html")
+        ),
+    })
+
+
+@app.route("/api/diagnostics/source")
+@require_auth
+def api_diagnostics_source():
+    """
+    Walk the configured source MediaPath and return what we find.
+    Helps diagnose why patients aren't being discovered.
+    """
+    with _state_lock:
+        source = _app.source
+
+    media_path = source.get_config_value("MediaPath") if source else ""
+    if not media_path:
+        return _ok(error="MediaPath not set", tree=[])
+
+    if not os.path.isdir(media_path):
+        return _ok(error=f"MediaPath does not exist: {media_path}", tree=[])
+
+    tree = []
+    patient_dat_found = []
+    try:
+        for root, dirs, files in os.walk(media_path):
+            depth = root.replace(media_path, "").count(os.sep)
+            if depth > 4:
+                dirs.clear()  # don't go deeper than 4 levels
+                continue
+            rel = os.path.relpath(root, media_path)
+            has_patient = any(f.lower() in ("patient.dat","patient.dax") for f in files)
+            has_images  = any(f.lower() == "image.dat" for f in files)
+            if has_patient or has_images or depth <= 1:
+                entry = {
+                    "path":        rel,
+                    "depth":       depth,
+                    "subdirs":     [d for d in dirs[:10]],
+                    "files":       [f for f in files[:20]],
+                    "has_patient": has_patient,
+                    "has_images":  has_images,
+                }
+                tree.append(entry)
+                if has_patient:
+                    patient_dat_found.append(rel)
+    except Exception as e:
+        return _ok(error=str(e), tree=tree)
+
+    return _ok(
+        media_path=media_path,
+        tree=tree,
+        patient_folders_found=len(patient_dat_found),
+        patient_folder_paths=patient_dat_found[:20],
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Status
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/status")
+def api_status():
+    with _state_lock:
+        src_name = _app.source_name
+        tgt_name = _app.target_name
+        mig_status = _app.migration_status
+    return _ok(
+        connected=True,
+        status="Server running",
+        source=src_name,
+        target=tgt_name,
+        migration_status=mig_status,
+        user=_current_user(),
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Datasources
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/datasources")
+@require_auth
+def api_datasources():
+    sources = [{"name": k, "display_name": k} for k in SOURCE_REGISTRY]
+    targets = [{"name": k, "display_name": k} for k in TARGET_REGISTRY]
+    return _ok(sources=sources, targets=targets)
+
+
+@app.route("/api/config", methods=["GET"])
+@require_auth
+def api_config_get():
+    with _state_lock:
+        source = _app.source
+        target = _app.target
+    return _ok(
+        source_name=_app.source_name,
+        target_name=_app.target_name,
+        source_config=source.config_to_dict() if source else [],
+        target_config=target.config_to_dict() if target else [],
+    )
+
+
+@app.route("/api/config", methods=["POST"])
+@require_auth
+def api_config_save():
+    """
+    Save datasource configuration sent from the frontend.
+    Expected body:
+    {
+        "source":        "VistaSoft",
+        "target":        "DTX Studio",
+        "source_config": {"MediaPath": "C:\\VistaSoftData", ...},
+        "target_config": {"CoreUrl": "https://...", "Username": "...", ...}
+    }
+    """
+    body = request.get_json(force=True) or {}
+    src_name = body.get("source", "VistaSoft")
+    tgt_name = body.get("target", "DTX Studio")
+
+    try:
+        source = _get_or_build_source(src_name)
+        target = _get_or_build_target(tgt_name)
+    except ValueError as e:
+        return _err(str(e))
+
+    source.apply_config_dict(body.get("source_config", {}))
+    target.apply_config_dict(body.get("target_config", {}))
+
+    with _state_lock:
+        _app.source_name = src_name
+        _app.target_name = tgt_name
+        _app.source = source
+        _app.target = target
+
+    _app.store.audit("config_saved",
+                     f"{src_name} → {tgt_name}",
+                     user_email=_current_user().get("email"))
+    logger.info(f"Config saved: {src_name} → {tgt_name}")
+    return _ok(message="Configuration saved.")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Connection tests & validation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/test/source", methods=["POST"])
+@require_auth
+def api_test_source():
+    body = request.get_json(force=True) or {}
+    cfg  = body.get("config", {})
+    src_name = body.get("source", _app.source_name)
+
+    try:
+        source = _get_or_build_source(src_name)
+    except ValueError as e:
+        return _err(str(e))
+
+    source.apply_config_dict(cfg)
+
+    # Persist so subsequent calls (load, migrate) use the same config
+    with _state_lock:
+        _app.source      = source
+        _app.source_name = src_name
+
+    try:
+        if hasattr(source, "test_db_connection"):
+            ok, msg = source.test_db_connection()
+        else:
+            ok, msg = source.validate()
+    except Exception as e:
+        logger.exception("Source test failed")
+        return _err(str(e))
+
+    if ok:
+        return _ok(message=msg)
+    return _err(msg)
+
+
+@app.route("/api/test/target", methods=["POST"])
+@require_auth
+def api_test_target():
+    body = request.get_json(force=True) or {}
+    cfg  = body.get("config", {})
+    tgt_name = body.get("target", _app.target_name)
+
+    try:
+        target = _get_or_build_target(tgt_name)
+    except ValueError as e:
+        return _err(str(e))
+
+    target.apply_config_dict(cfg)
+
+    with _state_lock:
+        _app.target      = target
+        _app.target_name = tgt_name
+
+    try:
+        ok, msg = target.test_connection()
+    except Exception as e:
+        logger.exception("Target test failed")
+        return _err(str(e))
+
+    if ok:
+        return _ok(message=msg)
+    return _err(msg)
+
+
+@app.route("/api/validate", methods=["POST"])
+@require_auth
+def api_validate():
+    body = request.get_json(force=True) or {}
+
+    with _state_lock:
+        source = _app.source
+        target = _app.target
+
+    if not source or not target:
+        return _err("Source or target not configured.")
+
+    # Apply any config overrides sent with the request
+    if body.get("source_config"):
+        source.apply_config_dict(body["source_config"])
+    if body.get("target_config"):
+        target.apply_config_dict(body["target_config"])
+
+    ok1, msg1 = source.validate()
+    ok2, msg2 = target.validate()
+    if ok1 and ok2:
+        return _ok(message="Both configurations are valid.")
+    errors = []
+    if not ok1:
+        errors.append(f"Source: {msg1}")
+    if not ok2:
+        errors.append(f"Target: {msg2}")
+    return _err(" | ".join(errors))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Folder browser (Windows only, graceful fallback elsewhere)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/browse_folder", methods=["POST"])
+@require_auth
+def api_browse_folder():
+    """
+    Open a native folder selection dialog on the server machine.
+    Only works when the server is running on Windows with a display.
+    """
+    if os.name != "nt":
+        return _err("Folder browser only available on Windows.")
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes("-topmost", True)
+        path = filedialog.askdirectory(title="Select Folder")
+        root.destroy()
+        if path:
+            return _ok(path=os.path.normpath(path))
+        return _ok(path="")
+    except Exception as e:
+        return _err(f"Folder browser failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Load data
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/load", methods=["POST"])
+@require_auth
+def api_load():
+    """
+    Load all patients from the configured source.
+    Accepts source name + config overrides in the request body, or uses
+    whatever was last saved via /api/config.
+    """
+    body = request.get_json(force=True) or {}
+
+    # If a source name is in the request, rebuild from scratch with that config.
+    # Otherwise use whatever is already in _app.source (saved by /api/config).
+    src_name   = body.get("source")
+    src_config = body.get("config", {})
+
+    with _state_lock:
+        source = _app.source
+
+    if not source:
+        return _err("No source configured. Save configuration first.")
+
+    if src_name and src_name != _app.source_name:
+        try:
+            source = _get_or_build_source(src_name)
+        except ValueError as e:
+            return _err(str(e))
+
+    if src_config:
+        source.apply_config_dict(src_config)
+        with _state_lock:
+            _app.source = source
+
+    # Log exactly what config we're about to use — helps diagnose path issues
+    media_path = source.get_config_value("MediaPath") or source.get_config_value("media_path") or ""
+    logger.info(f"api_load: source={source.name!r} MediaPath={media_path!r}")
+
+    ok, msg = source.validate()
+    if not ok:
+        logger.warning(f"api_load: validation failed: {msg}")
+        return _err(f"Source validation failed: {msg}")
+
+    import time
+    t0 = time.time()
+    try:
+        patients = source.load(
+            cancel_flag=lambda: False,
+            max_parallelism=int(body.get("max_parallelism", 4)),
+        )
+    except Exception as e:
+        logger.exception("Load failed")
+        return _err(f"Failed to load from source: {e}")
+
+    elapsed = round(time.time() - t0, 2)
+    media_count = sum(p.get("media_count", 0) for p in patients)
+
+    # Compute size estimate: walk the images path if accessible
+    size_gb = 0.0
+    try:
+        if hasattr(source, "_get_images_path"):
+            images_path = source._get_images_path()
+            if os.path.isdir(images_path):
+                total_bytes = sum(
+                    f.stat().st_size
+                    for f in os.scandir(images_path)
+                    if f.is_file()
+                )
+                size_gb = round(total_bytes / (1024 ** 3), 2)
+    except Exception:
+        pass
+
+    # Build media type breakdown
+    modality_counts: dict = {}
+    for p in patients:
+        for study in p.get("studies", {}).values():
+            for series in study.get("series", {}).values():
+                for media in series.get("media", []):
+                    mod = media.get("modality") or media.get("image_class") or "Unknown"
+                    modality_counts[mod] = modality_counts.get(mod, 0) + 1
+
+    with _state_lock:
+        _app.loaded_patients = patients
+        _app.load_meta = {
+            "patients_count": len(patients),
+            "media":          media_count,
+            "size_gb":        size_gb,
+            "load_time":      f"{elapsed}s",
+            "modalities":     modality_counts,
+        }
+
+    _app.store.audit("source_loaded",
+                     f"{len(patients)} patients from {source.name}",
+                     user_email=_current_user().get("email"))
+    logger.info(f"Loaded {len(patients)} patients from {source.name} in {elapsed}s")
+
+    return _ok(**_app.load_meta)
+
+
+@app.route("/api/patients")
+@require_auth
+def api_patients():
+    """Return the in-memory patient list. Accepts ?search= and ?status= filters."""
+    search = (request.args.get("search") or "").lower()
+    status_filter = request.args.get("status", "")
+
+    with _state_lock:
+        patients = _app.loaded_patients
+
+    def _safe(p: dict) -> dict:
+        """Strip non-serialisable keys (lambdas etc.) for JSON output."""
+        return {
+            "uid":          p.get("uid", ""),
+            "family_name":  p.get("family_name", ""),
+            "given_names":  p.get("given_names", ""),
+            "dob":          p.get("dob", ""),
+            "nhs_number":   p.get("nhs_number", ""),
+            "media_count":  p.get("media_count", 0),
+            "status":       p.get("status", "pending"),
+        }
+
+    result = [_safe(p) for p in patients]
+
+    if search:
+        result = [
+            p for p in result
+            if search in p["family_name"].lower()
+            or search in p["given_names"].lower()
+            or search in p["uid"].lower()
+        ]
+    if status_filter:
+        result = [p for p in result if p["status"] == status_filter]
+
+    return _ok(patients=result, total=len(result))
+
+
+@app.route("/api/overview")
+@require_auth
+def api_overview():
+    with _state_lock:
+        meta     = _app.load_meta
+        patients = _app.loaded_patients
+        src_name = _app.source_name
+        tgt_name = _app.target_name
+
+    migrated_count = _app.store.count_migrated(
+        src_name.lower().replace(" ", "_"),
+        tgt_name.lower().replace(" ", "_"),
+    )
+
+    return _ok(
+        patients_count=meta.get("patients_count", 0),
+        media_count=meta.get("media", 0),
+        size_gb=meta.get("size_gb", 0),
+        migrated=migrated_count,
+        modalities=meta.get("modalities", {}),
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Migration control
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _on_progress(current, total, message, counters=None):
+    pct = int((current / max(total, 1)) * 100)
+    with _state_lock:
+        _app.migration_pct     = pct
+        _app.migration_message = message
+        if counters:
+            _app.migration_counters = counters
+        if _app.migration_status not in ("paused", "cancelled"):
+            _app.migration_status = "running"
+    _push_log(message, "info")
+
+
+def _on_complete(result):
+    with _state_lock:
+        _app.migration_status  = result.status.value
+        _app.migration_pct     = 100 if result.status == MigrationStatus.COMPLETED else _app.migration_pct
+        _app.migration_message = result.message
+        _app.session_id        = result.session_id
+    level = "success" if result.status == MigrationStatus.COMPLETED else "warning"
+    _push_log(result.message, level)
+    _app.store.audit(
+        f"migration_{result.status.value}",
+        result.message,
+        session_id=result.session_id,
+        user_email=_current_user().get("email") if _current_user() else None,
+    )
+
+
+def _on_error(error_msg):
+    with _state_lock:
+        _app.migration_status  = "failed"
+        _app.migration_message = error_msg
+    _push_log(error_msg, "error")
+
+
+@app.route("/api/migrate/start", methods=["POST"])
+@require_auth
+def api_migrate_start():
+    body = request.get_json(force=True) or {}
+
+    with _state_lock:
+        if _app.migration_status == "running":
+            return _err("A migration is already running.")
+        source = _app.source
+        target = _app.target
+
+    if not source or not target:
+        return _err("Source or target not configured.")
+
+    # Apply any config overrides from the request
+    source.apply_config_dict(body.get("source_config", {}))
+    target.apply_config_dict(body.get("target_config", {}))
+
+    incremental = bool(body.get("incremental", False))
+    max_par     = int(body.get("max_parallelism", 4))
+
+    with _state_lock:
+        _app.migration_status   = "running"
+        _app.migration_pct      = 0
+        _app.migration_message  = "Starting…"
+        _app.migration_counters = {}
+        _app.migration_log      = []
+
+    _app.engine.run(
+        source=source, target=target,
+        max_parallelism=max_par,
+        incremental=incremental,
+        on_progress=_on_progress,
+        on_complete=_on_complete,
+        on_error=_on_error,
+    )
+
+    _app.store.audit("migration_started",
+                     f"incremental={incremental}",
+                     user_email=_current_user().get("email"))
+    logger.info(f"Migration started: {source.name} → {target.name}, incremental={incremental}")
+    return _ok(message="Migration started.")
+
+
+@app.route("/api/migrate/pause", methods=["POST"])
+@require_auth
+def api_migrate_pause():
+    with _state_lock:
+        if _app.migration_status != "running":
+            return _err("No running migration to pause.")
+        _app.migration_status = "paused"
+    _app.engine.pause()
+    _push_log("Migration paused.", "warning")
+    _app.store.audit("migration_paused", user_email=_current_user().get("email"))
+    return _ok(message="Migration paused.")
+
+
+@app.route("/api/migrate/resume", methods=["POST"])
+@require_auth
+def api_migrate_resume():
+    body = request.get_json(force=True) or {}
+    session_id = body.get("session_id")
+
+    with _state_lock:
+        source = _app.source
+        target = _app.target
+        current_status = _app.migration_status
+
+    if current_status == "paused" and not session_id:
+        # Resume in-process paused migration
+        _app.engine.resume()
+        with _state_lock:
+            _app.migration_status = "running"
+        _push_log("Migration resumed.", "info")
+        return _ok(message="Migration resumed.")
+
+    if session_id:
+        # Resume a previously paused session from history
+        with _state_lock:
+            _app.migration_status   = "running"
+            _app.migration_pct      = 0
+            _app.migration_message  = f"Resuming session {session_id[:8]}…"
+            _app.migration_log      = []
+
+        _app.engine = MigrationEngine(store=_app.store)
+        _app.engine.run(
+            source=source, target=target,
+            resume_session_id=session_id,
+            on_progress=_on_progress,
+            on_complete=_on_complete,
+            on_error=_on_error,
+        )
+        _app.store.audit("migration_resumed", f"session={session_id}",
+                         user_email=_current_user().get("email"))
+        return _ok(message=f"Resuming session {session_id}.")
+
+    return _err("No paused migration to resume.")
+
+
+@app.route("/api/migrate/cancel", methods=["POST"])
+@require_auth
+def api_migrate_cancel():
+    _app.engine.cancel()
+    with _state_lock:
+        _app.migration_status  = "cancelled"
+        _app.migration_message = "Migration cancelled."
+    _push_log("Migration cancelled.", "error")
+    _app.store.audit("migration_cancelled", user_email=_current_user().get("email"))
+    return _ok(message="Migration cancelled.")
+
+
+@app.route("/api/migrate/status")
+@require_auth
+def api_migrate_status():
+    with _state_lock:
+        status   = _app.migration_status
+        pct      = _app.migration_pct
+        message  = _app.migration_message
+        counters = _app.migration_counters
+        log      = _app.migration_log[-50:]   # last 50 lines
+
+    # Fetch live session row if we have one
+    session_row = None
+    if _app.session_id:
+        session_row = _app.store.get_session(_app.session_id)
+
+    status_labels = {
+        "idle":      "Idle",
+        "running":   "Running",
+        "paused":    "Paused",
+        "completed": "Completed",
+        "failed":    "Failed",
+        "cancelled": "Cancelled",
+    }
+
+    return _ok(
+        status=status,
+        status_label=status_labels.get(status, status.title()),
+        current=pct,
+        total=100,
+        message=message,
+        counters=counters,
+        log=log,
+        session=session_row,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — History
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/history")
+@require_auth
+def api_history():
+    sessions = _app.store.list_sessions(limit=100)
+    return _ok(sessions=sessions)
+
+
+@app.route("/api/history/<session_id>")
+@require_auth
+def api_history_detail(session_id):
+    sess = _app.store.get_session(session_id)
+    if not sess:
+        return _err("Session not found.", 404)
+    patients = _app.store.get_all_patient_states(session_id)
+    return _ok(session=sess, patients=patients)
+
+
+@app.route("/api/history/<session_id>", methods=["DELETE"])
+@require_auth
+def api_history_delete(session_id):
+    _app.store.delete_session(session_id)
+    _app.store.audit("session_deleted", f"session={session_id}",
+                     user_email=_current_user().get("email"))
+    return _ok(message="Session deleted.")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — PMS CSV
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/pms/compare", methods=["POST"])
+@require_auth
+def api_pms_compare():
+    """
+    Compare PMS patients (already parsed/normalised by the frontend)
+    against the loaded source patients.
+
+    Body: { "pms_patients": [{surname, first_name, dob, nhs_number, ...}] }
+    Returns match results for each PMS patient.
+    """
+    body = request.get_json(force=True) or {}
+    pms_patients = body.get("pms_patients", [])
+
+    with _state_lock:
+        source_patients = _app.loaded_patients
+
+    def _norm_dob(dob: str) -> str:
+        if not dob:
+            return ""
+        clean = "".join(c for c in dob if c.isdigit())
+        if len(clean) == 8:
+            if clean[:4] > "1900":
+                return f"{clean[:4]}-{clean[4:6]}-{clean[6:8]}"
+            return f"{clean[4:8]}-{clean[2:4]}-{clean[:2]}"
+        return dob.strip()
+
+    def _find_source(pms: dict):
+        surname    = (pms.get("surname") or "").lower().strip()
+        first_name = (pms.get("first_name") or "").lower().strip()
+        dob        = _norm_dob(pms.get("dob", ""))
+        nhs        = (pms.get("nhs_number") or "").strip()
+
+        # 1. NHS number match
+        if nhs:
+            for sp in source_patients:
+                if (sp.get("nhs_number") or "").strip() == nhs:
+                    return sp
+
+        # 2. DOB + surname
+        for sp in source_patients:
+            if (_norm_dob(sp.get("dob", "")) == dob
+                    and (sp.get("family_name") or "").lower().strip() == surname):
+                return sp
+
+        # 3. Fuzzy surname + first 3 chars of first name
+        for sp in source_patients:
+            if ((sp.get("family_name") or "").lower().strip() == surname
+                    and (sp.get("given_names") or "").lower().strip()
+                    .startswith(first_name[:3])):
+                return sp
+
+        return None
+
+    results = []
+    for pms in pms_patients:
+        sp = _find_source(pms)
+        conflicts = []
+        match_status = "matched" if sp else "unmatched"
+
+        if sp:
+            src_dob = _norm_dob(sp.get("dob", ""))
+            pms_dob = _norm_dob(pms.get("dob", ""))
+            if src_dob and pms_dob and src_dob != pms_dob:
+                conflicts.append({
+                    "field": "DOB",
+                    "pms": pms.get("dob"),
+                    "source": sp.get("dob"),
+                })
+            src_surname = (sp.get("family_name") or "").lower().strip()
+            pms_surname = (pms.get("surname") or "").lower().strip()
+            if src_surname and pms_surname and src_surname != pms_surname:
+                conflicts.append({
+                    "field": "Surname",
+                    "pms": pms.get("surname"),
+                    "source": sp.get("family_name"),
+                })
+            if conflicts:
+                match_status = "conflict"
+
+        results.append({
+            "pms":         pms,
+            "source_uid":  sp.get("uid") if sp else None,
+            "source":      {
+                "family_name": sp.get("family_name", "") if sp else "",
+                "given_names": sp.get("given_names", "") if sp else "",
+                "dob":         sp.get("dob", "") if sp else "",
+            },
+            "match_status": match_status,
+            "conflicts":   conflicts,
+        })
+
+    matched   = sum(1 for r in results if r["match_status"] != "unmatched")
+    conflicts = sum(1 for r in results if r["match_status"] == "conflict")
+    unmatched = sum(1 for r in results if r["match_status"] == "unmatched")
+
+    return _ok(
+        results=results,
+        summary={
+            "total":    len(results),
+            "matched":  matched,
+            "conflicts": conflicts,
+            "unmatched": unmatched,
+        }
+    )
+
+
+@app.route("/api/pms/confirm", methods=["POST"])
+@require_auth
+def api_pms_confirm():
+    """
+    Confirm PMS settings to be applied to the next migration run.
+    Body: { "pms_patients": [...], "data_source": "pms"|"source"|"merged",
+            "resolutions": [{patient_ref, field, value}] }
+    """
+    body = request.get_json(force=True) or {}
+    with _state_lock:
+        _app.pms_patients    = body.get("pms_patients", [])
+        _app.pms_data_source = body.get("data_source", "source")
+        _app.pms_confirmed   = True
+
+    _app.store.audit(
+        "pms_confirmed",
+        f"data_source={_app.pms_data_source}, {len(_app.pms_patients)} patients",
+        user_email=_current_user().get("email"),
+    )
+    logger.info(f"PMS confirmed: {_app.pms_data_source}, {len(_app.pms_patients)} patients")
+    return _ok(message="PMS settings confirmed.")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — DICOM Export
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/dicom/export", methods=["POST"])
+@require_auth
+def api_dicom_export():
+    body = request.get_json(force=True) or {}
+    output_folder  = body.get("output_folder", "")
+    modality_filter = body.get("modality_filter", "")
+    anonymise      = bool(body.get("anonymise", False))
+
+    if not output_folder:
+        return _err("Output folder is required.")
+    if not os.path.isdir(output_folder):
+        try:
+            os.makedirs(output_folder, exist_ok=True)
+        except Exception as e:
+            return _err(f"Cannot create output folder: {e}")
+
+    with _state_lock:
+        patients = _app.loaded_patients
+        if not patients:
+            return _err("No patients loaded. Load source data first.")
+        _app.dicom_status  = "running"
+        _app.dicom_pct     = 0
+        _app.dicom_message = "Starting DICOM export…"
+
+    def _export_worker():
+        total = len(patients)
+        done  = 0
+        for patient in patients:
+            if _app.dicom_status == "cancelled":
+                break
+            try:
+                _do_dicom_export_patient(patient, output_folder,
+                                         modality_filter, anonymise)
+                done += 1
+            except Exception as exc:
+                logger.warning(f"DICOM export failed for patient: {exc}")
+            pct = int((done / max(total, 1)) * 100)
+            with _state_lock:
+                _app.dicom_pct     = pct
+                _app.dicom_message = f"Exported {done}/{total} patients…"
+
+        with _state_lock:
+            _app.dicom_status  = "completed"
+            _app.dicom_pct     = 100
+            _app.dicom_message = f"DICOM export complete. {done} patients exported."
+        _app.store.audit("dicom_export_complete",
+                         f"{done} patients → {output_folder}",
+                         user_email=_current_user().get("email"))
+
+    threading.Thread(target=_export_worker, daemon=True).start()
+    return _ok(message="DICOM export started.")
+
+
+def _do_dicom_export_patient(patient: dict, output_folder: str,
+                              modality_filter: str, anonymise: bool):
+    """
+    Write patient imaging files as DICOM to output_folder.
+    This is a stub — production implementation would use pydicom to
+    write proper DICOM files. For now it copies the source files
+    with a .dcm extension.
+    """
+    import shutil
+    uid = patient.get("uid", "unknown")
+    patient_dir = os.path.join(output_folder, uid[:8])
+    os.makedirs(patient_dir, exist_ok=True)
+
+    for study in patient.get("studies", {}).values():
+        for series in study.get("series", {}).values():
+            for media in series.get("media", []):
+                modality = media.get("modality") or media.get("image_class") or ""
+                if modality_filter and modality.upper() != modality_filter.upper():
+                    continue
+                src_path = media.get("file_path") or media.get("_fetch_path")
+                if src_path and os.path.isfile(src_path):
+                    dst_name = os.path.basename(src_path)
+                    if not dst_name.endswith(".dcm"):
+                        dst_name += ".dcm"
+                    shutil.copy2(src_path, os.path.join(patient_dir, dst_name))
+
+
+@app.route("/api/dicom/status")
+@require_auth
+def api_dicom_status():
+    with _state_lock:
+        return _ok(
+            status=_app.dicom_status,
+            pct=_app.dicom_pct,
+            message=_app.dicom_message,
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — VistaSoft: clear migrated data
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/clear_migrated", methods=["POST"])
+@require_auth
+def api_clear_migrated():
+    """
+    Delete SOURCE=1 patients from the VistaSoft Firebird DB.
+    Only available when a VistaSoftTarget is configured.
+    """
+    with _state_lock:
+        target = _app.target
+
+    if not hasattr(target, "_get_db_path"):
+        return _err("Clear Migrated Data is only available for VistaSoft targets.")
+
+    try:
+        from datasources.fb_client import _run
+        db_path = target._get_db_path()
+
+        p_where = "(SELECT UID FROM PATIENT WHERE SOURCE=1)"
+        s_where = "(SELECT STUDY.UID FROM STUDY JOIN PATIENT ON STUDY.PATIENTUID=PATIENT.UID WHERE PATIENT.SOURCE=1)"
+        i_where = ("(SELECT IMAGE.UID FROM IMAGE "
+                   "JOIN STUDY ON IMAGE.STUDYUID=STUDY.UID "
+                   "JOIN PATIENT ON STUDY.PATIENTUID=PATIENT.UID "
+                   "WHERE PATIENT.SOURCE=1)")
+        stmts = [
+            f"DELETE FROM PRESENTATIONSTATE WHERE IMAGEUID IN {i_where}",
+            f"DELETE FROM IMAGE WHERE STUDYUID IN {s_where}",
+            f"DELETE FROM STUDY WHERE PATIENTUID IN {p_where}",
+            f"DELETE FROM PATIENTREGISTRATION WHERE PATIENTUID IN {p_where}",
+            f"DELETE FROM WORKITEM WHERE PATIENTUID IN {p_where}",
+            f"DELETE FROM IMPLANT WHERE PATIENTUID IN {p_where}",
+            f"DELETE FROM PATIENTTRANSFER WHERE PATIENTUID IN {p_where}",
+            f"DELETE FROM PATIENTCONSENT WHERE PATIENTUID IN {p_where}",
+            "DELETE FROM PATIENT WHERE SOURCE=1",
+        ]
+        for sql in stmts:
+            try:
+                _run("execute", db_path, sql)
+            except Exception:
+                pass
+
+        _app.store.audit("clear_migrated_data",
+                         f"db={db_path}",
+                         user_email=_current_user().get("email"))
+        logger.info("Cleared migrated data from VistaSoft DB.")
+        return _ok(message="Migrated data cleared from VistaSoft DB.")
+    except Exception as e:
+        logger.exception("Clear migrated data failed")
+        return _err(str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API — Audit log
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/audit")
+@require_auth
+def api_audit():
+    session_id = request.args.get("session_id")
+    entries = _app.store.get_audit_log(session_id=session_id, limit=500)
+    return _ok(entries=entries)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Entry point
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+
+    logger.info(f"IT INFINITY Migration Tool server starting on port {port}")
+    app.config["SERVER_PORT"] = port
+    app.run(host="localhost", port=port, debug=debug, use_reloader=False)
