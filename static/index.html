@@ -1098,6 +1098,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
             Save &amp; Load Data <i class="bi bi-arrow-right"></i>
           </button>
         </div>
+      </div>
 
       <!-- ─── LOAD DATASOURCE ───────────────────────────────── -->
       <div class="page" id="page-loaddatasource">
@@ -2799,6 +2800,11 @@ async function loadData() {
     document.getElementById('loadMsg').textContent  = `Loaded ${patCount} patients, ${mediaCount} media files.`;
     appLog(`Load complete: ${patCount} patients, ${mediaCount} media files in ${elapsed}`, 'success');
  
+    // Refresh patient list from API so each patient has media_count + modality fields
+    try {
+      const pd = await api('GET', '/patients');
+      _loadedPatients = pd.patients || _loadedPatients;
+    } catch { /* keep existing list */ }
     renderMediaTypes(_loadedPatients);
     renderPatientTable(_loadedPatients);
  
@@ -2835,22 +2841,34 @@ async function loadData() {
 }
 
 function renderMediaTypes(patients) {
+  // Aggregate by modality using media_count per patient.
+  // Each patient now has a modality field (or modalities array) from _safe().
   const types = {};
   patients.forEach(p => {
-    const k = p.modality || 'Unknown';
-    types[k] = (types[k] || 0) + (p.media_count || 0);
+    const count = p.media_count || 0;
+    if (!count) return;
+    const mods = p.modalities && p.modalities.length ? p.modalities : [p.modality || 'Unknown'];
+    // Distribute count evenly across modalities when mixed
+    const share = Math.round(count / mods.length) || 1;
+    mods.forEach(k => {
+      types[k] = (types[k] || 0) + share;
+    });
   });
-  const total = Object.values(types).reduce((a,b)=>a+b,0)||1;
+ 
+  const totalCount = Object.values(types).reduce((a,b)=>a+b,0) || 1;
   const colors = ['var(--accent)','var(--green)','var(--yellow)','var(--red)','var(--purple)','var(--text-2)'];
-  const html = Object.entries(types).map(([k,v],i) => `
+  const html = Object.entries(types).length
+    ? Object.entries(types).map(([k,v],i) => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-dim);">
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:8px;height:8px;border-radius:50%;background:${colors[i%colors.length]};flex-shrink:0;"></div>
-        <span style="font-size:12px;color:var(--text-2)">${k}</span>
+        <span style="font-size:12px;color:var(--text-2)">${escHtml(k)}</span>
       </div>
-      <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">${v.toLocaleString()} (${(v/total*100).toFixed(1)}%)</span>
-    </div>`).join('');
-  document.getElementById('mediaTypesList').innerHTML = html || '<div class="empty-state" style="padding:16px;"><p>No media types found</p></div>';
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">${v.toLocaleString()} (${(v/totalCount*100).toFixed(1)}%)</span>
+    </div>`).join('')
+    : '<div class="empty-state" style="padding:16px;"><p>No media types found</p></div>';
+ 
+  document.getElementById('mediaTypesList').innerHTML = html;
   document.getElementById('contentTypesList').innerHTML = html;
   document.getElementById('modalityBreakdown').innerHTML = html;
   document.getElementById('fileTypeBreakdown').innerHTML = html;
@@ -3094,10 +3112,19 @@ function saveSettings() {
 
 /* ── OVERVIEW LOAD ──────────────────────────────────────────── */
 async function loadOverview() {
-  if (!_loadedPatients.length) return;
-  sv('statPatients', _loadedPatients.length.toLocaleString());
-  const media = _loadedPatients.reduce((s,p)=>s+(p.media_count||0),0);
-  sv('statMedia', media.toLocaleString());
+  try {
+    const d = await api('GET', '/overview');
+    sv('statPatients', (d.patients_count ?? 0).toLocaleString());
+    sv('statMedia',    (d.media_count    ?? 0).toLocaleString());
+    sv('statSize',     (d.size_gb        ?? '—') + (d.size_gb ? ' GB' : ''));
+    sv('statMigrated', (d.migrated       ?? 0).toLocaleString());
+  } catch {
+    // Fallback: count from cached patients if API not available
+    if (!_loadedPatients.length) return;
+    sv('statPatients', _loadedPatients.length.toLocaleString());
+    const media = _loadedPatients.reduce((s,p) => s + (p.media_count || 0), 0);
+    sv('statMedia', media.toLocaleString());
+  }
 }
 
 /* ── CONFIRM DIALOG ─────────────────────────────────────────── */

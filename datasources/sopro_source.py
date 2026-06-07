@@ -148,116 +148,70 @@ def _get_patient_from_csv_line(line: str) -> dict:
 def _load_patient_index(media_path: str) -> dict:
     """
     Load patient demographics from pat*.idx and pat*.dax index files.
-    Searches media_path and one level of subdirectories so we find index
-    files regardless of where SOPRO placed them.
     Returns dict of {src_id: {demographics}}.
     """
     patients = {}
-
-    # Collect all candidate directories to search (root + immediate subdirs)
-    search_dirs = [media_path]
-    try:
-        for entry in os.scandir(media_path):
-            if entry.is_dir():
-                search_dirs.append(entry.path)
-    except Exception:
-        pass
-
-    for search_dir in search_dirs:
-        try:
-            dir_entries = os.listdir(search_dir)
-        except Exception:
-            continue
-
-        # .idx files (plain CSV)
-        for fname in dir_entries:
-            if re.match(r'pat.*\.idx$', fname, re.IGNORECASE):
-                try:
-                    with open(os.path.join(search_dir, fname),
-                              encoding="utf-16", errors="replace") as f:
-                        f.readline()  # skip header
-                        for line in f:
-                            p = _get_patient_from_csv_line(line)
-                            if p.get("id"):
-                                src_id = p["id"]
-                                if src_id in patients:
-                                    patients[src_id].update({k: v for k, v in p.items() if v})
-                                else:
-                                    patients[src_id] = p
-                except Exception:
-                    pass
-
-        # .dax files (encoded CSV)
-        for fname in dir_entries:
-            if re.match(r'pat.*\.dax$', fname, re.IGNORECASE):
-                try:
-                    with open(os.path.join(search_dir, fname),
-                              encoding="utf-16", errors="replace") as f:
-                        f.readline()  # skip header
-                        for line in f:
-                            line = line.strip()
-                            if not line:
-                                continue
-                            try:
-                                decoded = _decode21(line)
-                                p = _get_patient_from_csv_line(decoded)
-                            except Exception:
-                                continue
-                            if p.get("id"):
-                                src_id = p["id"]
-                                if src_id not in patients:
-                                    patients[src_id] = p
-                except Exception:
-                    pass
-
+    # .idx files (plain CSV)
+    for fname in os.listdir(media_path):
+        if re.match(r'pat.*\.idx$', fname, re.IGNORECASE):
+            try:
+                with open(os.path.join(media_path, fname),
+                          encoding="utf-16", errors="replace") as f:
+                    f.readline()  # skip header
+                    for line in f:
+                        p = _get_patient_from_csv_line(line)
+                        if p.get("id"):
+                            src_id = p["id"]
+                            if src_id in patients:
+                                patients[src_id].update({k: v for k, v in p.items() if v})
+                            else:
+                                patients[src_id] = p
+            except Exception:
+                pass
+    # .dax files (encoded CSV)
+    for fname in os.listdir(media_path):
+        if re.match(r'pat.*\.dax$', fname, re.IGNORECASE):
+            try:
+                with open(os.path.join(media_path, fname),
+                          encoding="utf-16", errors="replace") as f:
+                    f.readline()  # skip header
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            decoded = _decode21(line)
+                            p = _get_patient_from_csv_line(decoded)
+                        except Exception:
+                            continue
+                        if p.get("id"):
+                            src_id = p["id"]
+                            if src_id not in patients:
+                                patients[src_id] = p
+            except Exception:
+                pass
     return patients
 
 
 def _find_patient_folders(media_path: str) -> list:
     """
-    Find all SOPRO patient folders by recursively walking media_path up to 4
-    levels deep and collecting any folder that contains patient.dat, patient.dax,
-    or image.dat.  This handles all known SOPRO folder layouts:
-
-        Layout A (3-level):  media_path/d+-d+/d+-d+/patientFolder/
-        Layout B (2-level):  media_path/d+-d+/patientFolder/
-        Layout C (1-level):  media_path/patientFolder/
-
-    A folder qualifies if it directly contains at least one of:
-        patient.dat, patient.dax, image.dat
+    Find all patient folders matching the pattern d+-d+
+    at depth: {media_path}/{group}/{subgroup}/{patientFolder}
     """
     folders = []
-    _PATIENT_FILES = {"patient.dat", "patient.dax", "image.dat"}
-
-    def _walk(path: str, depth: int):
-        if depth > 4:
-            return
-        try:
-            entries = list(os.scandir(path))
-        except Exception:
-            return
-
-        file_names = {e.name.lower() for e in entries if e.is_file()}
-
-        # If this folder directly contains SOPRO patient files it IS a patient folder
-        if _PATIENT_FILES & file_names:
-            folders.append(path)
-            return  # don't recurse into patient folders
-
-        # Otherwise descend into subdirectories
-        for e in entries:
-            if e.is_dir():
-                _walk(e.path, depth + 1)
-
-    _walk(media_path, 0)
-
-    # Deduplicate and log what we found
-    unique = list(dict.fromkeys(folders))
-    import logging
-    logging.getLogger("SOPROSource").debug(
-        f"_find_patient_folders: {len(unique)} folder(s) found under {media_path}"
-    )
-    return unique
+    try:
+        for d1 in os.scandir(media_path):
+            if not d1.is_dir() or not _FOLDER_PATTERN.match(d1.name):
+                continue
+            for d2 in os.scandir(d1.path):
+                if not d2.is_dir() or not _FOLDER_PATTERN.match(d2.name):
+                    continue
+                for d3 in os.scandir(d2.path):
+                    if d3.is_dir():
+                        folders.append(d3.path)
+    except Exception:
+        pass
+    return folders
 
 
 def _load_images_from_folder(folder: str) -> list:
@@ -386,36 +340,17 @@ class SOPROSource(BaseDatasource):
              progress_callback: Optional[Callable] = None) -> list:
 
         media_path  = self.get_config_value("MediaPath") or ""
-        # skip_empty is set to False below — see comment there
-
-        self.logger.info(f"SOPRO load starting — MediaPath={media_path!r}")
-
-        if not media_path:
-            self.logger.error("MediaPath is empty — config was not applied correctly")
-            return []
-        if not os.path.isdir(media_path):
-            self.logger.error(f"MediaPath does not exist: {media_path!r}")
-            return []
-
-        # Always load ALL patients at this stage regardless of SkipEmptyPatients.
-        # Filtering patients with no media is done at migration time via Migration
-        # Filters, so the user can see everything that exists in the source first.
-        skip_empty = False
+        skip_empty  = False
 
         # Load patient index
+        self.logger.debug("Loading patient index files")
         patient_index = _load_patient_index(media_path)
-        self.logger.info(f"Patient index: {len(patient_index)} entries")
+        self.logger.debug(f"Patient index: {len(patient_index)} entries")
 
         # Find all patient folders
         folders = _find_patient_folders(media_path)
         total   = len(folders)
-        self.logger.info(f"Found {total} patient folder(s) under {media_path!r}")
-        if total == 0:
-            try:
-                items = os.listdir(media_path)[:20]
-                self.logger.info(f"Contents of MediaPath: {items}")
-            except Exception as e:
-                self.logger.warning(f"Could not list MediaPath: {e}")
+        self.logger.debug(f"Found {total} patient folders")
         if progress_callback:
             progress_callback(0, total, f"Loading {total} patient folders…")
 

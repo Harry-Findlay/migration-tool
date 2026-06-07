@@ -625,7 +625,17 @@ def api_load():
         return _err(f"Failed to load from source: {e}")
 
     elapsed = round(time.time() - t0, 2)
-    media_count = sum(p.get("media_count", 0) for p in patients)
+ 
+    def _count_media(patient_list: list) -> int:
+        """Count media by walking studies→series→media. Works for all datasources."""
+        total = 0
+        for p in patient_list:
+            for study in p.get("studies", {}).values():
+                for series in study.get("series", {}).values():
+                    total += len(series.get("media", []))
+        return total
+ 
+    media_count = _count_media(patients)
 
     # Compute size estimate: walk the images path if accessible
     size_gb = 0.0
@@ -681,13 +691,29 @@ def api_patients():
 
     def _safe(p: dict) -> dict:
         """Strip non-serialisable keys (lambdas etc.) for JSON output."""
+        # Count media by walking studies→series→media — works for all datasources.
+        media_count = sum(
+            len(series.get("media", []))
+            for study in p.get("studies", {}).values()
+            for series in study.get("series", {}).values()
+        )
+        # Collect unique modalities for the media breakdown chart.
+        modalities = list({
+            m.get("modality") or m.get("image_class") or "Unknown"
+            for study in p.get("studies", {}).values()
+            for series in study.get("series", {}).values()
+            for m in series.get("media", [])
+        })
         return {
             "uid":          p.get("uid", ""),
             "family_name":  p.get("family_name", ""),
             "given_names":  p.get("given_names", ""),
-            "dob":          p.get("dob", ""),
+            "dob":          p.get("dob", "") or p.get("birth_date", ""),
             "nhs_number":   p.get("nhs_number", ""),
-            "media_count":  p.get("media_count", 0),
+            "media_count":  media_count,
+            "modality":     modalities[0] if len(modalities) == 1 else (
+                            "Mixed" if modalities else "Unknown"),
+            "modalities":   modalities,
             "status":       p.get("status", "pending"),
         }
 
