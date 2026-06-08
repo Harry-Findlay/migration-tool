@@ -1354,8 +1354,7 @@ def api_dicom_export():
                             dcm_data = client.get_media_data(mid)
                             if not dcm_data:
                                 continue
- 
-                            # Fetch DICOM tags and inject patient demographics
+                            # Fetch DICOM tags from DTX and inject patient demographics
                             try:
                                 dtags = client.get_media_dicom_tags(mid) or {}
                                 dcm_data = _inject_dicom_tags(
@@ -1367,10 +1366,8 @@ def api_dicom_export():
                                 )
                             except Exception as te:
                                 logger.debug(f"  Tag inject failed for {mid}: {te}")
- 
                             if anonymise:
                                 dcm_data = _anonymise_dicom(dcm_data, pat_uid)
- 
                             sop = (media.get("sopInstanceUid") or mid or
                                    str(__import__("uuid").uuid4()))
                             fname = sop.replace(".", "_") + ".dcm"
@@ -1487,6 +1484,79 @@ def _inject_dicom_tags(data: bytes, dtags: dict,
     if sex_byte:
         data = _set_tag_if_empty(data, 0x0010, 0x0040, 'CS', sex_byte)
  
+    return data
+
+def _inject_dicom_tags(data: bytes, dtags: dict,
+                        patient_name: str = "", patient_id: str = "",
+                        patient_dob: str = "", patient_sex: str = "") -> bytes:
+    """
+    Inject patient demographic tags into a DICOM file.
+    Only writes a tag if it is currently blank/empty in the file.
+    Uses byte-level manipulation — no pydicom required.
+    """
+    import struct as _st
+ 
+    def _set_if_empty(d: bytes, grp: int, elm: int, vr: str, value: bytes) -> bytes:
+        if not value:
+            return d
+        pad = b' ' if vr in ('LO','PN','SH','CS','DA','TM','LT','ST','UI') else b'\x00'
+        if len(value) % 2:
+            value = value + pad
+        tag_bytes = _st.pack('<HH', grp, elm)
+        pos = d.find(tag_bytes)
+        if pos >= 0:
+            try:
+                evr = d[pos+4:pos+6].decode('ascii', errors='?')
+                if evr in ('OB','OW','SQ','UC','UR','UT','UN'):
+                    old_len = _st.unpack('<I', d[pos+8:pos+12])[0]
+                    vs = pos + 12
+                else:
+                    old_len = _st.unpack('<H', d[pos+6:pos+8])[0]
+                    vs = pos + 8
+                # Only overwrite if currently blank
+                if d[vs:vs+old_len].rstrip(b'\x00 '):
+                    return d  # already has content
+                new_val = (value[:old_len]).ljust(old_len, pad)
+                return d[:vs] + new_val + d[vs+old_len:]
+            except Exception:
+                return d
+        else:
+            # Tag missing — find insertion point by scanning for first tag > (grp,elm)
+            insert_pos = 132
+            try:
+                i = 132
+                while i < len(d) - 8:
+                    g = _st.unpack('<H', d[i:i+2])[0]
+                    e = _st.unpack('<H', d[i+2:i+4])[0]
+                    if g > grp or (g == grp and e > elm):
+                        insert_pos = i
+                        break
+                    evr = d[i+4:i+6].decode('ascii', errors='?')
+                    if evr in ('OB','OW','SQ','UC','UR','UT','UN'):
+                        l = _st.unpack('<I', d[i+8:i+12])[0]; i += 12 + l
+                    else:
+                        l = _st.unpack('<H', d[i+6:i+8])[0]; i += 8 + l
+                    if g > 0x0050:
+                        break
+            except Exception:
+                pass
+            new_tag = tag_bytes + vr.encode('ascii') + _st.pack('<H', len(value)) + value
+            return d[:insert_pos] + new_tag + d[insert_pos:]
+ 
+    sex_map = {"MALE": "M", "FEMALE": "F", "OTHER": "O"}
+    sex_byte = sex_map.get((patient_sex or "").upper(), "").encode('ascii')
+ 
+    if patient_name:
+        data = _set_if_empty(data, 0x0010, 0x0010, 'PN',
+                             patient_name[:64].encode('ascii', errors='replace'))
+    if patient_id:
+        data = _set_if_empty(data, 0x0010, 0x0020, 'LO',
+                             patient_id[:64].encode('ascii', errors='replace'))
+    if patient_dob and patient_dob.isdigit() and len(patient_dob) == 8:
+        data = _set_if_empty(data, 0x0010, 0x0030, 'DA',
+                             patient_dob.encode('ascii'))
+    if sex_byte:
+        data = _set_if_empty(data, 0x0010, 0x0040, 'CS', sex_byte)
     return data
 
 def _anonymise_dicom(data: bytes, anon_id: str) -> bytes:
