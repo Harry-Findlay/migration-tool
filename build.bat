@@ -1,34 +1,53 @@
----BUILD.BAT---
 @echo off
 setlocal
- 
+
 echo [1/4] Installing build tools...
-pip install pyinstaller --quiet
- 
+python -m pip install pyinstaller --quiet
+
 echo [2/4] Building server executable...
-pyinstaller ^
+python -m PyInstaller ^
   --noconfirm ^
   --onedir ^
   --name ITInfinityServer ^
   --icon static\icon.ico ^
   --add-data "static;static" ^
   --add-data "lib;lib" ^
-  --add-data ".env.example;." ^
+  --add-data ".env;." ^
   --hidden-import msal ^
   --hidden-import flask_cors ^
-  --hidden-import engineio ^
   --hidden-import PIL ^
+  --hidden-import PIL.Image ^
   --hidden-import numpy ^
   --hidden-import win32serviceutil ^
   --hidden-import win32service ^
   --hidden-import win32event ^
   --hidden-import servicemanager ^
+  --hidden-import datasources.vistasoft_source ^
+  --hidden-import datasources.vistasoft_target ^
+  --hidden-import datasources.dtxstudio_source ^
+  --hidden-import datasources.dtxstudio_target ^
+  --hidden-import datasources.sopro_source ^
+  --hidden-import datasources.fb_client ^
+  --hidden-import core.engine ^
+  --hidden-import core.migration_store ^
+  --hidden-import core.models ^
+  --hidden-import core.base_datasource ^
+  --hidden-import auth.ms365 ^
   --collect-all msal ^
   --collect-all flask ^
+  --exclude-module tkinter ^
+  --exclude-module test ^
+  --exclude-module unittest ^
   server.py
- 
+
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: Server build failed.
+    pause
+    exit /b 1
+)
+
 echo [3/4] Building service launcher...
-pyinstaller ^
+python -m PyInstaller ^
   --noconfirm ^
   --onefile ^
   --name ITInfinityService ^
@@ -38,11 +57,23 @@ pyinstaller ^
   --hidden-import win32event ^
   --hidden-import servicemanager ^
   service_launcher.py
- 
+
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: Service launcher build failed.
+    pause
+    exit /b 1
+)
+
 echo [4/4] Building installer...
-cd installer
-makensis setup.nsi
-cd ..
- 
+makensis installer\setup.nsi
+
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: NSIS build failed. Make sure NSIS is installed and on PATH.
+    echo Download from: https://nsis.sourceforge.io/Download
+    pause
+    exit /b 1
+)
+
+echo.
 echo Done. Installer is at installer\IT-INFINITY-Migration-Tool-Setup.exe
----END BUILD.BAT---
+pause

@@ -1492,7 +1492,6 @@ def _inject_dicom_tags(data: bytes, dtags: dict,
     """
     Inject patient demographic tags into a DICOM file.
     Only writes a tag if it is currently blank/empty in the file.
-    Uses byte-level manipulation — no pydicom required.
     """
     import struct as _st
  
@@ -1513,15 +1512,14 @@ def _inject_dicom_tags(data: bytes, dtags: dict,
                 else:
                     old_len = _st.unpack('<H', d[pos+6:pos+8])[0]
                     vs = pos + 8
-                # Only overwrite if currently blank
                 if d[vs:vs+old_len].rstrip(b'\x00 '):
-                    return d  # already has content
+                    return d  # already has content — don't overwrite
                 new_val = (value[:old_len]).ljust(old_len, pad)
                 return d[:vs] + new_val + d[vs+old_len:]
             except Exception:
                 return d
         else:
-            # Tag missing — find insertion point by scanning for first tag > (grp,elm)
+            # Tag missing — insert before first tag with higher address
             insert_pos = 132
             try:
                 i = 132
