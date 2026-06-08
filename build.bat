@@ -2,7 +2,7 @@
 setlocal
 
 echo [1/4] Installing build tools...
-python -m pip install pyinstaller --quiet
+python -m pip install pyinstaller pywin32 --quiet
 
 echo [2/4] Building server executable...
 python -m PyInstaller ^
@@ -18,10 +18,6 @@ python -m PyInstaller ^
   --hidden-import PIL ^
   --hidden-import PIL.Image ^
   --hidden-import numpy ^
-  --hidden-import win32serviceutil ^
-  --hidden-import win32service ^
-  --hidden-import win32event ^
-  --hidden-import servicemanager ^
   --hidden-import datasources.vistasoft_source ^
   --hidden-import datasources.vistasoft_target ^
   --hidden-import datasources.dtxstudio_source ^
@@ -68,8 +64,8 @@ echo [4/4] Building installer...
 makensis installer\setup.nsi
 
 if %ERRORLEVEL% neq 0 (
-    echo ERROR: NSIS build failed. Make sure NSIS is installed and on PATH.
-    echo Download from: https://nsis.sourceforge.io/Download
+    echo ERROR: NSIS build failed.
+    echo Download NSIS from: https://nsis.sourceforge.io/Download
     pause
     exit /b 1
 )
