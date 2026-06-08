@@ -74,14 +74,103 @@ from flask_cors import CORS
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
-# Load .env from the project root before anything reads os.environ.
-# python-dotenv is in requirements.txt; this is a no-op if the file doesn't exist.
-try:
-    from dotenv import load_dotenv
-    _env_path = os.path.join(BASE_DIR, ".env")
-    load_dotenv(_env_path, override=False)
-except ImportError:
-    pass  # dotenv not installed yet — values must come from the environment directly
+def _get_machine_key() -> bytes:
+    """
+    Derive a Fernet encryption key from this machine's hardware ID.
+    Uses the Windows MachineGuid from the registry — unique per machine,
+    stable across reboots, doesn't change unless Windows is reinstalled.
+    Falls back to hostname if registry read fails.
+    """
+    import hashlib, base64
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                             r"SOFTWARE\Microsoft\Cryptography")
+        machine_guid, _ = winreg.QueryValueEx(key, "MachineGuid")
+        winreg.CloseKey(key)
+    except Exception:
+        import socket
+        machine_guid = socket.gethostname()
+    # Derive a 32-byte key from the machine GUID using SHA-256
+    raw = hashlib.sha256(machine_guid.encode()).digest()
+    return base64.urlsafe_b64encode(raw)
+ 
+ 
+def _encrypt_env(env_path: str):
+    """
+    Encrypt the plaintext .env file in-place using a machine-bound key.
+    Called once by the installer via --encrypt-env flag.
+    Writes a header so we can detect already-encrypted files.
+    """
+    from cryptography.fernet import Fernet
+    key = _get_machine_key()
+    f = Fernet(key)
+    with open(env_path, "rb") as fh:
+        data = fh.read()
+    # Don't double-encrypt
+    if data.startswith(b"ITINF_ENC:"):
+        return
+    encrypted = f.encrypt(data)
+    with open(env_path, "wb") as fh:
+        fh.write(b"ITINF_ENC:" + encrypted)
+ 
+ 
+def _load_encrypted_env(env_path: str):
+    """
+    Load environment variables from an optionally-encrypted .env file.
+    Handles:
+      - Encrypted files (ITINF_ENC: prefix) — decrypts using machine key
+      - Plain UTF-8 .env files (local development)
+      - Plain UTF-16 .env files (written by older NSIS installers)
+    """
+    if not os.path.isfile(env_path):
+        return
+ 
+    with open(env_path, "rb") as fh:
+        raw = fh.read()
+ 
+    if raw.startswith(b"ITINF_ENC:"):
+        # Encrypted — decrypt with machine key
+        try:
+            from cryptography.fernet import Fernet, InvalidToken
+            key = _get_machine_key()
+            f = Fernet(key)
+            decrypted = f.decrypt(raw[len(b"ITINF_ENC:"):])
+            lines = decrypted.decode("utf-8").splitlines()
+        except Exception as e:
+            logging.getLogger("env").warning(f"Failed to decrypt .env: {e}")
+            return
+    else:
+        # Plaintext — try UTF-8, then UTF-16
+        for enc in ("utf-8-sig", "utf-16", "latin-1"):
+            try:
+                lines = raw.decode(enc).splitlines()
+                break
+            except UnicodeDecodeError:
+                continue
+        else:
+            return
+ 
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        os.environ.setdefault(k.strip(), v.strip())
+
+if "--encrypt-env" in sys.argv:
+    _idx = sys.argv.index("--encrypt-env")
+    _env_target = sys.argv[_idx + 1] if _idx + 1 < len(sys.argv) else ".env"
+    try:
+        _encrypt_env(_env_target)
+        print(f"Encrypted: {_env_target}")
+    except Exception as _e:
+        print(f"Encrypt failed: {_e}")
+    sys.exit(0)
+
+# Load configuration from .env (encrypted in production, plain in dev)
+_env_file = os.path.join(BASE_DIR, ".env")
+_load_encrypted_env(_env_file)
 
 from core.engine          import MigrationEngine
 from core.migration_store import MigrationStore
@@ -605,24 +694,90 @@ def api_validate():
 @require_auth
 def api_browse_folder():
     """
-    Open a native folder selection dialog on the server machine.
-    Only works when the server is running on Windows with a display.
+    Open a native Windows folder picker using Shell COM automation.
+    Works without tkinter — compatible with PyInstaller builds.
+    Falls back to a PowerShell dialog if COM fails.
     """
     if os.name != "nt":
         return _err("Folder browser only available on Windows.")
+ 
+    # Method 1: Windows Shell COM (preferred — no tkinter needed)
     try:
-        import tkinter as tk
-        from tkinter import filedialog
-        root = tk.Tk()
-        root.withdraw()
-        root.wm_attributes("-topmost", True)
-        path = filedialog.askdirectory(title="Select Folder")
-        root.destroy()
+        import ctypes
+        import ctypes.wintypes
+ 
+        # Use SHBrowseForFolder via shell32
+        # This is the classic Windows folder picker
+        shell32  = ctypes.windll.shell32
+        ole32    = ctypes.windll.ole32
+ 
+        ole32.CoInitialize(None)
+ 
+        BFFM_INITIALIZED   = 1
+        BIF_RETURNONLYFSDIRS  = 0x0001
+        BIF_NEWDIALOGSTYLE    = 0x0040
+        BIF_EDITBOX           = 0x0010
+ 
+        class BROWSEINFO(ctypes.Structure):
+            _fields_ = [
+                ("hwndOwner",      ctypes.wintypes.HWND),
+                ("pidlRoot",       ctypes.c_void_p),
+                ("pszDisplayName", ctypes.c_wchar_p),
+                ("lpszTitle",      ctypes.c_wchar_p),
+                ("ulFlags",        ctypes.c_uint),
+                ("lpfn",           ctypes.c_void_p),
+                ("lParam",         ctypes.c_long),
+                ("iImage",         ctypes.c_int),
+            ]
+ 
+        buf = ctypes.create_unicode_buffer(260)
+        bi  = BROWSEINFO()
+        bi.hwndOwner      = None
+        bi.pidlRoot       = None
+        bi.pszDisplayName = buf
+        bi.lpszTitle      = "Select Folder"
+        bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_EDITBOX
+        bi.lpfn           = None
+        bi.lParam         = 0
+ 
+        pidl = shell32.SHBrowseForFolderW(ctypes.byref(bi))
+        if pidl:
+            path_buf = ctypes.create_unicode_buffer(260)
+            shell32.SHGetPathFromIDListW(pidl, path_buf)
+            ole32.CoTaskMemFree(pidl)
+            ole32.CoUninitialize()
+            path = path_buf.value
+            if path:
+                return _ok(path=os.path.normpath(path))
+        ole32.CoUninitialize()
+        return _ok(path="")
+ 
+    except Exception as e1:
+        logger.debug(f"COM folder picker failed: {e1}, trying PowerShell fallback")
+ 
+    # Method 2: PowerShell fallback
+    try:
+        import subprocess
+        ps_script = (
+            "Add-Type -AssemblyName System.Windows.Forms;"
+            "$d = New-Object System.Windows.Forms.FolderBrowserDialog;"
+            "$d.Description = 'Select Folder';"
+            "$d.ShowNewFolderButton = $true;"
+            "if ($d.ShowDialog() -eq 'OK') { $d.SelectedPath } else { '' }"
+        )
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive",
+             "-WindowStyle", "Hidden", "-Command", ps_script],
+            capture_output=True, text=True, timeout=60
+        )
+        path = result.stdout.strip()
         if path:
             return _ok(path=os.path.normpath(path))
         return _ok(path="")
-    except Exception as e:
-        return _err(f"Folder browser failed: {e}")
+    except Exception as e2:
+        logger.debug(f"PowerShell folder picker failed: {e2}")
+ 
+    return _err("Folder browser unavailable. Please type the path manually.")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -893,7 +1048,16 @@ def api_migrate_start():
 
     _user_email = _current_user().get("email", "")
     _on_complete, _on_error = _make_migration_callbacks(_user_email)
- 
+    
+    # Attach PMS overrides to source so engine can apply them after load
+    with _state_lock:
+        if _app.pms_confirmed and _app.pms_patients:
+            source._pms_patients    = _app.pms_patients
+            source._pms_data_source = _app.pms_data_source
+        else:
+            source._pms_patients    = []
+            source._pms_data_source = "source"
+
     _app.engine.run(
         source=source, target=target,
         max_parallelism=max_par,
@@ -1136,6 +1300,7 @@ def api_pms_compare():
                 "family_name": sp.get("family_name", "") if sp else "",
                 "given_names": sp.get("given_names", "") if sp else "",
                 "dob":         sp.get("dob", "") if sp else "",
+                "patient_ref": (sp.get("id") or sp.get("patient_ref") or "") if sp else "",
             },
             "match_status": match_status,
             "conflicts":   conflicts,

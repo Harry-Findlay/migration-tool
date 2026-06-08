@@ -74,6 +74,38 @@ class MigrationEngine:
         return self._thread is not None and self._thread.is_alive()
 
     # ── Internal ───────────────────────────────────────────────────────────────
+     
+    @staticmethod
+    def _apply_pms_overrides(patients: list, pms_patients: list, data_source: str) -> list:
+        """Apply PMS demographic overrides to source patients before migration."""
+        pms_by_uid = {p["source_uid"]: p for p in pms_patients if p.get("source_uid")}
+        if not pms_by_uid:
+            return patients
+
+        def _resolve(field_key, pms_val, src_val, field_overrides):
+            override = (field_overrides or {}).get(field_key)
+            if override == "pms":    return pms_val or src_val
+            if override == "source": return src_val or pms_val
+            if data_source == "pms":    return pms_val or src_val
+            if data_source == "source": return src_val or pms_val
+            return src_val or pms_val  # merged
+
+        result = []
+        for sp in patients:
+            pp = pms_by_uid.get(sp.get("uid", ""))
+            if not pp:
+                result.append(sp)
+                continue
+            fo  = pp.get("field_overrides", {})
+            src_ref = sp.get("id") or sp.get("patient_ref") or ""
+            merged = dict(sp)
+            merged["family_name"] = _resolve("surname",    pp.get("surname",""),     sp.get("family_name",""), fo)
+            merged["given_names"] = _resolve("first_name", pp.get("first_name",""),  sp.get("given_names",""),  fo)
+            merged["birth_date"]  = _resolve("dob",        pp.get("dob",""),          sp.get("birth_date") or sp.get("dob",""), fo)
+            merged["id"]          = _resolve("patient_ref",pp.get("patient_ref",""), src_ref, fo)
+            merged["pms_id"]      = merged["id"]
+            result.append(merged)
+        return result
 
     def _cancel_flag(self) -> bool:
         return self._cancelled
@@ -134,6 +166,14 @@ class MigrationEngine:
                     max_parallelism=max_parallelism,
                     progress_callback=source_progress,
                 )
+
+                # ── Apply PMS overrides if confirmed ──────────────────────
+                if getattr(source, '_pms_patients', None):
+                    all_patients = self._apply_pms_overrides(
+                        all_patients,
+                        source._pms_patients,
+                        source._pms_data_source,
+                    )
 
                 if self._cancelled:
                     result.status  = MigrationStatus.CANCELLED

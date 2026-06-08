@@ -63,12 +63,20 @@ class ITInfinityMigratorService(win32serviceutil.ServiceFramework):
         env = os.environ.copy()
         env_path = os.path.join(BASE_DIR, ".env")
         if os.path.isfile(env_path):
-            with open(env_path, encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#") and "=" in line:
-                        k, _, v = line.partition("=")
-                        env.setdefault(k.strip(), v.strip())
+            for encoding in ("utf-8-sig", "utf-16", "latin-1"):
+                try:
+                    with open(env_path, encoding=encoding) as f:
+                        lines = f.read().splitlines()
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                lines = []
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, _, v = line.partition("=")
+                    env.setdefault(k.strip(), v.strip())
             logger.info(f"Loaded .env from {env_path}")
         else:
             logger.warning(f".env not found at {env_path}")

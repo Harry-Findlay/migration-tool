@@ -675,6 +675,10 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\exceptions.py',
    'PYMODULE'),
+  ('cryptography.fernet',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\fernet.py',
+   'PYMODULE'),
   ('cryptography.hazmat',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\hazmat\\__init__.py',
@@ -826,6 +830,14 @@
   ('cryptography.hazmat.primitives.hashes',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\hazmat\\primitives\\hashes.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.hmac',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\hazmat\\primitives\\hmac.py',
+   'PYMODULE'),
+  ('cryptography.hazmat.primitives.padding',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\hazmat\\primitives\\padding.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.serialization',
    'C:\\Users\\Harry '

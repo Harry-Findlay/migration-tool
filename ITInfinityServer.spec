@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('static', 'static'), ('lib', 'lib'), ('.env.example', '.')]
+datas = [('static', 'static'), ('lib', 'lib')]
 binaries = []
-hiddenimports = ['msal', 'flask_cors', 'PIL', 'PIL.Image', 'numpy', 'datasources.vistasoft_source', 'datasources.vistasoft_target', 'datasources.dtxstudio_source', 'datasources.dtxstudio_target', 'datasources.sopro_source', 'datasources.fb_client', 'core.engine', 'core.migration_store', 'core.models', 'core.base_datasource', 'auth.ms365']
+hiddenimports = ['msal', 'flask_cors', 'PIL', 'PIL.Image', 'numpy', 'datasources.vistasoft_source', 'datasources.vistasoft_target', 'datasources.dtxstudio_source', 'datasources.dtxstudio_target', 'datasources.sopro_source', 'datasources.fb_client', 'core.engine', 'core.migration_store', 'core.models', 'core.base_datasource', 'auth.ms365', 'cryptography.fernet']
 tmp_ret = collect_all('msal')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('flask')

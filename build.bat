@@ -12,7 +12,6 @@ python -m PyInstaller ^
   --icon static\icon.ico ^
   --add-data "static;static" ^
   --add-data "lib;lib" ^
-  --add-data ".env;." ^
   --hidden-import msal ^
   --hidden-import flask_cors ^
   --hidden-import PIL ^
@@ -29,6 +28,7 @@ python -m PyInstaller ^
   --hidden-import core.models ^
   --hidden-import core.base_datasource ^
   --hidden-import auth.ms365 ^
+  --hidden-import cryptography.fernet ^
   --collect-all msal ^
   --collect-all flask ^
   --exclude-module tkinter ^
@@ -52,6 +52,8 @@ python -m PyInstaller ^
   --hidden-import win32service ^
   --hidden-import win32event ^
   --hidden-import servicemanager ^
+  --hidden-import win32timezone ^
+  --hidden-import pywintypes ^
   service_launcher.py
 
 if %ERRORLEVEL% neq 0 (

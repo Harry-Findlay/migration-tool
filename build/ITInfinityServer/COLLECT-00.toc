@@ -1,0 +1,3186 @@
+([('81d243bd2c585b0f4821__mypyc.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\81d243bd2c585b0f4821__mypyc.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('ITInfinityServer.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\build\\ITInfinityServer\\ITInfinityServer.exe',
+   'EXECUTABLE'),
+  ('MSVCP140.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\MSVCP140.dll',
+   'BINARY'),
+  ('MSVCR100.dll', 'C:\\WINDOWS\\system32\\MSVCR100.dll', 'BINARY'),
+  ('PIL\\_avif.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\PIL\\_avif.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imaging.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\PIL\\_imaging.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingcms.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\PIL\\_imagingcms.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingmath.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\PIL\\_imagingmath.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingtk.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\PIL\\_imagingtk.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_webp.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\PIL\\_webp.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('VCRUNTIME140.dll', 'C:\\Python314\\VCRUNTIME140.dll', 'BINARY'),
+  ('VCRUNTIME140_1.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\VCRUNTIME140_1.dll',
+   'BINARY'),
+  ('_asyncio.pyd', 'C:\\Python314\\DLLs\\_asyncio.pyd', 'EXTENSION'),
+  ('_bz2.pyd', 'C:\\Python314\\DLLs\\_bz2.pyd', 'EXTENSION'),
+  ('_cffi_backend.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\_cffi_backend.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('_ctypes.pyd', 'C:\\Python314\\DLLs\\_ctypes.pyd', 'EXTENSION'),
+  ('_decimal.pyd', 'C:\\Python314\\DLLs\\_decimal.pyd', 'EXTENSION'),
+  ('_elementtree.pyd', 'C:\\Python314\\DLLs\\_elementtree.pyd', 'EXTENSION'),
+  ('_hashlib.pyd', 'C:\\Python314\\DLLs\\_hashlib.pyd', 'EXTENSION'),
+  ('_lzma.pyd', 'C:\\Python314\\DLLs\\_lzma.pyd', 'EXTENSION'),
+  ('_multiprocessing.pyd',
+   'C:\\Python314\\DLLs\\_multiprocessing.pyd',
+   'EXTENSION'),
+  ('_overlapped.pyd', 'C:\\Python314\\DLLs\\_overlapped.pyd', 'EXTENSION'),
+  ('_queue.pyd', 'C:\\Python314\\DLLs\\_queue.pyd', 'EXTENSION'),
+  ('_socket.pyd', 'C:\\Python314\\DLLs\\_socket.pyd', 'EXTENSION'),
+  ('_sqlite3.pyd', 'C:\\Python314\\DLLs\\_sqlite3.pyd', 'EXTENSION'),
+  ('_ssl.pyd', 'C:\\Python314\\DLLs\\_ssl.pyd', 'EXTENSION'),
+  ('_uuid.pyd', 'C:\\Python314\\DLLs\\_uuid.pyd', 'EXTENSION'),
+  ('_wmi.pyd', 'C:\\Python314\\DLLs\\_wmi.pyd', 'EXTENSION'),
+  ('_zstd.pyd', 'C:\\Python314\\DLLs\\_zstd.pyd', 'EXTENSION'),
+  ('api-ms-win-core-console-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-console-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-datetime-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-datetime-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-debug-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-errorhandling-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-fibers-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-fibers-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-fibers-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-fibers-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l2-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l2-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-handle-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-handle-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-heap-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-heap-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-interlocked-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-interlocked-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-kernel32-legacy-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-kernel32-legacy-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-libraryloader-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-libraryloader-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-localization-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-memory-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-memory-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-namedpipe-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-namedpipe-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processenvironment-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processenvironment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-profile-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-profile-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-string-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-synch-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-synch-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-synch-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-sysinfo-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-sysinfo-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-sysinfo-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-sysinfo-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-timezone-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-timezone-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-util-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-util-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-conio-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-conio-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-convert-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-convert-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-environment-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-environment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-filesystem-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-filesystem-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-heap-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-heap-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-locale-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-math-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-math-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-private-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-private-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-process-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-process-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-runtime-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-runtime-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-stdio-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-stdio-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-string-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-time-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-time-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-utility-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-utility-l1-1-0.dll',
+   'BINARY'),
+  ('base_library.zip',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\build\\ITInfinityServer\\base_library.zip',
+   'DATA'),
+  ('certifi\\cacert.pem',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\certifi\\cacert.pem',
+   'DATA'),
+  ('certifi\\py.typed',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\certifi\\py.typed',
+   'DATA'),
+  ('charset_normalizer\\cd.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\charset_normalizer\\cd.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('charset_normalizer\\md.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\charset_normalizer\\md.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('click-8.4.1.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\INSTALLER',
+   'DATA'),
+  ('click-8.4.1.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\METADATA',
+   'DATA'),
+  ('click-8.4.1.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\RECORD',
+   'DATA'),
+  ('click-8.4.1.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\WHEEL',
+   'DATA'),
+  ('click-8.4.1.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\METADATA',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\RECORD',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\WHEEL',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE.APACHE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE.APACHE',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE.BSD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE.BSD',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\sboms\\sbom.json',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\sboms\\sbom.json',
+   'DATA'),
+  ('cryptography\\hazmat\\bindings\\_rust.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography\\hazmat\\bindings\\_rust.pyd',
+   'EXTENSION'),
+  ('fbclient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\fbclient.dll',
+   'BINARY'),
+  ('flask-3.1.3.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\INSTALLER',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\METADATA',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\RECORD',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\REQUESTED',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\REQUESTED',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\WHEEL',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\entry_points.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\entry_points.txt',
+   'DATA'),
+  ('flask-3.1.3.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask-3.1.3.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('flask\\__init__.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\__init__.py',
+   'DATA'),
+  ('flask\\__main__.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\__main__.py',
+   'DATA'),
+  ('flask\\app.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\app.py',
+   'DATA'),
+  ('flask\\blueprints.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\blueprints.py',
+   'DATA'),
+  ('flask\\cli.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\cli.py',
+   'DATA'),
+  ('flask\\config.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\config.py',
+   'DATA'),
+  ('flask\\ctx.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\ctx.py',
+   'DATA'),
+  ('flask\\debughelpers.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\debughelpers.py',
+   'DATA'),
+  ('flask\\globals.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\globals.py',
+   'DATA'),
+  ('flask\\helpers.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\helpers.py',
+   'DATA'),
+  ('flask\\json\\__init__.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\json\\__init__.py',
+   'DATA'),
+  ('flask\\json\\provider.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\json\\provider.py',
+   'DATA'),
+  ('flask\\json\\tag.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\json\\tag.py',
+   'DATA'),
+  ('flask\\logging.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\logging.py',
+   'DATA'),
+  ('flask\\py.typed',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\py.typed',
+   'DATA'),
+  ('flask\\sansio\\README.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\sansio\\README.md',
+   'DATA'),
+  ('flask\\sansio\\app.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\sansio\\app.py',
+   'DATA'),
+  ('flask\\sansio\\blueprints.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\sansio\\blueprints.py',
+   'DATA'),
+  ('flask\\sansio\\scaffold.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\sansio\\scaffold.py',
+   'DATA'),
+  ('flask\\sessions.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\sessions.py',
+   'DATA'),
+  ('flask\\signals.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\signals.py',
+   'DATA'),
+  ('flask\\templating.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\templating.py',
+   'DATA'),
+  ('flask\\testing.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\testing.py',
+   'DATA'),
+  ('flask\\typing.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\typing.py',
+   'DATA'),
+  ('flask\\views.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\views.py',
+   'DATA'),
+  ('flask\\wrappers.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\flask\\wrappers.py',
+   'DATA'),
+  ('icudt63.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icudt63.dll',
+   'BINARY'),
+  ('icuuc63.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icuuc63.dll',
+   'BINARY'),
+  ('itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
+   'DATA'),
+  ('lib\\dcmtk\\bin\\cda2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\cda2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\cmr.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\cmr.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcm2cda.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcm2cda.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcm2img.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcm2img.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcm2json.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcm2json.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcm2pdf.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcm2pdf.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcm2pnm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcm2pnm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcm2xml.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcm2xml.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmcjpeg.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmcjpeg.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmcjpls.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmcjpls.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmconv.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmconv.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmcrle.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmcrle.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdata.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdata.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdecap.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdecap.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdjpeg.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdjpeg.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdjpls.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdjpls.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdrle.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdrle.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdsig.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdsig.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdspfn.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdspfn.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmdump.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmdump.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmect.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmect.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmencap.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmencap.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmfg.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmfg.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmftest.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmftest.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmgpdir.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmgpdir.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmicmp.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmicmp.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmimage.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmimage.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmimgle.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmimgle.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmiod.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmiod.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmj2pnm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmj2pnm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmjpeg.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmjpeg.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmjpls.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmjpls.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcml2pnm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcml2pnm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmmkcrv.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmmkcrv.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmmkdir.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmmkdir.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmmklut.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmmklut.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmnet.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmnet.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmodify.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmodify.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmp2pgm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmp2pgm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpmap.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpmap.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmprscp.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmprscp.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmprscu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmprscu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpschk.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpschk.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpsmk.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpsmk.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpsprt.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpsprt.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpsrcv.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpsrcv.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpssnd.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpssnd.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmpstat.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmpstat.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmqrdb.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmqrdb.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmqridx.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmqridx.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmqrscp.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmqrscp.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmqrti.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmqrti.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmquant.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmquant.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmrecv.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmrecv.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmrt.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmrt.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmscale.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmscale.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmseg.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmseg.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmsend.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmsend.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmsign.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmsign.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmsr.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmsr.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmtkcharls.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmtkcharls.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmtls.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmtls.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmtract.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmtract.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmwlm.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmwlm.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcmxml.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcmxml.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dcod2lum.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dcod2lum.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dconvlum.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dconvlum.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\drtdump.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\drtdump.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dsr2html.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dsr2html.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dsr2xml.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dsr2xml.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dsrdump.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dsrdump.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\dump2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\dump2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\echoscu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\echoscu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\findscu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\findscu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\getscu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\getscu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\i2d.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\i2d.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\ijg12.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\ijg12.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\ijg16.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\ijg16.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\ijg8.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\ijg8.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\img2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\img2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\json2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\json2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\mkcsmapper.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\mkcsmapper.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\mkesdb.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\mkesdb.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\movescu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\movescu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\oficonv.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\oficonv.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\oflog.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\oflog.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\ofstd.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\ofstd.dll',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\pdf2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\pdf2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\stl2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\stl2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\storescp.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\storescp.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\storescu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\storescu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\termscu.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\termscu.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\wlmscpfs.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\wlmscpfs.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\xml2dcm.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\xml2dcm.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\bin\\xml2dsr.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\bin\\xml2dsr.exe',
+   'BINARY'),
+  ('lib\\dcmtk\\etc\\consolog.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\consolog.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\dcmpstat.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\dcmpstat.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\dcmqrprf.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\dcmqrprf.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\dcmqrscp.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\dcmqrscp.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\filelog.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\filelog.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\logger.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\logger.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\printers.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\printers.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\storescp.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\storescp.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\etc\\storescu.cfg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\etc\\storescu.cfg',
+   'DATA'),
+  ('lib\\dcmtk\\man\\cda2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\cda2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcm2cda.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcm2cda.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcm2img.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcm2img.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcm2json.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcm2json.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcm2pdf.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcm2pdf.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcm2pnm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcm2pnm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcm2xml.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcm2xml.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmcjpeg.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmcjpeg.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmcjpls.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmcjpls.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmconv.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmconv.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmcrle.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmcrle.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmdecap.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmdecap.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmdjpeg.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmdjpeg.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmdjpls.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmdjpls.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmdrle.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmdrle.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmdspfn.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmdspfn.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmdump.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmdump.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmencap.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmencap.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmftest.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmftest.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmgpdir.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmgpdir.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmicmp.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmicmp.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmj2pnm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmj2pnm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcml2pnm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcml2pnm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmmkcrv.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmmkcrv.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmmkdir.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmmkdir.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmmklut.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmmklut.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmodify.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmodify.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmp2pgm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmp2pgm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmprscp.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmprscp.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmprscu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmprscu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmpschk.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmpschk.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmpsmk.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmpsmk.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmpsprt.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmpsprt.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmpsrcv.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmpsrcv.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmpssnd.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmpssnd.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmqridx.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmqridx.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmqrscp.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmqrscp.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmqrti.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmqrti.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmquant.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmquant.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmrecv.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmrecv.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmscale.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmscale.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmsend.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmsend.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcmsign.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcmsign.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dcod2lum.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dcod2lum.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dconvlum.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dconvlum.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\drtdump.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\drtdump.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dsr2html.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dsr2html.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dsr2xml.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dsr2xml.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dsrdump.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dsrdump.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\dump2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\dump2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\echoscu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\echoscu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\findscu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\findscu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\getscu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\getscu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\img2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\img2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\json2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\json2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\mkcsmapper.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\mkcsmapper.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\mkesdb.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\mkesdb.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\movescu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\movescu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\pdf2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\pdf2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\stl2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\stl2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\storescp.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\storescp.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\storescu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\storescu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\termscu.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\termscu.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\wlmscpfs.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\wlmscpfs.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\xml2dcm.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\xml2dcm.txt',
+   'DATA'),
+  ('lib\\dcmtk\\man\\xml2dsr.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\man\\xml2dsr.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\SC.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\SC.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\VLP.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\VLP.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\acrnema.dic',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\acrnema.dic',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\camera.lut',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\camera.lut',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\CP\\CP936EXT%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\CP\\CP936EXT%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\CP\\UCS%CP936EXT.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\CP\\UCS%CP936EXT.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB18030%UCS@BMP.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB18030%UCS@BMP.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312EXT%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312EXT%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312GBK%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312GBK%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312UDA1%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312UDA1%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312UDA2%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GB2312UDA2%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GBKEXT%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GBKEXT%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GBKUDA%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\GBKUDA%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312EXT.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312EXT.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312UDA1.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312UDA1.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312UDA2.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GB2312UDA2.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GBKEXT.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GBKEXT.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GBKUDA.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS%GBKUDA.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS@BMP%GB18030.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\GB\\UCS@BMP%GB18030.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-11%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-11%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-15%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-15%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-2%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-2%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-3%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-3%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-4%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-4%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-5%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-5%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-6%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-6%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-7%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-7%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-8%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-8%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-9%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\ISO-8859-9%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-11.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-11.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-15.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-15.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-2.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-2.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-3.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-3.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-4.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-4.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-5.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-5.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-6.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-6.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-7.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-7.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-8.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-8.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-9.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO-8859\\UCS%ISO-8859-9.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO646\\ISO646-JP%UCS.646',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO646\\ISO646-JP%UCS.646',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO646\\ISO646-US%UCS.646',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\ISO646\\ISO646-US%UCS.646',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\JISX0201-KANA%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\JISX0201-KANA%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\JISX0208@1990%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\JISX0208@1990%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\JISX0212%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\JISX0212%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\UCS%JISX0201-KANA.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\UCS%JISX0201-KANA.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\UCS%JISX0208@1990.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\UCS%JISX0208@1990.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\UCS%JISX0212.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\JIS\\UCS%JISX0212.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\KSC5601HANGUL%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\KSC5601HANGUL%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\KSC5601HANJA%UCS.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\KSC5601HANJA%UCS.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\UCS%KSC5601HANGUL.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\UCS%KSC5601HANGUL.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\UCS%KSC5601HANJA.mps',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\KS\\UCS%KSC5601HANJA.mps',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\charset.pivot.pvdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\charset.pivot.pvdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\mapper.dir',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\mapper.dir',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\mapper.dir.db',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\csmapper\\mapper.dir.db',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\dcm2xml.dtd',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\dcm2xml.dtd',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\dicom.dic',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\dicom.dic',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\diconde.dic',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\diconde.dic',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\dsr2xml.xsd',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\dsr2xml.xsd',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\dumppat.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\dumppat.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\EUC\\EUC-CN.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\EUC\\EUC-CN.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\EUC\\EUC-KR.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\EUC\\EUC-KR.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\GB\\GB18030.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\GB\\GB18030.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\GB\\GBK.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\GB\\GBK.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-1.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-1.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-11.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-11.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-15.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-15.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-2.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-2.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-3.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-3.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-4.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-4.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-5.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-5.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-6.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-6.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-7.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-7.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-8.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-8.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-9.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO-8859\\ISO-8859-9.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO646\\ISO646-US.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\ISO646\\ISO646-US.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\JISX0201-KANA.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\JISX0201-KANA.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\JISX0208@1990.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\JISX0208@1990.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\JISX0212.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\JISX0212.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\Shift_JIS.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\MISC\\Shift_JIS.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16-INTERNAL.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16-INTERNAL.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16-SWAPPED.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16-SWAPPED.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16BE.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16BE.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16LE.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-16LE.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32-INTERNAL.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32-INTERNAL.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32-SWAPPED.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32-SWAPPED.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32BE.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32BE.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32LE.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-32LE.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-8.esdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\UTF\\UTF-8.esdb',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\esdb.alias.db',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\esdb.alias.db',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\esdb.dir.db',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\esdb\\esdb.dir.db',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\monitor.lut',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\monitor.lut',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\philips.lut',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\philips.lut',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\printer.lut',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\printer.lut',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\private.dic',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\private.dic',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\report.css',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\report.css',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\reportx.css',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\reportx.css',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\scanner.lut',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\scanner.lut',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\lockfile',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\lockfile',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist1.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist1.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist10.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist10.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist2.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist2.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist3.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist3.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist4.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist4.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist5.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist5.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist6.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist6.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist7.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist7.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist8.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist8.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist9.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\OFFIS\\wklist9.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\README',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistdb\\README',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\README',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\README',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry0.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry0.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry1.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry1.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry10.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry10.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry11.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry11.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry12.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry12.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry2.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry2.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry3.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry3.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry4.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry4.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry5.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry5.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry6.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry6.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry7.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry7.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry8.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry8.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry9.dump',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\dcmtk-3.7.0\\wlistqry\\wlistqry9.dump',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\ANNOUNCE',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\ANNOUNCE',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.301',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.301',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.302',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.302',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.310',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.310',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.311',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.311',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.312',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.312',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.320',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.320',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.321',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.321',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.330',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.330',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.331',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.331',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.340',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.340',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.341',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.341',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.342',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.342',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.350',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.350',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.351',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.351',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.352',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.352',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.353',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.353',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.354',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.354',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.360',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.360',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.362',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.362',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.363',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.363',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.364',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.364',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.365',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.365',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.366',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.366',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.367',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.367',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.368',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.368',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.369',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.369',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.370',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CHANGES.370',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\COPYRIGHT',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\COPYRIGHT',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CREDITS',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\CREDITS',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\FAQ',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\FAQ',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\HISTORY',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\HISTORY',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\VERSION',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\VERSION',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\asconfig.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\asconfig.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\ciphers.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\ciphers.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\config.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\config.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\datadict.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\datadict.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\dcmqrcnf.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\dcmqrcnf.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\dcmqrset.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\dcmqrset.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\dirstruc.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\dirstruc.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\envvars.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\envvars.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\macros.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\macros.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\modules.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\modules.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\randseed.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\randseed.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\testing.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\testing.txt',
+   'DATA'),
+  ('lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\wlmsetup.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\dcmtk\\share\\doc\\dcmtk-3.7.0\\wlmsetup.txt',
+   'DATA'),
+  ('lib\\fb_bridge\\FbBridge.csproj',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\FbBridge.csproj',
+   'DATA'),
+  ('lib\\fb_bridge\\FbBridge.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\FbBridge.exe',
+   'BINARY'),
+  ('lib\\fb_bridge\\FirebirdSql.Data.FirebirdClient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\FirebirdSql.Data.FirebirdClient.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\Program.cs',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\Program.cs',
+   'DATA'),
+  ('lib\\fb_bridge\\README.md',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\README.md',
+   'DATA'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.deps.json',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.deps.json',
+   'DATA'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.exe',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.pdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.pdb',
+   'DATA'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.runtimeconfig.json',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FbBridge.runtimeconfig.json',
+   'DATA'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FirebirdSql.Data.FirebirdClient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\FirebirdSql.Data.FirebirdClient.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.CSharp.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.CSharp.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.DiaSymReader.Native.amd64.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.DiaSymReader.Native.amd64.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.VisualBasic.Core.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.VisualBasic.Core.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.VisualBasic.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.VisualBasic.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.Win32.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.Win32.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.Win32.Registry.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\Microsoft.Win32.Registry.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.AppContext.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.AppContext.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Buffers.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Buffers.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.Concurrent.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.Concurrent.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.Immutable.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.Immutable.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.NonGeneric.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.NonGeneric.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.Specialized.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.Specialized.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Collections.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.Annotations.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.Annotations.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.DataAnnotations.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.DataAnnotations.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.EventBasedAsync.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.EventBasedAsync.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.TypeConverter.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.TypeConverter.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ComponentModel.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Configuration.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Configuration.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Console.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Console.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Core.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Core.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Data.Common.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Data.Common.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Data.DataSetExtensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Data.DataSetExtensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Data.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Data.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Contracts.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Contracts.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Debug.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Debug.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.DiagnosticSource.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.DiagnosticSource.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.FileVersionInfo.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.FileVersionInfo.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Process.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Process.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.StackTrace.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.StackTrace.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.TextWriterTraceListener.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.TextWriterTraceListener.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Tools.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Tools.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.TraceSource.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.TraceSource.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Tracing.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Diagnostics.Tracing.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Drawing.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Drawing.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Drawing.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Drawing.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Dynamic.Runtime.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Dynamic.Runtime.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Formats.Asn1.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Formats.Asn1.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Formats.Tar.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Formats.Tar.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Globalization.Calendars.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Globalization.Calendars.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Globalization.Extensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Globalization.Extensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Globalization.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Globalization.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.Brotli.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.Brotli.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.FileSystem.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.FileSystem.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.Native.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.Native.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.ZipFile.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.ZipFile.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Compression.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.AccessControl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.AccessControl.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.DriveInfo.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.DriveInfo.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.Watcher.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.Watcher.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.FileSystem.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.IsolatedStorage.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.IsolatedStorage.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.MemoryMappedFiles.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.MemoryMappedFiles.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Pipes.AccessControl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Pipes.AccessControl.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Pipes.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.Pipes.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.UnmanagedMemoryStream.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.UnmanagedMemoryStream.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.IO.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.Expressions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.Expressions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.Parallel.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.Parallel.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.Queryable.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.Queryable.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Linq.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Memory.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Memory.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Http.Json.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Http.Json.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Http.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Http.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.HttpListener.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.HttpListener.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Mail.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Mail.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.NameResolution.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.NameResolution.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.NetworkInformation.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.NetworkInformation.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Ping.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Ping.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Quic.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Quic.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Requests.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Requests.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Security.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Security.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.ServicePoint.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.ServicePoint.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Sockets.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.Sockets.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebClient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebClient.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebHeaderCollection.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebHeaderCollection.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebProxy.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebProxy.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebSockets.Client.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebSockets.Client.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebSockets.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.WebSockets.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Net.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Numerics.Vectors.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Numerics.Vectors.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Numerics.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Numerics.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ObjectModel.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ObjectModel.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.CoreLib.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.CoreLib.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.DataContractSerialization.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.DataContractSerialization.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.Uri.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.Uri.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.Xml.Linq.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.Xml.Linq.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.Xml.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Private.Xml.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.DispatchProxy.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.DispatchProxy.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Emit.ILGeneration.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Emit.ILGeneration.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Emit.Lightweight.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Emit.Lightweight.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Emit.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Emit.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Extensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Extensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Metadata.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Metadata.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.TypeExtensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.TypeExtensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Reflection.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Resources.Reader.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Resources.Reader.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Resources.ResourceManager.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Resources.ResourceManager.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Resources.Writer.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Resources.Writer.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.CompilerServices.Unsafe.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.CompilerServices.Unsafe.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.CompilerServices.VisualC.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.CompilerServices.VisualC.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Extensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Extensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Handles.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Handles.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.InteropServices.JavaScript.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.InteropServices.JavaScript.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.InteropServices.RuntimeInformation.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.InteropServices.RuntimeInformation.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.InteropServices.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.InteropServices.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Intrinsics.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Intrinsics.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Loader.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Loader.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Numerics.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Numerics.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Formatters.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Formatters.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Json.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Json.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Xml.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.Xml.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.Serialization.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Runtime.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.AccessControl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.AccessControl.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Claims.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Claims.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Algorithms.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Algorithms.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Cng.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Cng.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Csp.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Csp.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Encoding.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Encoding.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.OpenSsl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.OpenSsl.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Primitives.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.Primitives.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.X509Certificates.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.X509Certificates.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Cryptography.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Principal.Windows.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Principal.Windows.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Principal.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.Principal.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.SecureString.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.SecureString.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Security.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ServiceModel.Web.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ServiceModel.Web.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ServiceProcess.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ServiceProcess.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encoding.CodePages.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encoding.CodePages.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encoding.Extensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encoding.Extensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encoding.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encoding.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encodings.Web.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Encodings.Web.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Json.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.Json.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.RegularExpressions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Text.RegularExpressions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Channels.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Channels.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Overlapped.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Overlapped.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.Dataflow.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.Dataflow.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.Extensions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.Extensions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.Parallel.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.Parallel.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Tasks.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Thread.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Thread.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.ThreadPool.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.ThreadPool.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Timer.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.Timer.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Threading.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Transactions.Local.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Transactions.Local.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Transactions.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Transactions.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ValueTuple.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.ValueTuple.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Web.HttpUtility.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Web.HttpUtility.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Web.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Web.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Windows.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Windows.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.Linq.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.Linq.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.ReaderWriter.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.ReaderWriter.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.Serialization.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.Serialization.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XDocument.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XDocument.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XPath.XDocument.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XPath.XDocument.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XPath.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XPath.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XmlDocument.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XmlDocument.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XmlSerializer.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.XmlSerializer.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.Xml.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\System.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\WindowsBase.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\WindowsBase.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\clretwrc.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\clretwrc.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\clrgc.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\clrgc.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\clrjit.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\clrjit.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\coreclr.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\coreclr.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\createdump.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\createdump.exe',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\hostfxr.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\hostfxr.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\hostpolicy.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\hostpolicy.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscordaccore.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscordaccore.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscordaccore_amd64_amd64_8.0.2626.16921.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscordaccore_amd64_amd64_8.0.2626.16921.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscordbi.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscordbi.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscorlib.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscorlib.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscorrc.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\mscorrc.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\msquic.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\msquic.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\netstandard.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\netstandard.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\publish\\FbBridge.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\publish\\FbBridge.exe',
+   'BINARY'),
+  ('lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\publish\\FbBridge.pdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\bin\\Release\\net8.0\\win-x64\\publish\\FbBridge.pdb',
+   'DATA'),
+  ('lib\\fb_bridge\\fbclient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\fbclient.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\fbcrypt.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\fbcrypt.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\firebird.msg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\firebird.msg',
+   'DATA'),
+  ('lib\\fb_bridge\\ib_util.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\ib_util.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\icudt63.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icudt63.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\icudt63l.dat',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icudt63l.dat',
+   'DATA'),
+  ('lib\\fb_bridge\\icuin63.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icuin63.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\icuuc63.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icuuc63.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\intl\\fbintl.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\intl\\fbintl.conf',
+   'DATA'),
+  ('lib\\fb_bridge\\intl\\fbintl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\intl\\fbintl.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\msvcp140.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\msvcp140.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\obj\\FbBridge.csproj.nuget.dgspec.json',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\FbBridge.csproj.nuget.dgspec.json',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\FbBridge.csproj.nuget.g.props',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\FbBridge.csproj.nuget.g.props',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\FbBridge.csproj.nuget.g.targets',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\FbBridge.csproj.nuget.g.targets',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.AssemblyInfo.cs',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.AssemblyInfo.cs',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.AssemblyInfoInputs.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.AssemblyInfoInputs.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.GeneratedMSBuildEditorConfig.editorconfig',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.GeneratedMSBuildEditorConfig.editorconfig',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.GlobalUsings.g.cs',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.GlobalUsings.g.cs',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.assets.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.assets.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.AssemblyReference.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.AssemblyReference.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.CoreCompileInputs.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.CoreCompileInputs.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.FileListAbsolute.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.FileListAbsolute.txt',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.Up2Date',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.csproj.Up2Date',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.deps.json',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.deps.json',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.genbundle.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.genbundle.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.genpublishdeps.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.genpublishdeps.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.genruntimeconfig.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.genruntimeconfig.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.pdb',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.pdb',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.6253590f06.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.6253590f06.txt',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\apphost.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\apphost.exe',
+   'BINARY'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\ref\\FbBridge.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\ref\\FbBridge.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\refint\\FbBridge.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\refint\\FbBridge.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\singlefilehost.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\singlefilehost.exe',
+   'BINARY'),
+  ('lib\\fb_bridge\\obj\\project.assets.json',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\project.assets.json',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\project.nuget.cache',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\project.nuget.cache',
+   'DATA'),
+  ('lib\\fb_bridge\\plugins\\engine13.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\plugins\\engine13.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\vcruntime140.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\vcruntime140.dll',
+   'BINARY'),
+  ('lib\\fb_bridge\\vcruntime140_1.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\vcruntime140_1.dll',
+   'BINARY'),
+  ('libcrypto-3.dll', 'C:\\Python314\\DLLs\\libcrypto-3.dll', 'BINARY'),
+  ('libffi-8.dll', 'C:\\Python314\\DLLs\\libffi-8.dll', 'BINARY'),
+  ('libssl-3.dll', 'C:\\Python314\\DLLs\\libssl-3.dll', 'BINARY'),
+  ('markupsafe-3.0.3.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\INSTALLER',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\METADATA',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\RECORD',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\WHEEL',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\top_level.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\top_level.txt',
+   'DATA'),
+  ('markupsafe\\_speedups.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe\\_speedups.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('msal-1.37.0.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('msal-1.37.0.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\METADATA',
+   'DATA'),
+  ('msal-1.37.0.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\RECORD',
+   'DATA'),
+  ('msal-1.37.0.dist-info\\REQUESTED',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\REQUESTED',
+   'DATA'),
+  ('msal-1.37.0.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\WHEEL',
+   'DATA'),
+  ('msal-1.37.0.dist-info\\licenses\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\licenses\\LICENSE',
+   'DATA'),
+  ('msal-1.37.0.dist-info\\top_level.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\top_level.txt',
+   'DATA'),
+  ('msal\\__init__.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\__init__.py',
+   'DATA'),
+  ('msal\\__main__.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\__main__.py',
+   'DATA'),
+  ('msal\\application.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\application.py',
+   'DATA'),
+  ('msal\\auth_scheme.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\auth_scheme.py',
+   'DATA'),
+  ('msal\\authority.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\authority.py',
+   'DATA'),
+  ('msal\\broker.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\broker.py',
+   'DATA'),
+  ('msal\\cloudshell.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\cloudshell.py',
+   'DATA'),
+  ('msal\\exceptions.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\exceptions.py',
+   'DATA'),
+  ('msal\\individual_cache.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\individual_cache.py',
+   'DATA'),
+  ('msal\\managed_identity.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\managed_identity.py',
+   'DATA'),
+  ('msal\\mex.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\mex.py',
+   'DATA'),
+  ('msal\\oauth2cli\\__init__.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\__init__.py',
+   'DATA'),
+  ('msal\\oauth2cli\\assertion.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\assertion.py',
+   'DATA'),
+  ('msal\\oauth2cli\\authcode.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\authcode.py',
+   'DATA'),
+  ('msal\\oauth2cli\\http.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\http.py',
+   'DATA'),
+  ('msal\\oauth2cli\\oauth2.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\oauth2.py',
+   'DATA'),
+  ('msal\\oauth2cli\\oidc.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\oidc.py',
+   'DATA'),
+  ('msal\\region.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\region.py',
+   'DATA'),
+  ('msal\\sku.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\sku.py',
+   'DATA'),
+  ('msal\\telemetry.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\telemetry.py',
+   'DATA'),
+  ('msal\\throttled_http_client.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\throttled_http_client.py',
+   'DATA'),
+  ('msal\\token_cache.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\token_cache.py',
+   'DATA'),
+  ('msal\\wstrust_request.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\wstrust_request.py',
+   'DATA'),
+  ('msal\\wstrust_response.py',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\wstrust_response.py',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\DELVEWHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\DELVEWHEEL',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\INSTALLER',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\METADATA',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\RECORD',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\REQUESTED',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\REQUESTED',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\WHEEL',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\entry_points.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\entry_points.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
+   'DATA'),
+  ('numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
+   'BINARY'),
+  ('numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
+   'BINARY'),
+  ('numpy\\_core\\_multiarray_tests.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\_core\\_multiarray_tests.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\_core\\_multiarray_umath.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\_core\\_multiarray_umath.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\fft\\_pocketfft_umath.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\fft\\_pocketfft_umath.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\linalg\\_umath_linalg.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\linalg\\_umath_linalg.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_bounded_integers.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_bounded_integers.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_common.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_common.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_generator.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_generator.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_mt19937.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_mt19937.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_pcg64.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_pcg64.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_philox.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_philox.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\_sfc64.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\_sfc64.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\bit_generator.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\bit_generator.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('numpy\\random\\mtrand.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\mtrand.cp314-win_amd64.pyd',
+   'EXTENSION'),
+  ('pyexpat.pyd', 'C:\\Python314\\DLLs\\pyexpat.pyd', 'EXTENSION'),
+  ('python3.dll', 'C:\\Python314\\python3.dll', 'BINARY'),
+  ('python314.dll', 'C:\\Python314\\python314.dll', 'BINARY'),
+  ('pywin32_system32\\pywintypes314.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\pywin32_system32\\pywintypes314.dll',
+   'BINARY'),
+  ('select.pyd', 'C:\\Python314\\DLLs\\select.pyd', 'EXTENSION'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\INSTALLER',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\METADATA',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\RECORD',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\REQUESTED',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\REQUESTED',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
+   'DATA'),
+  ('setuptools\\_vendor\\jaraco\\text\\Lorem ipsum.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\jaraco\\text\\Lorem '
+   'ipsum.txt',
+   'DATA'),
+  ('sqlite3.dll', 'C:\\Python314\\DLLs\\sqlite3.dll', 'BINARY'),
+  ('static\\icon.ico',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\static\\icon.ico',
+   'DATA'),
+  ('static\\index.html',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\static\\index.html',
+   'DATA'),
+  ('ucrtbase.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\ucrtbase.dll',
+   'BINARY'),
+  ('unicodedata.pyd', 'C:\\Python314\\DLLs\\unicodedata.pyd', 'EXTENSION'),
+  ('werkzeug-3.1.8.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\INSTALLER',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\METADATA',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\RECORD',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\WHEEL',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('win32\\win32pdh.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\win32\\win32pdh.pyd',
+   'EXTENSION'),
+  ('yaml\\_yaml.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\yaml\\_yaml.cp314-win_amd64.pyd',
+   'EXTENSION')],)
