@@ -799,7 +799,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         Internal tooling for dental imaging data migration between VistaSoft, DTX Studio, and SOPRO systems.<br><br>
         Supports incremental runs, pause/resume, full audit logging, and per-patient status tracking.
       </div>
-      <div class="auth-version">v1.0.0 · IT INFINITY Ltd</div>
+      <div class="auth-version">v1.0.7 · IT INFINITY Ltd</div>
     </div>
 
     <!-- Right: login form -->
@@ -846,7 +846,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         <span class="sb-title">IT Infinity</span>
       </div>
       <div class="sb-sub">Migration Tool</div>
-      <div class="sb-version">v1.0.0</div>
+      <div class="sb-version">v1.0.7</div>
     </div>
 
     <nav class="sb-nav">
@@ -1319,10 +1319,10 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
               <thead>
                 <tr>
                   <th style="width:28px;"><input type="checkbox" id="pmsSelectAll" onchange="pmsToggleAll(this.checked)" title="Select all"></th>
-                  <th>PMS Surname</th>
-                  <th>PMS First Name</th>
-                  <th>PMS DOB</th>
-                  <th>PMS Ref</th>
+                  <th onclick="pmsCycleColumn('surname')"    style="cursor:pointer;" title="Click to cycle all Surname overrides">PMS Surname <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
+                  <th onclick="pmsCycleColumn('first_name')" style="cursor:pointer;" title="Click to cycle all First Name overrides">PMS First Name <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
+                  <th onclick="pmsCycleColumn('dob')"        style="cursor:pointer;" title="Click to cycle all DOB overrides">PMS DOB <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
+                  <th onclick="pmsCycleColumn('patient_ref')" style="cursor:pointer;" title="Click to cycle all Ref overrides">PMS Ref <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
                   <th>Match</th>
                   <th>Source Surname</th>
                   <th>Source First Name</th>
@@ -2744,7 +2744,38 @@ function renderCompareTable(rows) {
     </tr>`;
   }).join('');
 }
- 
+
+function pmsCycleColumn(fieldKey) {
+  // Determine current majority state for this column
+  // so clicking cycles all cells to the next state together
+  const states = _pmsCompared.map(r => {
+    const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
+    return uid ? (pmsGetOverride(uid, fieldKey) || 'global') : null;
+  }).filter(Boolean);
+
+  if (!states.length) return;
+
+  // Find what the majority state is, then advance everyone to the next
+  const counts = { global: 0, pms: 0, source: 0 };
+  states.forEach(s => counts[s]++);
+  const dominant = Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+  const next = dominant === 'global' ? 'pms'
+             : dominant === 'pms'    ? 'source'
+             : null; // null = global
+
+  _pmsCompared.forEach(r => {
+    const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
+    if (!uid) return;
+    if (next) {
+      pmsSetOverride(uid, fieldKey, next);
+    } else {
+      delete _pmsFieldOverrides[uid + ':' + fieldKey];
+    }
+  });
+
+  renderCompareTable(_pmsCompared);
+}
+
 // Cycle override state: null → 'pms' → 'source' → null
 function pmsClickCell(sourceUid, fieldKey) {
   const cur = pmsGetOverride(sourceUid, fieldKey);
