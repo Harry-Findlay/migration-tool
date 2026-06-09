@@ -1,2 +1,0 @@
-C:\Users\Harry Findlay\Documents\Coding\imaging_migrator\fb_bridge\bin\Release\net8.0\win-x64\publish\FbBridge.pdb
-C:\Users\Harry Findlay\Documents\Coding\imaging_migrator\fb_bridge\bin\Release\net8.0\win-x64\publish\FbBridge.exe

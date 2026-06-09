@@ -799,7 +799,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         Internal tooling for dental imaging data migration between VistaSoft, DTX Studio, and SOPRO systems.<br><br>
         Supports incremental runs, pause/resume, full audit logging, and per-patient status tracking.
       </div>
-      <div class="auth-version">v1.0.0 · IT INFINITY Ltd</div>
+      <div class="auth-version">v1.0.7 · IT INFINITY Ltd</div>
     </div>
 
     <!-- Right: login form -->
@@ -846,7 +846,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         <span class="sb-title">IT Infinity</span>
       </div>
       <div class="sb-sub">Migration Tool</div>
-      <div class="sb-version">v1.0.0</div>
+      <div class="sb-version">v1.0.7</div>
     </div>
 
     <nav class="sb-nav">
@@ -1000,6 +1000,14 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
                 <div>
                   <div class="source-name">SOPRO</div>
                   <div class="source-desc">SOPRO Imaging Management System</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
+              <div class="source-card" onclick="selectSource(this,'DBSWin')">
+                <div class="source-icon">🦷</div>
+                <div>
+                  <div class="source-name">DBSWin</div>
+                  <div class="source-desc">Dürr Dental DBSWin — Firebird DB + XrayImg/VidImg files</div>
                 </div>
                 <i class="bi bi-check-circle-fill source-check"></i>
               </div>
@@ -1319,10 +1327,10 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
               <thead>
                 <tr>
                   <th style="width:28px;"><input type="checkbox" id="pmsSelectAll" onchange="pmsToggleAll(this.checked)" title="Select all"></th>
-                  <th>PMS Surname</th>
-                  <th>PMS First Name</th>
-                  <th>PMS DOB</th>
-                  <th>PMS Ref</th>
+                  <th onclick="pmsCycleColumn('surname')"    style="cursor:pointer;" title="Click to cycle all Surname overrides">PMS Surname <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
+                  <th onclick="pmsCycleColumn('first_name')" style="cursor:pointer;" title="Click to cycle all First Name overrides">PMS First Name <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
+                  <th onclick="pmsCycleColumn('dob')"        style="cursor:pointer;" title="Click to cycle all DOB overrides">PMS DOB <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
+                  <th onclick="pmsCycleColumn('patient_ref')" style="cursor:pointer;" title="Click to cycle all Ref overrides">PMS Ref <i class="bi bi-arrow-repeat" style="font-size:9px;opacity:0.5;"></i></th>
                   <th>Match</th>
                   <th>Source Surname</th>
                   <th>Source First Name</th>
@@ -2201,6 +2209,7 @@ function _renderConfigPane(containerId, fields, datasourceName, role) {
     'VistaSoft': 'bi-folder2-open',
     'DTX Studio': 'bi-diagram-3',
     'SOPRO': 'bi-camera',
+    'DBSWin': 'bi-folder2-open',
   };
   const icon = icons[datasourceName] || (role === 'source' ? 'bi-database' : 'bi-database-up');
  
@@ -2666,6 +2675,40 @@ function normaliseDob(dob) {
   return dob.trim();
 }
 
+// Manual PMS links: pms_index → source patient
+let _pmsManualLinks = {};
+
+function pmsManualLink(pmsIndex, sourceUid) {
+  if (!sourceUid) {
+    delete _pmsManualLinks[pmsIndex];
+  } else {
+    _pmsManualLinks[pmsIndex] = sourceUid;
+    // Re-run compare to reflect the link
+    const row = _pmsCompared[pmsIndex];
+    if (row) {
+      const sp = _loadedPatients.find(p => p.uid === sourceUid);
+      if (sp) {
+        row.source    = {
+          family_name: sp.family_name || '',
+          given_names: sp.given_names || '',
+          dob:         sp.dob || '',
+          patient_ref: sp.id || '',
+        };
+        row.sourceUid    = sourceUid;
+        row.matchStatus  = 'matched';
+        row.conflicts    = [];
+        row._manualLink  = true;
+      }
+    }
+    renderCompareTable(_pmsCompared);
+    const matched   = _pmsCompared.filter(r => r.matchStatus !== 'unmatched').length;
+    const unmatched = _pmsCompared.filter(r => r.matchStatus === 'unmatched').length;
+    const conflicts = _pmsCompared.filter(r => r.matchStatus === 'conflict').length;
+    document.getElementById('pmsMatchSummary').textContent =
+      `${matched} matched · ${conflicts} conflicts · ${unmatched} unmatched`;
+  }
+}
+
 let _pmsFilter = 'all';
 let _pmsFieldOverrides = {};
 function pmsSetOverride(uid, field, val) { _pmsFieldOverrides[uid+':'+field] = val; }
@@ -2723,28 +2766,74 @@ function renderCompareTable(rows) {
   };
  
   tbody.innerHTML = filtered.map((r, i) => {
-    const p   = r.pms    || {};
-    const s   = r.source || {};
+      const p   = r.pms    || {};
+      const s   = r.source || {};
+      const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
+      const rowBg = r.matchStatus === 'conflict'  ? 'style="background:rgba(255,160,0,0.07)"'
+                  : r.matchStatus === 'unmatched' ? 'style="background:rgba(255,80,80,0.05)"'
+                  : '';
+
+      // Build match cell before template literal
+      let matchCell = matchBadge(r.matchStatus);
+      if (r.matchStatus === 'unmatched' || r._manualLink) {
+        const opts = _loadedPatients.map(sp =>
+          `<option value="${escHtml(sp.uid)}">${escHtml((sp.family_name||'') + ', ' + (sp.given_names||'') + ' — ' + (sp.dob||''))}</option>`
+        ).join('');
+        matchCell += `<div style="margin-top:4px;">
+          <select style="font-size:10px;padding:2px 4px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-1);max-width:200px;"
+            onchange="pmsManualLink(${i}, this.value)">
+            <option value="">— Link to source patient —</option>
+            ${opts}
+          </select>
+        </div>`;
+      }
+
+      return `<tr ${rowBg} data-idx="${i}">
+        <td><input type="checkbox" class="pms-row-chk" data-idx="${i}" checked></td>
+        ${fieldCell(uid, 'surname',     p.surname,     s.family_name)}
+        ${fieldCell(uid, 'first_name',  p.first_name,  s.given_names)}
+        ${fieldCell(uid, 'dob',         p.dob,         s.dob)}
+        ${fieldCell(uid, 'patient_ref', p.patient_ref, s.id || s.patient_ref)}
+        <td>${matchCell}</td>
+        <td style="color:var(--text-1);">${escHtml(s.family_name||'—')}</td>
+        <td>${escHtml(s.given_names||'—')}</td>
+        <td class="mono fs-11">${escHtml(s.dob||'—')}</td>
+        <td class="mono fs-11">${escHtml(s.id || s.patient_ref||'—')}</td>
+      </tr>`;
+    }).join('');
+  }
+
+function pmsCycleColumn(fieldKey) {
+  // Determine current majority state for this column
+  // so clicking cycles all cells to the next state together
+  const states = _pmsCompared.map(r => {
     const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
-    const rowBg = r.matchStatus === 'conflict'  ? 'style="background:rgba(255,160,0,0.07)"'
-                : r.matchStatus === 'unmatched' ? 'style="background:rgba(255,80,80,0.05)"'
-                : '';
- 
-    return `<tr ${rowBg} data-idx="${i}">
-      <td><input type="checkbox" class="pms-row-chk" data-idx="${i}" checked></td>
-      ${fieldCell(uid, 'surname',     p.surname,     s.family_name)}
-      ${fieldCell(uid, 'first_name',  p.first_name,  s.given_names)}
-      ${fieldCell(uid, 'dob',         p.dob,         s.dob)}
-      ${fieldCell(uid, 'patient_ref', p.patient_ref, s.id || s.patient_ref)}
-      <td>${matchBadge(r.matchStatus)}</td>
-      <td style="color:var(--text-1);">${escHtml(s.family_name||'—')}</td>
-      <td>${escHtml(s.given_names||'—')}</td>
-      <td class="mono fs-11">${escHtml(s.dob||'—')}</td>
-      <td class="mono fs-11">${escHtml(s.id || s.patient_ref||'—')}</td>
-    </tr>`;
-  }).join('');
+    return uid ? (pmsGetOverride(uid, fieldKey) || 'global') : null;
+  }).filter(Boolean);
+
+  if (!states.length) return;
+
+  // Find what the majority state is, then advance everyone to the next
+  const counts = { global: 0, pms: 0, source: 0 };
+  states.forEach(s => counts[s]++);
+  const dominant = Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+  const next = dominant === 'global' ? 'pms'
+             : dominant === 'pms'    ? 'source'
+             : null; // null = global
+
+  _pmsCompared.forEach(r => {
+    const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
+    if (!uid) return;
+    if (next) {
+      pmsSetOverride(uid, fieldKey, next);
+    } else {
+      delete _pmsFieldOverrides[uid + ':' + fieldKey];
+    }
+  });
+
+  renderCompareTable(_pmsCompared);
 }
- 
+
 // Cycle override state: null → 'pms' → 'source' → null
 function pmsClickCell(sourceUid, fieldKey) {
   const cur = pmsGetOverride(sourceUid, fieldKey);

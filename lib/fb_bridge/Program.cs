@@ -329,7 +329,20 @@ try
         case "query":
         {
             if (args.Length < 3) throw new Exception("query needs <sql>");
-            var sql = args[2];
+            var raw = ReadArg(args[2]);
+            // Accept either a plain SQL string or a {"sql": "..."} JSON envelope
+            // (the JSON envelope is used when SQL is piped via stdin to avoid
+            //  Windows command-line quoting/length issues)
+            string sql;
+            if (raw.TrimStart().StartsWith("{"))
+            {
+                var doc = JsonDocument.Parse(raw).RootElement;
+                sql = doc.GetProperty("sql").GetString()!;
+            }
+            else
+            {
+                sql = raw;
+            }
             using var conn = Open(connStr);
             using var cmd  = new FbCommand(sql, conn);
             using var rdr  = cmd.ExecuteReader();

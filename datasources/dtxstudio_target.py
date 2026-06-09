@@ -839,8 +839,11 @@ class DTXStudioTarget(BaseDatasource):
                         for media in media_list:
                             media_type = _map_media_type(media.get("image_class", ""))
                             payload = {"mediaType": media_type}
-                            modality = (media.get("modality") or
-                                        _map_modality_from_sidecar(media.get("dicom_tags") or {}))
+                            modality = (
+                                _map_modality_from_sidecar({"ImageClass": media.get("image_class", ""), 
+                                                            "Modality": media.get("modality", "")})
+                                or _map_modality_from_sidecar(media.get("dicom_tags") or {})
+                            )
                             if modality:
                                 payload["modality"] = modality
                             acq_dt = (_parse_acq_datetime(media.get("dicom_tags") or {}) or

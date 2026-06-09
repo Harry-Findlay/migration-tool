@@ -122,11 +122,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Harry Findlay\\Documents\\Coding\\imaging_migrator\\fb_bridge\\FbBridge.csproj",
+      "projectUniqueName": "C:\\Users\\Harry Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\FbBridge.csproj",
       "projectName": "FbBridge",
-      "projectPath": "C:\\Users\\Harry Findlay\\Documents\\Coding\\imaging_migrator\\fb_bridge\\FbBridge.csproj",
+      "projectPath": "C:\\Users\\Harry Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\FbBridge.csproj",
       "packagesPath": "C:\\Users\\Harry Findlay\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Harry Findlay\\Documents\\Coding\\imaging_migrator\\fb_bridge\\obj\\",
+      "outputPath": "C:\\Users\\Harry Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Harry Findlay\\AppData\\Roaming\\NuGet\\NuGet.Config",

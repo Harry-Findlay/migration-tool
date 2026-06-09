@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FbBridge")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b204f3312012db4a605c2e56dc9cd58cbfabbd30")]
 [assembly: System.Reflection.AssemblyProductAttribute("FbBridge")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FbBridge")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

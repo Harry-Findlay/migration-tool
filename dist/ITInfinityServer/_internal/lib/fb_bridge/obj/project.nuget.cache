@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "dGH0jgEVh1s=",
+  "dgSpecHash": "vBxP/7TL/tw=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Harry Findlay\\Documents\\Coding\\imaging_migrator\\fb_bridge\\FbBridge.csproj",
+  "projectFilePath": "C:\\Users\\Harry Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\FbBridge.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Harry Findlay\\.nuget\\packages\\firebirdsql.data.firebirdclient\\10.3.4\\firebirdsql.data.firebirdclient.10.3.4.nupkg.sha512",
     "C:\\Users\\Harry Findlay\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.26\\microsoft.net.illink.tasks.8.0.26.nupkg.sha512",

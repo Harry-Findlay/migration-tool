@@ -181,13 +181,16 @@ from auth.ms365           import auth_bp, require_auth, get_current_user
 from datasources.vistasoft_source  import VistaSoftSource
 from datasources.sopro_source      import SOPROSource
 from datasources.dtxstudio_source  import DTXStudioSource
+from datasources.dbswin_source import DBSWinSource
 from datasources.dtxstudio_target  import DTXStudioTarget
 from datasources.vistasoft_target  import VistaSoftTarget
+
 
 SOURCE_REGISTRY = {
     "VistaSoft":  VistaSoftSource,
     "DTX Studio": DTXStudioSource,
     "SOPRO":      SOPROSource,
+    "DBSWin":     DBSWinSource,
 }
 
 TARGET_REGISTRY = {
@@ -1321,6 +1324,15 @@ def api_pms_compare():
         }
     )
 
+@app.route("/api/pms/link", methods=["POST"])
+@require_auth
+def api_pms_link():
+    """
+    Manually link a PMS patient row to a source patient UID.
+    Body: { "pms_index": 0, "source_uid": "abc123..." }
+    Just returns success — the frontend holds the link in state.
+    """
+    return _ok(message="Link recorded.")
 
 @app.route("/api/pms/confirm", methods=["POST"])
 @require_auth

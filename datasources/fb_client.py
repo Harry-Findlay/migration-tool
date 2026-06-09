@@ -37,6 +37,59 @@ _NEED_BUILD = (
     "Then restart the server."
 )
 
+# Firebird 2.5 embedded bridge — used for ODS 11.2 databases (e.g. DBSWin)
+_LIB_DIR_V2 = os.path.join(_ROOT, "lib", "fb_bridge_v2")
+_EXE_V2     = os.path.join(_LIB_DIR_V2, "FbBridge.exe")
+
+def _run_v2(command: str, db_path: str, *extra) -> dict:
+    """Same as _run() but uses the Firebird 2.5 embedded client in lib/fb_bridge_v2/."""
+    if not os.path.isfile(_EXE_V2):
+        raise FileNotFoundError(
+            f"FbBridge.exe not found at: {_EXE_V2}\n\n"
+            f"Copy FbBridge.exe and Firebird 2.5 embedded DLLs into lib\\fb_bridge_v2\\"
+        )
+
+    env = os.environ.copy()
+    env["FIREBIRD"] = _LIB_DIR_V2
+    env.setdefault("PATH", "")
+    env["PATH"] = _LIB_DIR_V2 + os.pathsep + env["PATH"]
+
+    stdin_data = None
+    safe_extra = []
+    for arg in extra:
+        if arg and isinstance(arg, str) and arg.strip().startswith("{"):
+            stdin_data = arg
+            safe_extra.append("-")
+        else:
+            safe_extra.append(arg)
+
+    cmd = [_EXE_V2, command, db_path] + safe_extra
+    try:
+        result = subprocess.run(
+            cmd,
+            input=stdin_data,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            env=env,
+            cwd=_LIB_DIR_V2,
+        )
+        out = result.stdout.strip()
+        if not out:
+            raise RuntimeError(
+                f"FbBridge (v2) produced no output.\nstderr: {result.stderr[:400]}"
+            )
+        data = json.loads(out)
+        if not data.get("ok"):
+            err = data.get("error", "Unknown FbBridge error")
+            if result.stderr.strip():
+                err += f"\n[stderr]: {result.stderr.strip()[:300]}"
+            raise ConnectionError(err)
+        return data.get("data", data)
+    except subprocess.TimeoutExpired:
+        raise ConnectionError("FbBridge (v2) timed out after 60 seconds")
+    except json.JSONDecodeError:
+        raise RuntimeError(f"FbBridge (v2) returned invalid JSON: {out[:200]}")
 
 def _run(command: str, db_path: str, *extra) -> dict:
     if not os.path.isfile(_EXE):

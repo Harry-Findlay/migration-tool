@@ -10,6 +10,7 @@
   'datasources.dtxstudio_source',
   'datasources.dtxstudio_target',
   'datasources.sopro_source',
+  'datasources.dbswin_source',
   'datasources.fb_client',
   'core.engine',
   'core.migration_store',
@@ -2482,9 +2483,13 @@
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.pdb',
    'DATA'),
-  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.6253590f06.txt',
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.sourcelink.json',
    'C:\\Users\\Harry '
-   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.6253590f06.txt',
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.sourcelink.json',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.990f981918.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.990f981918.txt',
    'DATA'),
   ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\apphost.exe',
    'C:\\Users\\Harry '
@@ -2521,6 +2526,118 @@
   ('lib\\fb_bridge\\vcruntime140_1.dll',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\vcruntime140_1.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\FbBridge.exe',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\FbBridge.exe',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\IDPLicense.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\IDPLicense.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\IPLicense.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\IPLicense.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\Microsoft.VC80.CRT.manifest',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\Microsoft.VC80.CRT.manifest',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\Readme.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\Readme.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\aliases.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\aliases.conf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\Firebird-2.5-QuickStart.pdf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\Firebird-2.5-QuickStart.pdf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\Firebird_v2.1.5.InstallationGuide.pdf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\Firebird_v2.1.5.InstallationGuide.pdf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\Firebird_v2.5.9.ReleaseNotes.pdf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\Firebird_v2.5.9.ReleaseNotes.pdf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\README_embedded.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\README_embedded.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\WhatsNew.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\WhatsNew.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\fbclient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\fbclient.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\firebird.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\firebird.conf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\firebird.msg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\firebird.msg',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\ib_util.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\ib_util.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\icudt30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icudt30.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\icuin30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icuin30.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\icuuc30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icuuc30.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\intl\\fbintl.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\intl\\fbintl.conf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\intl\\fbintl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\intl\\fbintl.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\msvcp80.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\msvcp80.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\msvcr80.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\msvcr80.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\fbudf.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\fbudf.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\fbudf.sql',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\fbudf.sql',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\fbudf.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\fbudf.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\ib_udf.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\ib_udf.dll',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\ib_udf.sql',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\ib_udf.sql',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\ib_udf2.sql',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\ib_udf2.sql',
    'DATA'),
   ('msal-1.37.0.dist-info\\INSTALLER',
    'C:\\Users\\Harry '
@@ -5809,10 +5926,10 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\__init__.py',
    'PYMODULE'),
-  ('_py_abc', 'C:\\Python314\\Lib\\_py_abc.py', 'PYMODULE'),
+  ('stringprep', 'C:\\Python314\\Lib\\stringprep.py', 'PYMODULE'),
   ('_py_warnings', 'C:\\Python314\\Lib\\_py_warnings.py', 'PYMODULE'),
   ('tracemalloc', 'C:\\Python314\\Lib\\tracemalloc.py', 'PYMODULE'),
-  ('stringprep', 'C:\\Python314\\Lib\\stringprep.py', 'PYMODULE'),
+  ('_py_abc', 'C:\\Python314\\Lib\\_py_abc.py', 'PYMODULE'),
   ('mimetypes', 'C:\\Python314\\Lib\\mimetypes.py', 'PYMODULE'),
   ('struct', 'C:\\Python314\\Lib\\struct.py', 'PYMODULE'),
   ('concurrent.futures',
@@ -5863,6 +5980,10 @@
   ('datasources.dtxstudio_target',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\datasources\\dtxstudio_target.py',
+   'PYMODULE'),
+  ('datasources.dbswin_source',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\datasources\\dbswin_source.py',
    'PYMODULE'),
   ('datasources.dtxstudio_source',
    'C:\\Users\\Harry '
@@ -7141,14 +7262,58 @@
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\vcruntime140_1.dll',
    'BINARY'),
-  ('python314.dll', 'C:\\Python314\\python314.dll', 'BINARY'),
-  ('numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
+  ('lib\\fb_bridge_v2\\FbBridge.exe',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\FbBridge.exe',
    'BINARY'),
+  ('lib\\fb_bridge_v2\\fbclient.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\fbclient.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\ib_util.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\ib_util.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\icudt30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icudt30.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\icuin30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icuin30.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\icuuc30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icuuc30.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\intl\\fbintl.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\intl\\fbintl.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\msvcp80.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\msvcp80.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\msvcr80.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\msvcr80.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\udf\\fbudf.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\fbudf.dll',
+   'BINARY'),
+  ('lib\\fb_bridge_v2\\udf\\ib_udf.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\ib_udf.dll',
+   'BINARY'),
+  ('python314.dll', 'C:\\Python314\\python314.dll', 'BINARY'),
   ('numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy.libs\\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll',
+   'BINARY'),
+  ('numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy.libs\\libscipy_openblas64_-63c857e738469261263c764a36be9436.dll',
    'BINARY'),
   ('_decimal.pyd', 'C:\\Python314\\DLLs\\_decimal.pyd', 'EXTENSION'),
   ('unicodedata.pyd', 'C:\\Python314\\DLLs\\unicodedata.pyd', 'EXTENSION'),
@@ -7279,26 +7444,26 @@
    'EXTENSION'),
   ('_sqlite3.pyd', 'C:\\Python314\\DLLs\\_sqlite3.pyd', 'EXTENSION'),
   ('_socket.pyd', 'C:\\Python314\\DLLs\\_socket.pyd', 'EXTENSION'),
-  ('api-ms-win-crt-math-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-math-l1-1-0.dll',
-   'BINARY'),
-  ('VCRUNTIME140.dll', 'C:\\Python314\\VCRUNTIME140.dll', 'BINARY'),
-  ('api-ms-win-crt-heap-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-heap-l1-1-0.dll',
-   'BINARY'),
   ('api-ms-win-crt-runtime-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-runtime-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-locale-l1-1-0.dll',
+  ('api-ms-win-crt-heap-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-heap-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-math-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-math-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-crt-stdio-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-stdio-l1-1-0.dll',
+   'BINARY'),
+  ('VCRUNTIME140.dll', 'C:\\Python314\\VCRUNTIME140.dll', 'BINARY'),
+  ('api-ms-win-crt-locale-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-locale-l1-1-0.dll',
    'BINARY'),
   ('MSVCP140.dll',
    'C:\\Program Files\\Eclipse '
@@ -7312,13 +7477,13 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-filesystem-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-crt-time-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-time-l1-1-0.dll',
-   'BINARY'),
   ('api-ms-win-crt-environment-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-environment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-crt-time-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-time-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-crt-utility-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -7332,11 +7497,11 @@
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\VCRUNTIME140_1.dll',
    'BINARY'),
+  ('MSVCR100.dll', 'C:\\WINDOWS\\system32\\MSVCR100.dll', 'BINARY'),
   ('fbclient.dll',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\fbclient.dll',
    'BINARY'),
-  ('MSVCR100.dll', 'C:\\WINDOWS\\system32\\MSVCR100.dll', 'BINARY'),
   ('icuuc63.dll',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icuuc63.dll',
@@ -7344,6 +7509,18 @@
   ('icudt63.dll',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\icudt63.dll',
+   'BINARY'),
+  ('icuuc30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icuuc30.dll',
+   'BINARY'),
+  ('MSVCR80.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\MSVCR80.dll',
+   'BINARY'),
+  ('icudt30.dll',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\icudt30.dll',
    'BINARY'),
   ('api-ms-win-crt-conio-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
@@ -7357,14 +7534,14 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-crt-private-l1-1-0.dll',
    'BINARY'),
-  ('libcrypto-3.dll', 'C:\\Python314\\DLLs\\libcrypto-3.dll', 'BINARY'),
   ('libssl-3.dll', 'C:\\Python314\\DLLs\\libssl-3.dll', 'BINARY'),
+  ('libcrypto-3.dll', 'C:\\Python314\\DLLs\\libcrypto-3.dll', 'BINARY'),
   ('libffi-8.dll', 'C:\\Python314\\DLLs\\libffi-8.dll', 'BINARY'),
+  ('python3.dll', 'C:\\Python314\\python3.dll', 'BINARY'),
   ('api-ms-win-core-synch-l1-2-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-synch-l1-2-0.dll',
    'BINARY'),
-  ('python3.dll', 'C:\\Python314\\python3.dll', 'BINARY'),
   ('pywin32_system32\\pywintypes314.dll',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\pywin32_system32\\pywintypes314.dll',
@@ -7374,117 +7551,117 @@
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\ucrtbase.dll',
    'BINARY'),
-  ('api-ms-win-core-processthreads-l1-1-1.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-1.dll',
-   'BINARY'),
-  ('api-ms-win-core-profile-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-profile-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-sysinfo-l1-2-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-sysinfo-l1-2-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-fibers-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-fibers-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-string-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-datetime-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-datetime-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-synch-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-memory-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-memory-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-fibers-l1-1-1.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-fibers-l1-1-1.dll',
-   'BINARY'),
-  ('api-ms-win-core-file-l2-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l2-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-interlocked-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-interlocked-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-namedpipe-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-namedpipe-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-timezone-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-timezone-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-rtlsupport-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-processenvironment-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processenvironment-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-errorhandling-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
-   'BINARY'),
   ('api-ms-win-core-sysinfo-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-sysinfo-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-file-l1-2-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-processthreads-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-debug-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-heap-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-heap-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-localization-l1-2-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-kernel32-legacy-l1-1-1.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-kernel32-legacy-l1-1-1.dll',
-   'BINARY'),
-  ('api-ms-win-core-libraryloader-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-libraryloader-l1-1-0.dll',
-   'BINARY'),
-  ('api-ms-win-core-console-l1-1-0.dll',
-   'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-console-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-file-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l1-1-0.dll',
    'BINARY'),
-  ('api-ms-win-core-util-l1-1-0.dll',
+  ('api-ms-win-core-fibers-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
-   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-util-l1-1-0.dll',
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-fibers-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-localization-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-localization-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-heap-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-heap-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-interlocked-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-interlocked-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-memory-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-memory-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-sysinfo-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-sysinfo-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-synch-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-synch-l1-1-0.dll',
    'BINARY'),
   ('api-ms-win-core-handle-l1-1-0.dll',
    'C:\\Program Files\\Eclipse '
    'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-handle-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-string-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-string-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-errorhandling-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-errorhandling-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-rtlsupport-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-libraryloader-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-libraryloader-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-timezone-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-timezone-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-kernel32-legacy-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-kernel32-legacy-l1-1-1.dll',
+   'BINARY'),
+  ('api-ms-win-core-datetime-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-datetime-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-debug-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-debug-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processenvironment-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processenvironment-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-profile-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-profile-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-processthreads-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-processthreads-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l1-2-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l1-2-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-namedpipe-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-namedpipe-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-console-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-console-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-util-l1-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-util-l1-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-file-l2-1-0.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-file-l2-1-0.dll',
+   'BINARY'),
+  ('api-ms-win-core-fibers-l1-1-1.dll',
+   'C:\\Program Files\\Eclipse '
+   'Adoptium\\jre-21.0.8.9-hotspot\\bin\\api-ms-win-core-fibers-l1-1-1.dll',
    'BINARY')],
  [],
  [],
@@ -8724,9 +8901,13 @@
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.pdb',
    'DATA'),
-  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.6253590f06.txt',
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.sourcelink.json',
    'C:\\Users\\Harry '
-   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.6253590f06.txt',
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\FbBridge.sourcelink.json',
+   'DATA'),
+  ('lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.990f981918.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\Release\\net8.0\\win-x64\\PublishOutputs.990f981918.txt',
    'DATA'),
   ('lib\\fb_bridge\\obj\\project.assets.json',
    'C:\\Users\\Harry '
@@ -8735,6 +8916,74 @@
   ('lib\\fb_bridge\\obj\\project.nuget.cache',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge\\obj\\project.nuget.cache',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\IDPLicense.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\IDPLicense.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\IPLicense.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\IPLicense.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\Microsoft.VC80.CRT.manifest',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\Microsoft.VC80.CRT.manifest',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\Readme.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\Readme.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\aliases.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\aliases.conf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\Firebird-2.5-QuickStart.pdf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\Firebird-2.5-QuickStart.pdf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\Firebird_v2.1.5.InstallationGuide.pdf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\Firebird_v2.1.5.InstallationGuide.pdf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\Firebird_v2.5.9.ReleaseNotes.pdf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\Firebird_v2.5.9.ReleaseNotes.pdf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\README_embedded.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\README_embedded.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\doc\\WhatsNew.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\doc\\WhatsNew.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\firebird.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\firebird.conf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\firebird.msg',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\firebird.msg',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\intl\\fbintl.conf',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\intl\\fbintl.conf',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\fbudf.sql',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\fbudf.sql',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\fbudf.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\fbudf.txt',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\ib_udf.sql',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\ib_udf.sql',
+   'DATA'),
+  ('lib\\fb_bridge_v2\\udf\\ib_udf2.sql',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\lib\\fb_bridge_v2\\udf\\ib_udf2.sql',
    'DATA'),
   ('msal-1.37.0.dist-info\\INSTALLER',
    'C:\\Users\\Harry '
@@ -8872,6 +9121,22 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\METADATA',
    'DATA'),
+  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\sboms\\sbom.json',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\sboms\\sbom.json',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
+   'DATA'),
+  ('cryptography-48.0.0.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\WHEEL',
+   'DATA'),
   ('cryptography-48.0.0.dist-info\\INSTALLER',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\INSTALLER',
@@ -8880,53 +9145,37 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE.BSD',
    'DATA'),
-  ('cryptography-48.0.0.dist-info\\WHEEL',
+  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE.APACHE',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\WHEEL',
-   'DATA'),
-  ('cryptography-48.0.0.dist-info\\sboms\\sbom.json',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\sboms\\sbom.json',
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE.APACHE',
    'DATA'),
   ('cryptography-48.0.0.dist-info\\RECORD',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\RECORD',
    'DATA'),
-  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE.APACHE',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE.APACHE',
-   'DATA'),
-  ('cryptography-48.0.0.dist-info\\licenses\\LICENSE',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\licenses\\LICENSE',
-   'DATA'),
-  ('cryptography-48.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\cryptography-48.0.0.dist-info\\sboms\\cryptography-rust.cyclonedx.json',
-   'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
    'DATA'),
   ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\REQUESTED',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\REQUESTED',
    'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\licenses\\LICENSE',
    'DATA'),
   ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\METADATA',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\METADATA',
    'DATA'),
-  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\WHEEL',
-   'DATA'),
   ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\RECORD',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\RECORD',
+   'DATA'),
+  ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\top_level.txt',
    'DATA'),
   ('setuptools\\_vendor\\importlib_metadata-8.7.1.dist-info\\INSTALLER',
    'C:\\Users\\Harry '
@@ -8945,219 +9194,193 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\certifi\\py.typed',
    'DATA'),
-  ('click-8.4.1.dist-info\\INSTALLER',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\INSTALLER',
-   'DATA'),
-  ('click-8.4.1.dist-info\\RECORD',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\RECORD',
-   'DATA'),
   ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\splitmix64\\LICENSE.md',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\METADATA',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\RECORD',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\RECORD',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
-   'DATA'),
-  ('click-8.4.1.dist-info\\METADATA',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\METADATA',
    'DATA'),
   ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\multiarray\\dragon4_LICENSE.txt',
    'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+  ('werkzeug-3.1.8.dist-info\\RECORD',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\RECORD',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\WHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\WHEEL',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\METADATA',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\REQUESTED',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\REQUESTED',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\INSTALLER',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\INSTALLER',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\RECORD',
    'DATA'),
   ('numpy-2.4.4.dist-info\\WHEEL',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\WHEEL',
    'DATA'),
-  ('werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
+  ('itsdangerous-2.2.0.dist-info\\RECORD',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\RECORD',
    'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+  ('markupsafe-3.0.3.dist-info\\METADATA',
    'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\METADATA',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\METADATA',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\METADATA',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
-   'DATA'),
-  ('click-8.4.1.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\top_level.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\top_level.txt',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\RECORD',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\RECORD',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\DELVEWHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\DELVEWHEEL',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\INSTALLER',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
-   'DATA'),
-  ('itsdangerous-2.2.0.dist-info\\WHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
-   'DATA'),
-  ('werkzeug-3.1.8.dist-info\\WHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\WHEEL',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
-   'DATA'),
-  ('numpy-2.4.4.dist-info\\entry_points.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\entry_points.txt',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\RECORD',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\RECORD',
-   'DATA'),
-  ('markupsafe-3.0.3.dist-info\\INSTALLER',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\INSTALLER',
-   'DATA'),
-  ('click-8.4.1.dist-info\\WHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\WHEEL',
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\METADATA',
    'DATA'),
   ('numpy-2.4.4.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\linalg\\lapack_lite\\LICENSE.txt',
    'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\include\\numpy\\libdivide\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\ma\\LICENSE',
+   'DATA'),
+  ('click-8.4.1.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\WHEEL',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\METADATA',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\philox\\LICENSE.md',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\INSTALLER',
+   'DATA'),
+  ('click-8.4.1.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\METADATA',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\DELVEWHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\DELVEWHEEL',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\REQUESTED',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\REQUESTED',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\common\\pythoncapi-compat\\COPYING',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\RECORD',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\sfc64\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\mt19937\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\distributions\\LICENSE.md',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\top_level.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\top_level.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\WHEEL',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\METADATA',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\fft\\pocketfft\\LICENSE.md',
+   'DATA'),
+  ('click-8.4.1.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\INSTALLER',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\random\\src\\pcg64\\LICENSE.md',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\highway\\LICENSE',
+   'DATA'),
+  ('werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\werkzeug-3.1.8.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\entry_points.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\entry_points.txt',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\WHEEL',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\WHEEL',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\WHEEL',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\umath\\svml\\LICENSE',
+   'DATA'),
   ('numpy-2.4.4.dist-info\\INSTALLER',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\INSTALLER',
+   'DATA'),
+  ('click-8.4.1.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\RECORD',
+   'DATA'),
+  ('click-8.4.1.dist-info\\licenses\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\click-8.4.1.dist-info\\licenses\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\RECORD',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\RECORD',
+   'DATA'),
+  ('markupsafe-3.0.3.dist-info\\INSTALLER',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe-3.0.3.dist-info\\INSTALLER',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\LICENSE.txt',
+   'DATA'),
+  ('numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\licenses\\numpy\\_core\\src\\npysort\\x86-simd-sort\\LICENSE.md',
+   'DATA'),
+  ('itsdangerous-2.2.0.dist-info\\METADATA',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\itsdangerous-2.2.0.dist-info\\METADATA',
    'DATA'),
   ('base_library.zip',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\build\\ITInfinityServer\\base_library.zip',
    'DATA')],
- [('heapq', 'C:\\Python314\\Lib\\heapq.py', 'PYMODULE'),
+ [('enum', 'C:\\Python314\\Lib\\enum.py', 'PYMODULE'),
   ('sre_compile', 'C:\\Python314\\Lib\\sre_compile.py', 'PYMODULE'),
-  ('copyreg', 'C:\\Python314\\Lib\\copyreg.py', 'PYMODULE'),
-  ('keyword', 'C:\\Python314\\Lib\\keyword.py', 'PYMODULE'),
-  ('linecache', 'C:\\Python314\\Lib\\linecache.py', 'PYMODULE'),
-  ('_collections_abc', 'C:\\Python314\\Lib\\_collections_abc.py', 'PYMODULE'),
-  ('weakref', 'C:\\Python314\\Lib\\weakref.py', 'PYMODULE'),
-  ('functools', 'C:\\Python314\\Lib\\functools.py', 'PYMODULE'),
-  ('codecs', 'C:\\Python314\\Lib\\codecs.py', 'PYMODULE'),
-  ('sre_constants', 'C:\\Python314\\Lib\\sre_constants.py', 'PYMODULE'),
-  ('abc', 'C:\\Python314\\Lib\\abc.py', 'PYMODULE'),
-  ('genericpath', 'C:\\Python314\\Lib\\genericpath.py', 'PYMODULE'),
-  ('reprlib', 'C:\\Python314\\Lib\\reprlib.py', 'PYMODULE'),
-  ('types', 'C:\\Python314\\Lib\\types.py', 'PYMODULE'),
-  ('ntpath', 'C:\\Python314\\Lib\\ntpath.py', 'PYMODULE'),
-  ('stat', 'C:\\Python314\\Lib\\stat.py', 'PYMODULE'),
-  ('posixpath', 'C:\\Python314\\Lib\\posixpath.py', 'PYMODULE'),
   ('operator', 'C:\\Python314\\Lib\\operator.py', 'PYMODULE'),
-  ('collections', 'C:\\Python314\\Lib\\collections\\__init__.py', 'PYMODULE'),
-  ('warnings', 'C:\\Python314\\Lib\\warnings.py', 'PYMODULE'),
-  ('traceback', 'C:\\Python314\\Lib\\traceback.py', 'PYMODULE'),
-  ('sre_parse', 'C:\\Python314\\Lib\\sre_parse.py', 'PYMODULE'),
-  ('_weakrefset', 'C:\\Python314\\Lib\\_weakrefset.py', 'PYMODULE'),
-  ('re._parser', 'C:\\Python314\\Lib\\re\\_parser.py', 'PYMODULE'),
-  ('re._constants', 'C:\\Python314\\Lib\\re\\_constants.py', 'PYMODULE'),
-  ('re._compiler', 'C:\\Python314\\Lib\\re\\_compiler.py', 'PYMODULE'),
-  ('re._casefix', 'C:\\Python314\\Lib\\re\\_casefix.py', 'PYMODULE'),
-  ('re', 'C:\\Python314\\Lib\\re\\__init__.py', 'PYMODULE'),
-  ('enum', 'C:\\Python314\\Lib\\enum.py', 'PYMODULE'),
   ('encodings.zlib_codec',
    'C:\\Python314\\Lib\\encodings\\zlib_codec.py',
    'PYMODULE'),
@@ -9403,6 +9626,32 @@
    'C:\\Python314\\Lib\\encodings\\_win_cp_codecs.py',
    'PYMODULE'),
   ('encodings', 'C:\\Python314\\Lib\\encodings\\__init__.py', 'PYMODULE'),
+  ('warnings', 'C:\\Python314\\Lib\\warnings.py', 'PYMODULE'),
+  ('weakref', 'C:\\Python314\\Lib\\weakref.py', 'PYMODULE'),
   ('locale', 'C:\\Python314\\Lib\\locale.py', 'PYMODULE'),
+  ('genericpath', 'C:\\Python314\\Lib\\genericpath.py', 'PYMODULE'),
+  ('types', 'C:\\Python314\\Lib\\types.py', 'PYMODULE'),
   ('io', 'C:\\Python314\\Lib\\io.py', 'PYMODULE'),
+  ('abc', 'C:\\Python314\\Lib\\abc.py', 'PYMODULE'),
+  ('functools', 'C:\\Python314\\Lib\\functools.py', 'PYMODULE'),
+  ('collections', 'C:\\Python314\\Lib\\collections\\__init__.py', 'PYMODULE'),
+  ('sre_constants', 'C:\\Python314\\Lib\\sre_constants.py', 'PYMODULE'),
+  ('linecache', 'C:\\Python314\\Lib\\linecache.py', 'PYMODULE'),
+  ('copyreg', 'C:\\Python314\\Lib\\copyreg.py', 'PYMODULE'),
+  ('posixpath', 'C:\\Python314\\Lib\\posixpath.py', 'PYMODULE'),
+  ('sre_parse', 'C:\\Python314\\Lib\\sre_parse.py', 'PYMODULE'),
+  ('reprlib', 'C:\\Python314\\Lib\\reprlib.py', 'PYMODULE'),
+  ('keyword', 'C:\\Python314\\Lib\\keyword.py', 'PYMODULE'),
+  ('re._parser', 'C:\\Python314\\Lib\\re\\_parser.py', 'PYMODULE'),
+  ('re._constants', 'C:\\Python314\\Lib\\re\\_constants.py', 'PYMODULE'),
+  ('re._compiler', 'C:\\Python314\\Lib\\re\\_compiler.py', 'PYMODULE'),
+  ('re._casefix', 'C:\\Python314\\Lib\\re\\_casefix.py', 'PYMODULE'),
+  ('re', 'C:\\Python314\\Lib\\re\\__init__.py', 'PYMODULE'),
+  ('codecs', 'C:\\Python314\\Lib\\codecs.py', 'PYMODULE'),
+  ('heapq', 'C:\\Python314\\Lib\\heapq.py', 'PYMODULE'),
+  ('_weakrefset', 'C:\\Python314\\Lib\\_weakrefset.py', 'PYMODULE'),
+  ('ntpath', 'C:\\Python314\\Lib\\ntpath.py', 'PYMODULE'),
+  ('traceback', 'C:\\Python314\\Lib\\traceback.py', 'PYMODULE'),
+  ('_collections_abc', 'C:\\Python314\\Lib\\_collections_abc.py', 'PYMODULE'),
+  ('stat', 'C:\\Python314\\Lib\\stat.py', 'PYMODULE'),
   ('os', 'C:\\Python314\\Lib\\os.py', 'PYMODULE')])

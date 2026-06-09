@@ -22,6 +22,7 @@ python -m PyInstaller ^
   --hidden-import datasources.dtxstudio_source ^
   --hidden-import datasources.dtxstudio_target ^
   --hidden-import datasources.sopro_source ^
+  --hidden-import datasources.dbswin_source ^
   --hidden-import datasources.fb_client ^
   --hidden-import core.engine ^
   --hidden-import core.migration_store ^

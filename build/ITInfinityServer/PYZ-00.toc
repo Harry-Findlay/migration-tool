@@ -915,6 +915,10 @@
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\datasources\\__init__.py',
    'PYMODULE'),
+  ('datasources.dbswin_source',
+   'C:\\Users\\Harry '
+   'Findlay\\Documents\\Coding\\migration_tool\\datasources\\dbswin_source.py',
+   'PYMODULE'),
   ('datasources.dtxstudio_source',
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\datasources\\dtxstudio_source.py',
