@@ -927,6 +927,7 @@ def api_patients():
         })
         return {
             "uid":          p.get("uid", ""),
+            "id":           p.get("id") or p.get("patient_ref") or "",
             "family_name":  p.get("family_name", ""),
             "given_names":  p.get("given_names", ""),
             "dob":          p.get("dob", "") or p.get("birth_date", ""),

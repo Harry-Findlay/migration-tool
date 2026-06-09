@@ -1178,7 +1178,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
             <table id="patientTable">
               <thead>
                 <tr>
-                  <th>UID</th>
+                  <th>Ref</th>
                   <th>Family Name</th>
                   <th>Given Names</th>
                   <th>DOB</th>
@@ -1328,12 +1328,17 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
                   <th>Source First Name</th>
                   <th>Source DOB</th>
                   <th>Source Ref</th>
-                  <th>Use for Each Field</th>
                 </tr>
               </thead>
               <tbody id="pmsCompareTbody">
               </tbody>
             </table>
+            <div style="display:flex;gap:16px;padding:8px 4px;font-size:10px;color:var(--text-3);align-items:center;">
+              <span><i class="bi bi-info-circle"></i> Click any PMS field cell to override it per-patient:</span>
+              <span style="border-bottom:2px solid var(--accent);padding-bottom:1px;">Blue underline</span><span>= using PMS value</span>
+              <span style="border-bottom:2px solid var(--yellow);padding-bottom:1px;">Amber underline</span><span>= using Source value</span>
+              <span style="border-bottom:1px dashed var(--border);padding-bottom:1px;">Dashed</span><span>= values differ, using global setting</span>
+            </div>
           </div>
         </div>
 
@@ -2630,7 +2635,7 @@ function pmsCompare() {
       }
     }
 
-    return { pms, source, matchStatus, conflicts };
+    return { pms, source, sourceUid: source ? (source.uid || '') : '', matchStatus, conflicts };
   });
 
   renderCompareTable(_pmsCompared);
@@ -2678,48 +2683,80 @@ function renderCompareTable(rows) {
   };
   const tbody = document.getElementById('pmsCompareTbody');
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state" style="padding:20px;"><i class="bi bi-check2-circle"></i><p>No rows match this filter</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state" style="padding:20px;"><i class="bi bi-check2-circle"></i><p>No rows match this filter</p></div></td></tr>`;
     return;
   }
-  const overrideSel = (sourceUid, fieldKey, pmsVal, srcVal) => {
-    if (!sourceUid || !pmsVal || !srcVal || pmsVal === srcVal) return '';
-    const cur = pmsGetOverride(sourceUid, fieldKey) || '';
-    return `<div style="font-size:10px;margin-top:2px;">
-      ${escHtml(fieldKey)}: <select style="font-size:10px;padding:1px 3px;background:var(--bg-3);color:var(--text-1);border:1px solid var(--border);border-radius:3px;"
-        onchange="pmsSetOverride('${sourceUid}','${fieldKey}',this.value)">
-        <option value="" ${!cur?'selected':''}>global</option>
-        <option value="pms" ${cur==='pms'?'selected':''}>PMS</option>
-        <option value="source" ${cur==='source'?'selected':''}>Source</option>
-      </select>
-    </div>`;
+ 
+  // Render a clickable field cell.
+  // States cycle: null (global) → 'pms' → 'source' → null
+  // Visual: dim if no override, blue underline for PMS, amber for source.
+  const fieldCell = (sourceUid, fieldKey, pmsVal, srcVal) => {
+    const cur = pmsGetOverride(sourceUid, fieldKey); // null | 'pms' | 'source'
+    const displayVal = cur === 'pms'    ? pmsVal
+                     : cur === 'source' ? srcVal
+                     : pmsVal; // global = show PMS val (what will be used if PMS mode)
+    const hasDiff = pmsVal && srcVal && pmsVal !== srcVal;
+    if (!hasDiff && !pmsVal && !srcVal) {
+      return `<td class="mono fs-11" style="color:var(--text-3);">—</td>`;
+    }
+    // Underline colour: blue=PMS override, amber=source override, none=global
+    const underline = cur === 'pms'    ? '2px solid var(--accent)'
+                    : cur === 'source' ? '2px solid var(--yellow)'
+                    : hasDiff          ? '1px dashed var(--border)'
+                    : 'none';
+    const titleText = hasDiff
+      ? `Click to cycle override\nGlobal → PMS (${pmsVal}) → Source (${srcVal})\nCurrent: ${cur || 'global'}`
+      : displayVal;
+    // onclick cycles through states
+    const onclick = hasDiff && sourceUid
+      ? `pmsClickCell('${sourceUid}','${fieldKey}');`
+      : '';
+    const cursor  = hasDiff && sourceUid ? 'cursor:pointer;' : '';
+    const badge   = cur === 'pms'    ? '<span style="font-size:8px;vertical-align:super;color:var(--accent);margin-left:2px;">PMS</span>'
+                  : cur === 'source' ? '<span style="font-size:8px;vertical-align:super;color:var(--yellow);margin-left:2px;">SRC</span>'
+                  : '';
+    return `<td class="mono fs-11"
+      style="${cursor}border-bottom:${underline};padding-bottom:3px;"
+      title="${escHtml(titleText)}"
+      onclick="${onclick}"
+    >${escHtml(displayVal || '—')}${badge}</td>`;
   };
+ 
   tbody.innerHTML = filtered.map((r, i) => {
-    const uid = r.source ? (r.source.uid || r.sourceUid || '') : '';
     const p   = r.pms    || {};
     const s   = r.source || {};
+    const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
     const rowBg = r.matchStatus === 'conflict'  ? 'style="background:rgba(255,160,0,0.07)"'
                 : r.matchStatus === 'unmatched' ? 'style="background:rgba(255,80,80,0.05)"'
                 : '';
-    const overrides = uid ? [
-      overrideSel(uid, 'surname',     p.surname,     s.family_name),
-      overrideSel(uid, 'first_name',  p.first_name,  s.given_names),
-      overrideSel(uid, 'dob',         p.dob,         s.dob),
-      overrideSel(uid, 'patient_ref', p.patient_ref, s.patient_ref),
-    ].filter(Boolean).join('') : '';
+ 
     return `<tr ${rowBg} data-idx="${i}">
       <td><input type="checkbox" class="pms-row-chk" data-idx="${i}" checked></td>
-      <td style="font-weight:600;">${escHtml(p.surname||'—')}</td>
-      <td>${escHtml(p.first_name||'—')}</td>
-      <td class="mono fs-11">${escHtml(p.dob||'—')}</td>
-      <td class="mono fs-11">${escHtml(p.patient_ref||'—')}</td>
+      ${fieldCell(uid, 'surname',     p.surname,     s.family_name)}
+      ${fieldCell(uid, 'first_name',  p.first_name,  s.given_names)}
+      ${fieldCell(uid, 'dob',         p.dob,         s.dob)}
+      ${fieldCell(uid, 'patient_ref', p.patient_ref, s.id || s.patient_ref)}
       <td>${matchBadge(r.matchStatus)}</td>
-      <td>${escHtml(s.family_name||'—')}</td>
+      <td style="color:var(--text-1);">${escHtml(s.family_name||'—')}</td>
       <td>${escHtml(s.given_names||'—')}</td>
       <td class="mono fs-11">${escHtml(s.dob||'—')}</td>
-      <td class="mono fs-11">${escHtml(s.patient_ref||'—')}</td>
-      <td style="min-width:120px;">${overrides || '<span style="font-size:10px;color:var(--text-3);">—</span>'}</td>
+      <td class="mono fs-11">${escHtml(s.id || s.patient_ref||'—')}</td>
     </tr>`;
   }).join('');
+}
+ 
+// Cycle override state: null → 'pms' → 'source' → null
+function pmsClickCell(sourceUid, fieldKey) {
+  const cur = pmsGetOverride(sourceUid, fieldKey);
+  const next = cur === null   ? 'pms'
+             : cur === 'pms'  ? 'source'
+             : null;
+  if (next) {
+    pmsSetOverride(sourceUid, fieldKey, next);
+  } else {
+    delete _pmsFieldOverrides[sourceUid + ':' + fieldKey];
+  }
+  renderCompareTable(_pmsCompared);
 }
 
 function pmsFilterAll()        { _pmsFilter='all';        renderCompareTable(_pmsCompared); setActive('pmsFiltAll'); }
@@ -2796,7 +2833,7 @@ async function pmsConfirm() {
  
   // Build the confirmed patient list with per-field overrides embedded
   const confirmedPatients = selected.map(r => {
-    const uid = r.source_uid || '';
+    const uid = r.sourceUid || r.source_uid || '';
     return {
       ...r.pms,
       source_uid: uid,
@@ -3114,7 +3151,7 @@ function renderPatientTable(patients) {
   };
   tbody.innerHTML = patients.slice(0,200).map(p => `
     <tr class="patient-row">
-      <td>${(p.uid||'').slice(0,12)}…</td>
+      <td class="mono fs-11">${p.id||'—'}</td>
       <td style="color:var(--text-1);font-weight:600">${p.family_name||'—'}</td>
       <td>${p.given_names||'—'}</td>
       <td class="mono">${p.dob||'—'}</td>
