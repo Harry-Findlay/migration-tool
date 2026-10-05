@@ -5,9 +5,6 @@
 flask>=3.0.0
 flask-cors>=4.0.0
 
-# Microsoft 365 authentication
-msal>=1.28.0
-
 # Environment variable loading
 python-dotenv>=1.0.0
 

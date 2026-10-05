@@ -1950,4 +1950,5 @@ if __name__ == "__main__":
 
     logger.info(f"IT INFINITY Migration Tool server starting on port {port}")
     app.config["SERVER_PORT"] = port
-    app.run(host="localhost", port=port, debug=debug, use_reloader=False)
+    app.run(host="localhost", port=port, debug=debug, use_reloader=False,
+        load_dotenv=False)
