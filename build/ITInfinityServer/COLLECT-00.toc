@@ -242,14 +242,6 @@
    'C:\\Users\\Harry '
    'Findlay\\Documents\\Coding\\migration_tool\\build\\ITInfinityServer\\base_library.zip',
    'DATA'),
-  ('certifi\\cacert.pem',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\certifi\\cacert.pem',
-   'DATA'),
-  ('certifi\\py.typed',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\certifi\\py.typed',
-   'DATA'),
   ('charset_normalizer\\cd.cp314-win_amd64.pyd',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\charset_normalizer\\cd.cp314-win_amd64.pyd',
@@ -2949,130 +2941,6 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\markupsafe\\_speedups.cp314-win_amd64.pyd',
    'EXTENSION'),
-  ('msal-1.37.0.dist-info\\INSTALLER',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\INSTALLER',
-   'DATA'),
-  ('msal-1.37.0.dist-info\\METADATA',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\METADATA',
-   'DATA'),
-  ('msal-1.37.0.dist-info\\RECORD',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\RECORD',
-   'DATA'),
-  ('msal-1.37.0.dist-info\\REQUESTED',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\REQUESTED',
-   'DATA'),
-  ('msal-1.37.0.dist-info\\WHEEL',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\WHEEL',
-   'DATA'),
-  ('msal-1.37.0.dist-info\\licenses\\LICENSE',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\licenses\\LICENSE',
-   'DATA'),
-  ('msal-1.37.0.dist-info\\top_level.txt',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal-1.37.0.dist-info\\top_level.txt',
-   'DATA'),
-  ('msal\\__init__.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\__init__.py',
-   'DATA'),
-  ('msal\\__main__.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\__main__.py',
-   'DATA'),
-  ('msal\\application.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\application.py',
-   'DATA'),
-  ('msal\\auth_scheme.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\auth_scheme.py',
-   'DATA'),
-  ('msal\\authority.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\authority.py',
-   'DATA'),
-  ('msal\\broker.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\broker.py',
-   'DATA'),
-  ('msal\\cloudshell.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\cloudshell.py',
-   'DATA'),
-  ('msal\\exceptions.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\exceptions.py',
-   'DATA'),
-  ('msal\\individual_cache.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\individual_cache.py',
-   'DATA'),
-  ('msal\\managed_identity.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\managed_identity.py',
-   'DATA'),
-  ('msal\\mex.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\mex.py',
-   'DATA'),
-  ('msal\\oauth2cli\\__init__.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\__init__.py',
-   'DATA'),
-  ('msal\\oauth2cli\\assertion.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\assertion.py',
-   'DATA'),
-  ('msal\\oauth2cli\\authcode.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\authcode.py',
-   'DATA'),
-  ('msal\\oauth2cli\\http.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\http.py',
-   'DATA'),
-  ('msal\\oauth2cli\\oauth2.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\oauth2.py',
-   'DATA'),
-  ('msal\\oauth2cli\\oidc.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\oauth2cli\\oidc.py',
-   'DATA'),
-  ('msal\\region.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\region.py',
-   'DATA'),
-  ('msal\\sku.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\sku.py',
-   'DATA'),
-  ('msal\\telemetry.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\telemetry.py',
-   'DATA'),
-  ('msal\\throttled_http_client.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\throttled_http_client.py',
-   'DATA'),
-  ('msal\\token_cache.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\token_cache.py',
-   'DATA'),
-  ('msal\\wstrust_request.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\wstrust_request.py',
-   'DATA'),
-  ('msal\\wstrust_response.py',
-   'C:\\Users\\Harry '
-   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\msal\\wstrust_response.py',
-   'DATA'),
   ('numpy-2.4.4.dist-info\\DELVEWHEEL',
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy-2.4.4.dist-info\\DELVEWHEEL',
@@ -3229,7 +3097,15 @@
    'C:\\Users\\Harry '
    'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\numpy\\random\\mtrand.cp314-win_amd64.pyd',
    'EXTENSION'),
+  ('psutil\\_psutil_windows.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\psutil\\_psutil_windows.pyd',
+   'EXTENSION'),
   ('pyexpat.pyd', 'C:\\Python314\\DLLs\\pyexpat.pyd', 'EXTENSION'),
+  ('pyodbc.cp314-win_amd64.pyd',
+   'C:\\Users\\Harry '
+   'Findlay\\AppData\\Roaming\\Python\\Python314\\site-packages\\pyodbc.cp314-win_amd64.pyd',
+   'EXTENSION'),
   ('python3.dll', 'C:\\Python314\\python3.dll', 'BINARY'),
   ('python314.dll', 'C:\\Python314\\python314.dll', 'BINARY'),
   ('pywin32_system32\\pywintypes314.dll',

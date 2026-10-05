@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_all
 
 datas = [('static', 'static'), ('lib', 'lib')]
 binaries = []
-hiddenimports = ['flask_cors', 'PIL', 'PIL.Image', 'numpy', 'datasources.vistasoft_source', 'datasources.vistasoft_target', 'datasources.dtxstudio_source', 'datasources.dtxstudio_target', 'datasources.sopro_source', 'datasources.dbswin_source', 'datasources.fb_client', 'core.engine', 'core.migration_store', 'core.models', 'core.base_datasource', 'auth.google_oauth', 'cryptography.fernet']
+hiddenimports = ['flask_cors', 'PIL', 'PIL.Image', 'numpy', 'datasources.vistasoft_source', 'datasources.vistasoft_target', 'datasources.dtxstudio_source', 'datasources.dtxstudio_target', 'datasources.sopro_source', 'datasources.dbswin_source', 'datasources.csimaging_source', 'datasources.dicom_header', 'datasources.fb_client', 'core.engine', 'core.migration_store', 'core.models', 'core.base_datasource', 'auth.google_oauth', 'cryptography.fernet', 'pyodbc']
 tmp_ret = collect_all('flask')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 

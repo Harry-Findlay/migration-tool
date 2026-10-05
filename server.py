@@ -182,6 +182,7 @@ from datasources.vistasoft_source  import VistaSoftSource
 from datasources.sopro_source      import SOPROSource
 from datasources.dtxstudio_source  import DTXStudioSource
 from datasources.dbswin_source import DBSWinSource
+from datasources.csimaging_source import CSImagingSource
 from datasources.dtxstudio_target  import DTXStudioTarget
 from datasources.vistasoft_target  import VistaSoftTarget
 
@@ -191,6 +192,7 @@ SOURCE_REGISTRY = {
     "DTX Studio": DTXStudioSource,
     "SOPRO":      SOPROSource,
     "DBSWin":     DBSWinSource,
+    "CS Imaging":  CSImagingSource,
 }
 
 TARGET_REGISTRY = {

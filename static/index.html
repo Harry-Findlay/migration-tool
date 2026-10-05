@@ -1011,6 +1011,14 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
                 </div>
                 <i class="bi bi-check-circle-fill source-check"></i>
               </div>
+              <div class="source-card" onclick="selectSource(this,'CS Imaging')">
+                <div class="source-icon">📷</div>
+                <div>
+                  <div class="source-name">CS Imaging</div>
+                  <div class="source-desc">CS Imging System</div>
+                </div>
+                <i class="bi bi-check-circle-fill source-check"></i>
+              </div>
             </div>
           </div>
         </div>
@@ -2210,6 +2218,7 @@ function _renderConfigPane(containerId, fields, datasourceName, role) {
     'DTX Studio': 'bi-diagram-3',
     'SOPRO': 'bi-camera',
     'DBSWin': 'bi-folder2-open',
+    'CS Imaging': 'bi-hdd-network',
   };
   const icon = icons[datasourceName] || (role === 'source' ? 'bi-database' : 'bi-database-up');
  

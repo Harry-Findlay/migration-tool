@@ -22,6 +22,8 @@ python -m PyInstaller ^
   --hidden-import datasources.dtxstudio_target ^
   --hidden-import datasources.sopro_source ^
   --hidden-import datasources.dbswin_source ^
+  --hidden-import datasources.csimaging_source ^
+  --hidden-import datasources.dicom_header ^
   --hidden-import datasources.fb_client ^
   --hidden-import core.engine ^
   --hidden-import core.migration_store ^
@@ -29,6 +31,7 @@ python -m PyInstaller ^
   --hidden-import core.base_datasource ^
   --hidden-import auth.google_oauth ^
   --hidden-import cryptography.fernet ^
+  --hidden-import pyodbc ^
   --collect-all flask ^
   --exclude-module tkinter ^
   --exclude-module test ^
