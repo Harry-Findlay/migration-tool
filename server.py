@@ -175,7 +175,7 @@ _load_encrypted_env(_env_file)
 from core.engine          import MigrationEngine
 from core.migration_store import MigrationStore
 from core.models          import MigrationStatus
-from auth.ms365           import auth_bp, require_auth, get_current_user
+from auth.google_oauth    import auth_bp, require_auth, get_current_user
 
 # ── Datasource registry ────────────────────────────────────────────────────────
 from datasources.vistasoft_source  import VistaSoftSource
@@ -229,17 +229,16 @@ CORS(app,
      allow_headers=["Content-Type"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-# ── Azure AD config  (set in .env or environment before starting the server) ──
-app.config["AZURE_TENANT_ID"]     = os.environ.get("AZURE_TENANT_ID",     "")
-app.config["AZURE_CLIENT_ID"]     = os.environ.get("AZURE_CLIENT_ID",     "")
-app.config["AZURE_CLIENT_SECRET"] = os.environ.get("AZURE_CLIENT_SECRET", "")
+# ── Google Workspace OAuth config (set in .env or environment) ───────────────
+app.config["GOOGLE_CLIENT_ID"]      = os.environ.get("GOOGLE_CLIENT_ID",      "")
+app.config["GOOGLE_CLIENT_SECRET"]  = os.environ.get("GOOGLE_CLIENT_SECRET",  "")
+app.config["GOOGLE_ALLOWED_DOMAIN"] = os.environ.get("GOOGLE_ALLOWED_DOMAIN", "itinfinity.co.uk")
 
-# Warn at startup if Azure credentials are missing rather than crashing later
-_missing = [k for k in ("AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET")
+_missing = [k for k in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET")
             if not app.config[k]]
 if _missing:
     logger.warning(
-        "Azure AD credentials not set: %s. "
+        "Google OAuth credentials not set: %s. "
         "Sign-in will fail. Check your .env file at: %s",
         ", ".join(_missing), os.path.join(BASE_DIR, ".env")
     )

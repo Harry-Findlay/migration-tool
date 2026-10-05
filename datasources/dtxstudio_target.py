@@ -795,7 +795,7 @@ class DTXStudioTarget(BaseDatasource):
                     "firstname":  patient.get("given_names", ""),
                     "lastname":   patient.get("family_name", ""),
                     "middlename": patient.get("middle_name", "") or None,
-                    "dateOfBirth": patient.get("birth_date", "") or None,
+                    "dateOfBirth": patient.get("birth_date") or patient.get("dob") or None,
                     "gender":     gender,
                 }
                 payload = {k: v for k, v in payload.items() if v is not None}

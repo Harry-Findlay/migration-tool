@@ -27,18 +27,22 @@ The Firebird connection is made via FbBridge.exe (embedded ServerType=1) using
 the same infrastructure as VistaSoftSource.
 
 MODALITY → image_class / media_type mapping (from C# reference):
-  OT → unknown (fallback to file inspection)
+  OT → unknown (fallback to sidecar)
   IO → INTRAORAL / image/intraoral_xray
-  CR → unknown
+  CR → unknown (fallback to sidecar)
   PX → PANORAMIC / image/pano
   DX → CEPHALOGRAM / image/ceph
   CT → VOLUME / volume/multi_frame
   ES → PICTURE / image/intraoral_camera
   XC → PICTURE / image/clinical_picture
+
+DBSWin Subtype values (from ImageUserData in .im0 sidecar):
+  59  = Intraoral X-ray
+  232 = Panoramic (OPG)
+  60  = Cephalogram
 """
 
 import configparser
-import io
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -48,7 +52,7 @@ from core.base_datasource import BaseDatasource
 from core.models import ConfigurationItem, ConfigurationType
 
 # ---------------------------------------------------------------------------
-# Shared encoding options (mirrors other sources)
+# Shared encoding options
 # ---------------------------------------------------------------------------
 COMMON_ENCODINGS = {
     "utf-8":         "UTF-8",
@@ -62,7 +66,8 @@ COMMON_ENCODINGS = {
 }
 
 # ---------------------------------------------------------------------------
-# MODALITY → (image_class for DTX Studio, media_type string)
+# MODALITY → (image_class, media_type)
+# OT and CR are intentionally absent — they fall through to sidecar resolution
 # ---------------------------------------------------------------------------
 _MODALITY_MAP = {
     "IO": ("Intra",    "INTRAORAL"),
@@ -71,20 +76,30 @@ _MODALITY_MAP = {
     "CT": ("Dvt",      "VOLUME"),
     "ES": ("Snapshot", "PICTURE"),
     "XC": ("Snapshot", "PICTURE"),
-    # OT / CR → None → resolved later by file inspection or left as INTRAORAL
 }
 
-# Default when ITYP is 0 (video/camera) with no DICOM modality
-_ITYP_0_CLASS   = ("Snapshot", "PICTURE")
-_ITYP_1_DEFAULT = ("Intra",    "INTRAORAL")  # X-ray fallback
+# Modalities that provide no useful type info — must resolve from sidecar
+_MODALITY_NEEDS_SIDECAR = {"OT", "CR", ""}
+
+# Default fallback when nothing else resolves
+_ITYP_0_CLASS   = ("Snapshot", "PICTURE")   # ITYP=0 video/camera
+_ITYP_1_DEFAULT = ("Intra",    "INTRAORAL")  # ITYP=1 X-ray fallback
+
+# DBSWin Subtype → (image_class, media_type)
+# Only subtypes with confirmed values are mapped; unknown falls back to INTRAORAL
+_SUBTYPE_MAP = {
+    232: ("Pano", "PANORAMIC"),
+    60:  ("Ceph", "CEPHALOGRAM"),
+    # 59 and all others → INTRAORAL (handled by default)
+}
 
 
 # ---------------------------------------------------------------------------
-# INI file helpers (dbident.ini / .im0 sidecars are Windows-style INI files)
+# INI file helpers
 # ---------------------------------------------------------------------------
 
 def _read_ini_bytes(data: bytes, encoding: str = "utf-8") -> dict:
-    """Parse an INI file from raw bytes.  Returns {section: {key: value}}."""
+    """Parse an INI file from raw bytes. Returns {section: {key: value}}."""
     try:
         text = data.decode(encoding, errors="replace")
     except Exception:
@@ -95,7 +110,7 @@ def _read_ini_bytes(data: bytes, encoding: str = "utf-8") -> dict:
 
 
 def _read_ini_file(path: str, encoding: str = "utf-8") -> dict:
-    """Parse an INI file from disk.  Returns {section: {key: value}}."""
+    """Parse an INI file from disk. Returns {section: {key: value}}."""
     cp = configparser.RawConfigParser()
     cp.read(path, encoding=encoding)
     return {s: dict(cp.items(s)) for s in cp.sections()}
@@ -114,7 +129,7 @@ def _ini_get(ini: dict, section: str, key: str) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
-# Path helpers  (mirror the C# private methods)
+# Path helpers
 # ---------------------------------------------------------------------------
 
 _DEFAULT_DBSDATA = r"C:\DBS\DBSDATA"
@@ -164,7 +179,6 @@ def _get_video_image_path(media_path: Optional[str]) -> Optional[str]:
 
 
 def _get_fdb_port() -> int:
-    """Read Firebird port from Dürr's firebird.conf; default 3050."""
     if os.path.isfile(_FIREBIRD_CONF):
         try:
             ini = _read_ini_file(_FIREBIRD_CONF)
@@ -176,24 +190,13 @@ def _get_fdb_port() -> int:
     return 3050
 
 
-def _build_connection_string(media_path: Optional[str]) -> Optional[str]:
-    fdb = _get_fdb_path(media_path)
-    if not fdb:
-        return None
-    port = _get_fdb_port()
-    return (
-        f"user=SYSDBA;password=masterkey;"
-        f"database=localhost:{fdb};"
-        f"DataSource=localhost;Port={port};"
-        f"Connection lifetime=15;Pooling=true;MinPoolSize=0;MaxPoolSize=50;"
-    )
-
-
 # ---------------------------------------------------------------------------
 # FbBridge query helpers
+# All SQL is passed via JSON envelope (stdin) to avoid Windows shell quoting
 # ---------------------------------------------------------------------------
 
 def _fb_query(db_path: str, sql: str) -> list:
+    """Execute SQL via FbBridge v2 (Firebird 2.5 embedded). Returns list of row dicts."""
     import json as _json
     from datasources.fb_client import _run_v2
     payload = _json.dumps({"sql": sql})
@@ -201,9 +204,8 @@ def _fb_query(db_path: str, sql: str) -> list:
     return data.get("rows", [])
 
 
-def _fb_query_patient_ids(db_path: str) -> list[str]:
-    sql = "SELECT PNR FROM PATIENT WHERE PNR != '1'"
-    rows = _fb_query(db_path, sql)
+def _fb_query_patient_ids(db_path: str) -> list:
+    rows = _fb_query(db_path, "SELECT PNR FROM PATIENT WHERE PNR != '1'")
     return [str(r.get("PNR", r.get("pnr", ""))) for r in rows if r]
 
 
@@ -216,57 +218,35 @@ def _fb_query_patient(db_path: str, patient_id: str) -> Optional[dict]:
     return rows[0] if rows else None
 
 
-_MEDIA_SQL = """
-SELECT
-    v.PNR,
-    v.VORGNR,
-    v.AUFNDATUM, v.AUFNZEIT,
-    v.ORGFILE,
-    v.IMGINFO,
-    v.KVOLT,
-    v.MILLIAMP,
-    v.DOSEAREAPRODUCT,
-    v.ROEDAUER,
-    v.ITYP,
-    i.SOPINSTANCEUID,
-    i.INSTANCENUMBER,
-    i.MODALITY,
-    i.SERIESINSTANCEUID,
-    i.STUDYINSTANCEUID,
-    i.SERIESDATE,
-    i.SERIESTIME,
-    i.SERIESNUMBER,
-    i.PERFORMINGPHYSICIAN,
-    i.SERIESDESCRIPTION,
-    s.STUDYID,
-    s.STUDYDESCRIPTION,
-    s.STUDYDATE,
-    s.STUDYTIME,
-    s.REFERRINGPHYSICIAN,
-    s.ACCESSIONNUMBER
-FROM XRAYVIDEO AS v
-LEFT JOIN DCMIMG AS i ON i.VORGNR = v.VORGNR
-LEFT JOIN STUDY  AS s ON s.UID    = i.STUDYINSTANCEUID
-WHERE v.PNR = '{pid}'
-"""
+_MEDIA_SQL = (
+    "SELECT v.PNR, v.VORGNR, v.AUFNDATUM, v.AUFNZEIT, v.ORGFILE, v.IMGINFO, "
+    "v.KVOLT, v.MILLIAMP, v.DOSEAREAPRODUCT, v.ROEDAUER, v.ITYP, "
+    "i.SOPINSTANCEUID, i.INSTANCENUMBER, i.MODALITY, i.SERIESINSTANCEUID, "
+    "i.STUDYINSTANCEUID, i.SERIESDATE, i.SERIESTIME, i.SERIESNUMBER, "
+    "i.PERFORMINGPHYSICIAN, i.SERIESDESCRIPTION, "
+    "s.STUDYID, s.STUDYDESCRIPTION, s.STUDYDATE, s.STUDYTIME, "
+    "s.REFERRINGPHYSICIAN, s.ACCESSIONNUMBER "
+    "FROM XRAYVIDEO AS v "
+    "LEFT JOIN DCMIMG AS i ON i.VORGNR = v.VORGNR "
+    "LEFT JOIN STUDY  AS s ON s.UID    = i.STUDYINSTANCEUID "
+    "WHERE v.PNR = '{pid}'"
+)
 
 
 def _esc(s: str) -> str:
-    """Minimal SQL string escaping (single-quote doubling)."""
     return s.replace("'", "''")
 
 
 def _fb_query_media(db_path: str, patient_id: str) -> list:
-    sql = _MEDIA_SQL.format(pid=_esc(patient_id))
-    return _fb_query(db_path, sql)
+    return _fb_query(db_path, _MEDIA_SQL.format(pid=_esc(patient_id)))
 
 
 # ---------------------------------------------------------------------------
-# Row → patient dict builder
+# Row → patient / media dict builders
 # ---------------------------------------------------------------------------
 
 def _g(row: dict, *keys) -> Optional[str]:
-    """Get first non-empty value from row, trying each key case-insensitively."""
+    """Get first non-empty value from row, case-insensitive key lookup."""
     row_lower = {k.lower(): v for k, v in row.items()}
     for k in keys:
         v = row_lower.get(k.lower())
@@ -286,34 +266,21 @@ def _parse_gender(s: Optional[str]) -> str:
     return "OTHER"
 
 
-def _build_patient(row: dict) -> dict:
-    return {
-        "uid":         _g(row, "PNR") or "",
-        "id":          _g(row, "PNR") or "",          # src id = PNR
-        "external_id": _g(row, "KNR") or "",          # card number
-        "additional_id": _g(row, "OPENDENTAID") or "", # OpenDenta link
-        "given_names": _g(row, "PVNAME") or "",
-        "family_name": _g(row, "PNNAME") or "",
-        "dob":         _parse_date(_g(row, "GDATE")),
-        "sex":         _parse_gender(_g(row, "SEXPAT")),
-        "studies":     {},
-    }
-
 def _parse_date(val: Optional[str]) -> str:
     if not val:
         return ""
     val = str(val).strip().split("T")[0].split(" ")[0]
     if len(val) == 10 and val[4] == "-":
-        return val                                           # YYYY-MM-DD
+        return val                                         # YYYY-MM-DD
     if len(val) == 8 and val.isdigit():
-        return f"{val[:4]}-{val[4:6]}-{val[6:]}"           # YYYYMMDD
+        return f"{val[:4]}-{val[4:6]}-{val[6:]}"         # YYYYMMDD
     if len(val) == 10 and val[2] == "/" and val[5] == "/":
-        return f"{val[6:]}-{val[3:5]}-{val[:2]}"           # DD/MM/YYYY
+        return f"{val[6:]}-{val[3:5]}-{val[:2]}"         # DD/MM/YYYY
     if len(val) == 10 and val[2] == "." and val[5] == ".":
-        return f"{val[6:]}-{val[3:5]}-{val[:2]}"           # DD.MM.YYYY
+        return f"{val[6:]}-{val[3:5]}-{val[:2]}"         # DD.MM.YYYY
     try:
         from datetime import datetime
-        for fmt in ("%d/%m/%Y", "%d.%m.%Y", "%m/%d/%Y"):
+        for fmt in ("%d/%m/%Y", "%d.%m.%Y", "%m/%d/%Y", "%Y/%m/%d"):
             try:
                 return datetime.strptime(val, fmt).strftime("%Y-%m-%d")
             except ValueError:
@@ -322,25 +289,67 @@ def _parse_date(val: Optional[str]) -> str:
         pass
     return val
 
+
 def _parse_datetime(date_val: Optional[str], time_val: Optional[str]) -> str:
-    """Combine a date and time value into an ISO datetime string."""
     d = _parse_date(date_val)
     if not d:
         return ""
     if not time_val:
         return f"{d}T00:00:00"
     t = str(time_val).strip()
-    # May arrive as HH:MM:SS or HHMMSS
     if len(t) == 6 and t.isdigit():
         t = f"{t[:2]}:{t[2:4]}:{t[4:]}"
-    # Trim sub-seconds / timezone
-    t = t[:8]
-    return f"{d}T{t}"
+    return f"{d}T{t[:8]}"
 
 
-# ---------------------------------------------------------------------------
-# Media-row → media item dict builder
-# ---------------------------------------------------------------------------
+def _build_patient(row: dict) -> dict:
+    return {
+        "uid":           _g(row, "PNR") or "",
+        "id":            _g(row, "PNR") or "",
+        "external_id":   _g(row, "KNR") or "",
+        "additional_id": _g(row, "OPENDENTAID") or "",
+        "given_names":   _g(row, "PVNAME") or "",
+        "family_name":   _g(row, "PNNAME") or "",
+        "dob":           _parse_date(_g(row, "GDATE")),
+        "sex":           _parse_gender(_g(row, "SEXPAT")),
+        "studies":       {},
+    }
+
+
+def _resolve_image_class_from_sidecar(im0_ini: dict, image_class: str, media_type: str):
+    """
+    Resolve image_class / media_type from .im0 sidecar when MODALITY is
+    ambiguous (OT, CR, empty).
+
+    Priority:
+      1. [XRAYEMITTER] Category  — sensor-acquired images
+      2. [ImageUserData] Subtype — imported DICOM images (Subtype is authoritative)
+    """
+    # 1. Sensor-acquired: [XRAYEMITTER] Category
+    category = (_ini_get(im0_ini, "XRAYEMITTER", "Category") or "").upper().strip()
+    if category == "INTRA":
+        return "Intra", "INTRAORAL"
+    if category in ("PANO", "OPG", "PANORAMIC", "PANO_OPG"):
+        return "Pano", "PANORAMIC"
+    if category in ("CEPH", "CEPHALOMETRIC"):
+        return "Ceph", "CEPHALOGRAM"
+
+    # 2. Imported image: [ImageUserData] Subtype
+    # Use ONLY Subtype — do NOT use ImgXrayEmitter as it contains the machine
+    # name (e.g. "ORTHOPANTOMOGRAPH OP 3D") which is the same for ALL images
+    # from the same device regardless of image type.
+    subtype_str = (_ini_get(im0_ini, "ImageUserData", "Subtype") or "").strip()
+    if subtype_str:
+        try:
+            subtype = int(subtype_str)
+            if subtype in _SUBTYPE_MAP:
+                return _SUBTYPE_MAP[subtype]
+        except ValueError:
+            pass
+
+    # Nothing resolved — return current values unchanged
+    return image_class, media_type
+
 
 def _build_media_item(
     row: dict,
@@ -366,29 +375,30 @@ def _build_media_item(
     elif ityp == 1:
         base_path = xray_path
     else:
-        return None  # unsupported ITYP
+        return None
 
-    # File path
     orgfile = _g(row, "ORGFILE")
     file_path = os.path.join(base_path, orgfile) if orgfile else None
 
-    # Determine image class / media_type from MODALITY
+    # ── Step 1: resolve from MODALITY column ─────────────────────────────
     modality = _g(row, "MODALITY") or ""
     if ityp == 0:
         image_class, media_type = _ITYP_0_CLASS
     else:
         image_class, media_type = _MODALITY_MAP.get(modality, _ITYP_1_DEFAULT)
 
-    # ── Sidecar .im0 (INI file with device metadata) ──────────────────────
-    manufacturer       = None
-    serial_number      = None
-    model_name         = None
-    station_name       = None
-    imager_pixel_x     = None
-    imager_pixel_y     = None
+    # Flag modalities that need sidecar resolution
+    needs_sidecar = modality in _MODALITY_NEEDS_SIDECAR
+
+    # ── Step 2: read .im0 sidecar ─────────────────────────────────────────
+    manufacturer  = None
+    serial_number = None
+    model_name    = None
+    station_name  = None
+    imager_pixel_x = None
+    imager_pixel_y = None
 
     if file_path and os.path.isfile(file_path):
-        # Try binary IMGINFO field first, then .im0 sidecar on disk
         imginfo_bytes = row.get("IMGINFO") or row.get("imginfo")
         im0_ini: Optional[dict] = None
 
@@ -407,20 +417,18 @@ def _build_media_item(
                     pass
 
         if im0_ini:
-            manufacturer   = _ini_get(im0_ini, "XRAYEMITTER",          "Manufacturer")
-            serial_number  = _ini_get(im0_ini, "RawImageCreationInfo",  "SerialNr")
-            model_name     = _ini_get(im0_ini, "CREATION",              "SOURCE")
-            station_name   = _ini_get(im0_ini, "CREATION",              "MachineName")
+            manufacturer  = _ini_get(im0_ini, "XRAYEMITTER",         "Manufacturer")
+            serial_number = _ini_get(im0_ini, "RawImageCreationInfo", "SerialNr")
+            model_name    = _ini_get(im0_ini, "CREATION",             "SOURCE")
+            station_name  = _ini_get(im0_ini, "CREATION",             "MachineName")
 
-            # Intraoral override when MODALITY was absent
-            if media_type == "INTRAORAL" or (
-                image_class == _ITYP_1_DEFAULT[0]
-                and _ini_get(im0_ini, "XRAYEMITTER", "Category") == "INTRA"
-            ):
-                image_class = "Intra"
-                media_type  = "INTRAORAL"
+            # Step 2a: resolve image type from sidecar when MODALITY is ambiguous
+            if needs_sidecar:
+                image_class, media_type = _resolve_image_class_from_sidecar(
+                    im0_ini, image_class, media_type
+                )
 
-            # Pixel spacing from DPI
+            # Step 2b: pixel spacing from DPI
             dpi_x_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_X")
             dpi_y_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_Y")
             if dpi_x_str and dpi_y_str:
@@ -431,9 +439,9 @@ def _build_media_item(
                 except (ValueError, AttributeError):
                     pass
 
-    # ── .imo sidecar (orientation / invert operations) ────────────────────
-    orientation  = None   # e.g. "ROT90", "ROT180", "MIRROR" etc.
-    is_inverted  = False
+    # ── Step 3: .imo sidecar (orientation / invert) ───────────────────────
+    orientation = None
+    is_inverted = False
 
     if file_path and os.path.isfile(file_path):
         imo_path = os.path.splitext(file_path)[0] + ".imo"
@@ -446,18 +454,18 @@ def _build_media_item(
                         ops_section = imo_ini[sec]
                         break
                 if ops_section:
-                    rot_steps = 0  # cumulative 90° CW steps
+                    rot_steps = 0
                     mirrored  = False
                     for _, op_val in sorted(ops_section.items()):
                         v = op_val.strip()
                         if v == "Invert  st=0 r=1 g=1 b=1":
                             is_inverted = not is_inverted
                         elif v == "Rotate  st=0 ax10=900 anc=5":
-                            rot_steps = (rot_steps + 3) % 4   # 270° CW = 90° CCW
+                            rot_steps = (rot_steps + 3) % 4
                         elif v == "Rotate  st=0 ax10=1800 anc=5":
                             rot_steps = (rot_steps + 2) % 4
                         elif v == "Rotate  st=0 ax10=2700 anc=5":
-                            rot_steps = (rot_steps + 1) % 4   # 90° CW
+                            rot_steps = (rot_steps + 1) % 4
                         elif v in ("Orient  st=0 or=1", "Orient  st=0 or=2"):
                             mirrored = not mirrored
                     rot_map = {0: None, 1: "ROT90", 2: "ROT180", 3: "ROT270"}
@@ -467,15 +475,37 @@ def _build_media_item(
             except Exception:
                 pass
 
-    # ── IDs / timestamps ─────────────────────────────────────────────────
-    vorgnr      = _g(row, "VORGNR") or ""
-    study_uid   = _g(row, "STUDYINSTANCEUID") or vorgnr
-    series_uid  = _g(row, "SERIESINSTANCEUID") or vorgnr
-    sop_uid     = _g(row, "SOPINSTANCEUID") or ""
+    # ── Step 4: generate preview JPEG ────────────────────────────────────
+    preview_path = None
+    if file_path and os.path.isfile(file_path):
+        try:
+            from PIL import Image
+            import numpy as np
+            preview_file = file_path + ".preview.jpg"
+            if not os.path.isfile(preview_file):
+                with Image.open(file_path) as img:
+                    arr = np.array(img)
+                    if arr.dtype != np.uint8:
+                        arr_min, arr_max = arr.min(), arr.max()
+                        if arr_max > arr_min:
+                            arr = ((arr - arr_min) / (arr_max - arr_min) * 255).astype(np.uint8)
+                        else:
+                            arr = np.zeros_like(arr, dtype=np.uint8)
+                    preview_img = Image.fromarray(arr)
+                    if preview_img.mode not in ('L', 'RGB'):
+                        preview_img = preview_img.convert('L')
+                    preview_img.thumbnail((512, 512))
+                    preview_img.save(preview_file, "JPEG", quality=75)
+            preview_path = preview_file
+        except Exception:
+            preview_path = None
 
-    acq_dt      = _parse_datetime(_g(row, "AUFNDATUM"), _g(row, "AUFNZEIT"))
-    series_dt   = _parse_datetime(_g(row, "SERIESDATE"), _g(row, "SERIESTIME"))
-    study_dt    = _parse_datetime(_g(row, "STUDYDATE"), _g(row, "STUDYTIME"))
+    # ── IDs / timestamps ─────────────────────────────────────────────────
+    vorgnr     = _g(row, "VORGNR") or ""
+    study_uid  = _g(row, "STUDYINSTANCEUID") or vorgnr
+    series_uid = _g(row, "SERIESINSTANCEUID") or vorgnr
+    sop_uid    = _g(row, "SOPINSTANCEUID") or ""
+    acq_dt     = _parse_datetime(_g(row, "AUFNDATUM"), _g(row, "AUFNZEIT"))
 
     file_size = None
     if file_path and os.path.isfile(file_path):
@@ -484,7 +514,6 @@ def _build_media_item(
         except OSError:
             pass
 
-    # ── DICOM tags dict (used by target writers) ──────────────────────────
     dicom_tags = {
         "StudyInstanceUID":        study_uid,
         "SeriesInstanceUID":       series_uid,
@@ -516,26 +545,20 @@ def _build_media_item(
     }
 
     return {
-        # ── IDs ──────────────────────────────────────────────────────────
         "uid":          vorgnr,
         "sop_instance": sop_uid,
-        # ── Study / series grouping ───────────────────────────────────────
         "_study_uid":   study_uid,
         "_series_uid":  series_uid,
-        # ── Media type ────────────────────────────────────────────────────
         "image_class":  image_class,
         "media_type":   media_type,
         "modality":     modality,
-        # ── File ─────────────────────────────────────────────────────────
         "file_path":    file_path,
         "content_type": "image/jp2",
+        "preview_path": preview_path,
         "size_bytes":   file_size,
-        # ── Timestamps ───────────────────────────────────────────────────
         "acq_datetime": acq_dt,
-        # ── Orientation ──────────────────────────────────────────────────
         "orientation":  orientation,
         "is_inverted":  is_inverted,
-        # ── DICOM metadata passthrough ────────────────────────────────────
         "dicom_tags":   dicom_tags,
         "comments":     _g(row, "SERIESDESCRIPTION") or "",
     }
@@ -546,12 +569,6 @@ def _build_media_item(
 # ---------------------------------------------------------------------------
 
 class DBSWinSource(BaseDatasource):
-    """
-    Source connector for DBSWin (Dürr Dental).
-
-    Uses FbBridge.exe to read the Firebird database in embedded mode —
-    no Firebird service required on the migration machine.
-    """
 
     @property
     def name(self) -> str:
@@ -600,7 +617,6 @@ class DBSWinSource(BaseDatasource):
                 config_type=ConfigurationType.SWITCH,
                 group="Advanced",
             ),
-            # ── Hidden / auto-derived fields ─────────────────────────────
             ConfigurationItem(
                 key="XRayImgPath",
                 name="XrayImg Folder",
@@ -623,21 +639,15 @@ class DBSWinSource(BaseDatasource):
             ),
         ]
 
-    # ------------------------------------------------------------------
-    # Validation
-    # ------------------------------------------------------------------
-
     def validate(self) -> tuple[bool, str]:
         media_path = self.get_config_value("MediaPath")
         if not media_path:
             return False, "DBSDATA folder is not set."
         if not os.path.isdir(media_path):
             return False, f"DBSDATA folder not found: {media_path}"
-        fdb = _get_fdb_path(media_path)
-        if not fdb:
+        if not _get_fdb_path(media_path):
             return False, f"DUERRDBSWIN.FDB not found under {media_path}\\pr1\\database\\"
-        dbident = _get_dbident_path(media_path)
-        if not dbident:
+        if not _get_dbident_path(media_path):
             return False, f"dbident.ini not found under {media_path}\\pr1\\database\\"
         xray = _get_xray_image_path(media_path)
         if not xray or not os.path.isdir(xray):
@@ -657,18 +667,12 @@ class DBSWinSource(BaseDatasource):
             return False, msg
         fdb = _get_fdb_path(media_path)
         try:
-            from datasources.fb_client import _run
-            data = _run("query", fdb, "SELECT COUNT(*) AS CNT FROM PATIENT WHERE PNR != '1'")
-            rows = data.get("rows", [])
+            rows = _fb_query(fdb, "SELECT COUNT(*) AS CNT FROM PATIENT WHERE PNR != '1'")
             count = rows[0].get("CNT", rows[0].get("cnt", "?")) if rows else "?"
             return True, f"Connected to DUERRDBSWIN.FDB. Found {count} patient(s)."
         except Exception as exc:
             from datasources.fb_client import run_diag
             return False, f"{exc}\n\n--- FbBridge diagnostics ---\n{run_diag()}"
-
-    # ------------------------------------------------------------------
-    # Load
-    # ------------------------------------------------------------------
 
     def load(
         self,
@@ -676,11 +680,10 @@ class DBSWinSource(BaseDatasource):
         max_parallelism: int = 4,
         progress_callback: Optional[Callable] = None,
     ) -> list:
-        media_path   = self.get_config_value("MediaPath") or ""
-        encoding     = self.get_config_value("Encoding") or "windows-1252"
-        skip_empty   = (self.get_config_value("SkipEmptyPatients") or "On").strip().lower() in ("on", "true", "1")
+        media_path = self.get_config_value("MediaPath") or ""
+        encoding   = self.get_config_value("Encoding") or "windows-1252"
+        skip_empty = (self.get_config_value("SkipEmptyPatients") or "On").strip().lower() in ("on", "true", "1")
 
-        # Resolve (and cache) the image paths
         xray_path = (
             self.get_config_value("XRayImgPath") or
             _get_xray_image_path(media_path) or ""
@@ -715,15 +718,12 @@ class DBSWinSource(BaseDatasource):
             if cancel_flag():
                 return None
             try:
-                # Patient demographics
                 pat_row = _fb_query_patient(fdb, patient_id)
                 if not pat_row:
                     raise ValueError(f"Patient row not found for PNR={patient_id}")
                 patient = _build_patient(pat_row)
 
-                # Media rows
-                media_rows = _fb_query_media(fdb, patient_id)
-                for row in media_rows:
+                for row in _fb_query_media(fdb, patient_id):
                     if cancel_flag():
                         break
                     try:
@@ -734,7 +734,6 @@ class DBSWinSource(BaseDatasource):
                         study_uid  = media_item.pop("_study_uid")
                         series_uid = media_item.pop("_series_uid")
 
-                        # Build study → series → media hierarchy
                         study = patient["studies"].setdefault(study_uid, {
                             "uid":            study_uid,
                             "study_instance": study_uid,
@@ -752,9 +751,7 @@ class DBSWinSource(BaseDatasource):
                         series["media"].append(media_item)
 
                     except Exception as exc:
-                        self.logger.error(
-                            f"Failed to load media row for patient {patient_id}: {exc}"
-                        )
+                        self.logger.error(f"Failed to load media row for patient {patient_id}: {exc}")
                         with lock:
                             errors[0] += 1
 
@@ -791,7 +788,6 @@ class DBSWinSource(BaseDatasource):
                     )
 
         self.logger.info(
-            f"DBSWin load complete: {len(patients)} patients, "
-            f"{errors[0]} error(s)"
+            f"DBSWin load complete: {len(patients)} patients, {errors[0]} error(s)"
         )
         return patients

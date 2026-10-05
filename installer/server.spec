@@ -12,7 +12,6 @@ a = Analysis(
         ('../.env.example', '.'),
     ],
     hiddenimports=[
-        'msal', 'msal.application', 'msal.authority',
         'flask', 'flask_cors', 'flask_session',
         'PIL', 'PIL.Image', 'numpy',
         'win32serviceutil', 'win32service', 'win32event', 'servicemanager',
@@ -20,7 +19,7 @@ a = Analysis(
         'datasources.dtxstudio_source', 'datasources.dtxstudio_target',
         'datasources.sopro_source', 'datasources.fb_client',
         'core.engine', 'core.migration_store', 'core.models',
-        'core.base_datasource', 'auth.ms365',
+        'core.base_datasource', 'auth.google_oauth',
     ],
     hookspath=[],
     runtime_hooks=[],

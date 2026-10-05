@@ -39,12 +39,23 @@ def _jpeg_to_dcm(jpeg_bytes: bytes, sop_uid: str = "",
     import numpy as _np
     from PIL import Image as _PIL
 
-    # Open image and convert to 8-bit greyscale
-    img = _PIL.open(_io.BytesIO(jpeg_bytes)).convert('L')
+    # Open image — preserve original bit depth before converting
+    img = _PIL.open(_io.BytesIO(jpeg_bytes))
     w, h = img.size
 
-    # Scale 8-bit (0-255) to 16-bit (0-65535)
-    arr = _np.array(img, dtype=_np.uint16) * 257
+    # Convert to numpy and normalise the full dynamic range to 16-bit
+    # This handles JP2 images which may be 10/12/14-bit from dental sensors
+    arr = _np.array(img)
+    if arr.ndim == 3:
+        # Collapse colour to greyscale using luminosity weights
+        arr = (0.2989 * arr[..., 0] + 0.5870 * arr[..., 1] + 0.1140 * arr[..., 2])
+    arr = arr.astype(_np.float32)
+    arr_min, arr_max = arr.min(), arr.max()
+    if arr_max > arr_min:
+        arr = ((arr - arr_min) / (arr_max - arr_min) * 65535)
+    else:
+        arr = _np.zeros_like(arr)
+    arr = arr.astype(_np.uint16)
     pixel_data = arr.tobytes()
 
     sop_instance = sop_uid or str(_uuid.uuid4())
@@ -537,7 +548,13 @@ class VistaSoftTarget(BaseDatasource):
                             _is_png  = (("png" in ct)
                                         or (len(data) >= 4
                                             and data[:4] == b'\x89PNG'))
-                            if _is_jpeg or _is_png:
+                            # JP2 / XTF (DBSWin stores JP2 data with .xtf extension)
+                            _is_jp2  = (("jp2" in ct or "jpeg2000" in ct)
+                                        or (len(data) >= 12
+                                            and data[4:8] == b'jP  ')     # JP2 signature box
+                                        or (len(data) >= 4
+                                            and data[0:4] == b'\xff\x4f\xff\x51'))
+                            if _is_jpeg or _is_png or _is_jp2:
                                 data = _jpeg_to_dcm(data, sop_uid=sop,
                                                     patient_name=name,
                                                     acq_date=acq_dt)
@@ -547,9 +564,9 @@ class VistaSoftTarget(BaseDatasource):
 
                             # ── Build sidecar metadata ────────────────────
                             dtags = media.get("dicom_tags") or {}
-                            # JPEG/PNG sources are converted to 16-bit greyscale DICOM
+                            # JPEG/PNG/JP2 sources are converted to 16-bit greyscale DICOM
                             # to match VistaSoft's native import format exactly.
-                            if _is_jpeg or _is_png:
+                            if _is_jpeg or _is_png or _is_jp2:
                                 bits   = 16
                                 spp    = 1
                                 photo  = "MONOCHROME2"
@@ -584,7 +601,7 @@ class VistaSoftTarget(BaseDatasource):
                             sidecar = {
                                 "SpecificCharacterSet": ["ISO_IR 192"],
                                 "SOPClassUID":       ("1.2.840.10008.5.1.4.1.1.1"
-                                                      if (_is_jpeg or _is_png)
+                                                      if (_is_jpeg or _is_png or _is_jp2)
                                                       else dtags.get("sopClassUid", "1.2.840.10008.5.1.4.1.1.7")),
                                 "SOPInstanceUID":    sop,
                                 "AcquisitionDate":   acq_date,

@@ -12,7 +12,6 @@ python -m PyInstaller ^
   --icon static\icon.ico ^
   --add-data "static;static" ^
   --add-data "lib;lib" ^
-  --hidden-import msal ^
   --hidden-import flask_cors ^
   --hidden-import PIL ^
   --hidden-import PIL.Image ^
@@ -28,9 +27,8 @@ python -m PyInstaller ^
   --hidden-import core.migration_store ^
   --hidden-import core.models ^
   --hidden-import core.base_datasource ^
-  --hidden-import auth.ms365 ^
+  --hidden-import auth.google_oauth ^
   --hidden-import cryptography.fernet ^
-  --collect-all msal ^
   --collect-all flask ^
   --exclude-module tkinter ^
   --exclude-module test ^
