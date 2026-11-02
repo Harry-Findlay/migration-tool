@@ -893,12 +893,29 @@ def api_load():
     logger.info(f"Loaded {len(patients)} patients from {source.name} in {elapsed}s")
 
     # Include a lightweight patient list (uid + name only) for the raw cache
+    # Only the media fields the Media browser uses are sent back. Sending the
+    # full media dicts (dicom_tags etc.) made this response tens of MB on large
+    # practices, and any callables in them (_fetch, _fetch_preview) can't be
+    # serialised to JSON.
+    _MEDIA_KEYS = ("uid", "modality", "image_class", "acq_datetime",
+                   "content_type", "file_path")
+
+    def _slim_studies(studies: dict) -> dict:
+        return {
+            sk: {"series": {
+                rk: {"media": [{k: m.get(k) for k in _MEDIA_KEYS}
+                               for m in (series.get("media") or [])]}
+                for rk, series in (study.get("series") or {}).items()
+            }}
+            for sk, study in (studies or {}).items()
+        }
+
     raw_list = [
         {
             "uid":         p.get("uid", ""),
             "given_names": p.get("given_names", ""),
             "family_name": p.get("family_name", ""),
-            "studies":     p.get("studies", {}),
+            "studies":     _slim_studies(p.get("studies", {})),
         }
         for p in patients
     ]
@@ -1815,6 +1832,20 @@ def api_media_preview():
 
     if not media_item:
         return _err("Media not found", 404)
+
+    # Sources that render previews on demand (e.g. DBSWin JPEG 2000) supply a
+    # _fetch_preview callable instead of a ready-made preview file.
+    pp = media_item.get("preview_path")
+    fetch_preview = media_item.get("_fetch_preview")
+    if not (pp and os.path.isfile(pp)) and callable(fetch_preview):
+        try:
+            data = fetch_preview()
+            if data:
+                ct = "image/png" if data[:4] == b"\x89PNG" else "image/jpeg"
+                return Response(data, mimetype=ct,
+                                headers={"Cache-Control": "max-age=300"})
+        except Exception as e:
+            logger.warning(f"Preview generation failed for {media_uid}: {e}")
 
     # Try preview_path first (JPEG thumbnail), then file_path
     for path_key in ("preview_path", "file_path"):

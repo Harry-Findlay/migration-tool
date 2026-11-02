@@ -23,8 +23,18 @@ Paths are discovered from:
   <DBSDATA>/pr1/database/dbident.ini  — contains XRayImagePath and VideoImagePath keys
   <DBSDATA>/pr1/database/DUERRDBSWIN.FDB — the Firebird database
 
-The Firebird connection is made via FbBridge.exe (embedded ServerType=1) using
-the same infrastructure as VistaSoftSource.
+The Firebird connection is made via FbBridge.exe (lib/fb_bridge_v2, Firebird 2.5
+embedded). Firebird 2.5 embedded locks the database to one process at a time,
+so ALL database reads here are sequential and done in bulk:
+  1 query  for every patient
+  N queries for media, batched by patient (_MEDIA_BATCH patients per query)
+instead of two process launches per patient.
+
+Previews are NOT generated during load. Each media item carries a
+`_fetch_preview` callable that renders a small JPEG on first use and caches it
+under %PROGRAMDATA%\\ITInfinityMigrator\\preview_cache\\dbswin\\ — nothing is
+written into the practice's XrayImg / VidImg folders. `preview_path` is filled
+in once a cached preview exists.
 
 MODALITY → image_class / media_type mapping (from C# reference):
   OT → unknown (fallback to sidecar)
@@ -42,10 +52,12 @@ DBSWin Subtype values (from ImageUserData in .im0 sidecar):
   60  = Cephalogram
 """
 
-import configparser
+import hashlib
 import os
+import re
+import tempfile
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Optional
 
 from core.base_datasource import BaseDatasource
@@ -93,39 +105,66 @@ _SUBTYPE_MAP = {
     # 59 and all others → INTRAORAL (handled by default)
 }
 
+# Patients per media query. Firebird 2.5 allows up to 1500 items in an IN list;
+# 500 keeps each FbBridge payload small and well inside its 60s timeout.
+_MEDIA_BATCH = 500
+
+# Longest edge of generated previews, in pixels
+_PREVIEW_MAX = 512
+
 
 # ---------------------------------------------------------------------------
-# INI file helpers
+# INI helpers
+# A small lenient parser is used instead of configparser: DBSWin sidecars can
+# have a BOM, duplicate keys or lines without '=' — configparser rejects the
+# whole file in those cases, which silently breaks image classification.
+# Sections and keys are stored lower-case; first occurrence of a key wins.
 # ---------------------------------------------------------------------------
 
-def _read_ini_bytes(data: bytes, encoding: str = "utf-8") -> dict:
-    """Parse an INI file from raw bytes. Returns {section: {key: value}}."""
-    try:
+def _decode(data: bytes, encoding: Optional[str]) -> str:
+    if encoding:
         text = data.decode(encoding, errors="replace")
-    except Exception:
-        text = data.decode("latin-1", errors="replace")
-    cp = configparser.RawConfigParser()
-    cp.read_string(text)
-    return {s: dict(cp.items(s)) for s in cp.sections()}
+    else:
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError:
+            text = data.decode("windows-1252", errors="replace")
+    # Strip a UTF-8 BOM whether it decoded correctly or as cp1252 junk
+    if text.startswith("\ufeff"):
+        text = text[1:]
+    elif text.startswith("ï»¿"):
+        text = text[3:]
+    return text
 
 
-def _read_ini_file(path: str, encoding: str = "utf-8") -> dict:
-    """Parse an INI file from disk. Returns {section: {key: value}}."""
-    cp = configparser.RawConfigParser()
-    cp.read(path, encoding=encoding)
-    return {s: dict(cp.items(s)) for s in cp.sections()}
+def _parse_ini_text(text: str) -> dict:
+    out: dict = {}
+    current = None
+    for line in text.splitlines():
+        s = line.strip()
+        if not s or s[0] in ";#":
+            continue
+        if s[0] == "[" and "]" in s:
+            current = out.setdefault(s[1:s.index("]")].strip().lower(), {})
+            continue
+        if current is None or "=" not in s:
+            continue
+        k, v = s.split("=", 1)
+        k = k.strip().lower()
+        if k not in current:
+            current[k] = v.strip()
+    return out
+
+
+def _read_ini_file(path: str, encoding: Optional[str] = None) -> dict:
+    """Parse an INI file from disk. Returns {section: {key: value}} (lower-case names)."""
+    with open(path, "rb") as f:
+        return _parse_ini_text(_decode(f.read(), encoding))
 
 
 def _ini_get(ini: dict, section: str, key: str) -> Optional[str]:
     """Case-insensitive lookup in a parsed INI dict."""
-    sl = section.lower()
-    kl = key.lower()
-    for s, vals in ini.items():
-        if s.lower() == sl:
-            for k, v in vals.items():
-                if k.lower() == kl:
-                    return v
-    return None
+    return (ini.get(section.lower()) or {}).get(key.lower())
 
 
 # ---------------------------------------------------------------------------
@@ -133,7 +172,6 @@ def _ini_get(ini: dict, section: str, key: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 _DEFAULT_DBSDATA = r"C:\DBS\DBSDATA"
-_FIREBIRD_CONF   = r"C:\Program Files (x86)\Duerr\FBS\firebird.conf"
 
 
 def _get_fdb_path(media_path: Optional[str]) -> Optional[str]:
@@ -154,72 +192,200 @@ def _get_default_media_path() -> Optional[str]:
     return _DEFAULT_DBSDATA if os.path.isdir(_DEFAULT_DBSDATA) else None
 
 
+def _get_dbident_value(media_path: Optional[str], key: str) -> Optional[str]:
+    dbident = _get_dbident_path(media_path)
+    if not dbident:
+        return None
+    try:
+        return _ini_get(_read_ini_file(dbident), "Praxis", key) or None
+    except OSError:
+        return None
+
+
 def _get_xray_image_path(media_path: Optional[str]) -> Optional[str]:
     if not media_path:
         return None
-    dbident = _get_dbident_path(media_path)
-    if dbident:
-        ini = _read_ini_file(dbident)
-        v = _ini_get(ini, "Praxis", "XRayImagePath")
-        if v:
-            return v
-    return os.path.join(media_path, "pr1", "XrayImg")
+    return (_get_dbident_value(media_path, "XRayImagePath")
+            or os.path.join(media_path, "pr1", "XrayImg"))
 
 
 def _get_video_image_path(media_path: Optional[str]) -> Optional[str]:
     if not media_path:
         return None
-    dbident = _get_dbident_path(media_path)
-    if dbident:
-        ini = _read_ini_file(dbident)
-        v = _ini_get(ini, "Praxis", "VideoImagePath")
-        if v:
-            return v
-    return os.path.join(media_path, "pr1", "VidImg")
+    return (_get_dbident_value(media_path, "VideoImagePath")
+            or os.path.join(media_path, "pr1", "VidImg"))
 
 
-def _get_fdb_port() -> int:
-    if os.path.isfile(_FIREBIRD_CONF):
+class _DirIndex:
+    """
+    One directory listing per folder, shared by every media item.
+
+    Replaces several os.path.isfile() calls per image (image, .im0, .imo,
+    size) with a single scandir per folder. On Windows the file size comes
+    free with the listing. Lookups are case-insensitive, like NTFS.
+    """
+
+    def __init__(self):
+        self._cache: dict = {}
+        self._lock = threading.Lock()
+
+    def _listing(self, folder: str) -> dict:
+        key = os.path.normcase(os.path.abspath(folder))
+        with self._lock:
+            hit = self._cache.get(key)
+        if hit is not None:
+            return hit
+        names: dict = {}
         try:
-            ini = _read_ini_file(_FIREBIRD_CONF)
-            v = _ini_get(ini, "DEFAULT", "RemoteServicePort")
-            if v and v.strip().isdigit():
-                return int(v.strip())
-        except Exception:
+            with os.scandir(folder) as it:
+                for e in it:
+                    try:
+                        if e.is_file():
+                            names[e.name.lower()] = (e.name, e.stat().st_size)
+                    except OSError:
+                        continue
+        except OSError:
             pass
-    return 3050
+        with self._lock:
+            self._cache.setdefault(key, names)
+        return names
+
+    def find(self, path: str):
+        """Return (actual_path, size) if the file exists, else (None, None)."""
+        folder, name = os.path.split(path)
+        hit = self._listing(folder or ".").get(name.lower())
+        if not hit:
+            return None, None
+        return os.path.join(folder, hit[0]), hit[1]
+
+
+# ---------------------------------------------------------------------------
+# Preview generation (on demand, cached outside the practice's folders)
+# ---------------------------------------------------------------------------
+
+def _preview_cache_dir() -> str:
+    base = os.environ.get("PROGRAMDATA") or tempfile.gettempdir()
+    d = os.path.join(base, "ITInfinityMigrator", "preview_cache", "dbswin")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def _preview_cache_path(file_path: str, media_uid: str) -> str:
+    key = media_uid or hashlib.md5(file_path.lower().encode("utf-8", "replace")).hexdigest()
+    return os.path.join(_preview_cache_dir(), re.sub(r"[^A-Za-z0-9_-]", "_", key) + ".jpg")
+
+
+def _render_preview_jpeg(src_path: str) -> bytes:
+    """
+    Render a small greyscale/RGB JPEG preview of a DBSWin image.
+
+    JPEG 2000 files are decoded at reduced resolution (wavelet level skip),
+    which is roughly 10-20x faster than a full decode for a 512px preview.
+    High bit-depth images are normalised over their full range, matching the
+    previews that were previously generated during load.
+    """
+    import io
+    import numpy as np
+    from PIL import Image
+
+    def _open_reduced():
+        img = Image.open(src_path)
+        if getattr(img, "format", "") == "JPEG2000":
+            w, h = img.size
+            r = 0
+            while r < 5 and (max(w, h) >> (r + 1)) >= _PREVIEW_MAX:
+                r += 1
+            if r:
+                img.reduce = r
+        elif getattr(img, "format", "") == "JPEG":
+            img.draft(img.mode, (_PREVIEW_MAX, _PREVIEW_MAX))
+        img.load()
+        return img
+
+    try:
+        img = _open_reduced()
+    except Exception:
+        # Reduced decode isn't supported by every codestream — full decode
+        img = Image.open(src_path)
+        img.load()
+
+    with img:
+        arr = np.asarray(img)
+        if arr.dtype != np.uint8:
+            arr = arr.astype(np.float32)
+            lo, hi = float(arr.min()), float(arr.max())
+            if hi > lo:
+                arr = ((arr - lo) / (hi - lo) * 255.0).astype(np.uint8)
+            else:
+                arr = np.zeros(arr.shape, dtype=np.uint8)
+        preview = Image.fromarray(arr)
+        if preview.mode not in ("L", "RGB"):
+            preview = preview.convert("RGB" if arr.ndim == 3 else "L")
+        preview.thumbnail((_PREVIEW_MAX, _PREVIEW_MAX))
+        buf = io.BytesIO()
+        preview.save(buf, "JPEG", quality=75)
+        return buf.getvalue()
+
+
+def _make_preview_fetch(media: dict) -> Callable[[], Optional[bytes]]:
+    """
+    Build the `_fetch_preview` callable for one media item.
+
+    First call renders and caches the JPEG, then sets media["preview_path"]
+    so later readers (Media page, targets) can use the file directly.
+    """
+    def _fetch() -> Optional[bytes]:
+        p = media.get("preview_path")
+        if p and os.path.isfile(p):
+            with open(p, "rb") as f:
+                return f.read()
+        src = media.get("file_path")
+        if not src or not os.path.isfile(src):
+            return None
+        dest = _preview_cache_path(src, media.get("uid", ""))
+        if os.path.isfile(dest):
+            with open(dest, "rb") as f:
+                data = f.read()
+        else:
+            data = _render_preview_jpeg(src)
+            tmp = f"{dest}.{os.getpid()}.{threading.get_ident()}.tmp"
+            with open(tmp, "wb") as f:
+                f.write(data)
+            os.replace(tmp, dest)   # atomic — safe if two requests race
+        media["preview_path"] = dest
+        return data
+    return _fetch
 
 
 # ---------------------------------------------------------------------------
 # FbBridge query helpers
-# All SQL is passed via JSON envelope (stdin) to avoid Windows shell quoting
+# All SQL is passed via JSON envelope (stdin) to avoid Windows shell quoting.
+# Queries run one at a time: Firebird 2.5 embedded won't share the file
+# between processes.
 # ---------------------------------------------------------------------------
 
 def _fb_query(db_path: str, sql: str) -> list:
-    """Execute SQL via FbBridge v2 (Firebird 2.5 embedded). Returns list of row dicts."""
+    """Execute SQL via FbBridge v2 (Firebird 2.5 embedded). Returns rows with UPPER-CASE keys."""
     import json as _json
     from datasources.fb_client import _run_v2
-    payload = _json.dumps({"sql": sql})
-    data = _run_v2("query", db_path, payload)
-    return data.get("rows", [])
+    data = _run_v2("query", db_path, _json.dumps({"sql": sql}))
+    return [{str(k).upper(): v for k, v in r.items()} for r in data.get("rows", []) if r]
 
 
-def _fb_query_patient_ids(db_path: str) -> list:
-    rows = _fb_query(db_path, "SELECT PNR FROM PATIENT WHERE PNR != '1'")
-    return [str(r.get("PNR", r.get("pnr", ""))) for r in rows if r]
+def _esc(s: str) -> str:
+    return s.replace("'", "''")
 
 
-def _fb_query_patient(db_path: str, patient_id: str) -> Optional[dict]:
-    sql = (
-        "SELECT PNR, KNR, OPENDENTAID, SEXPAT, GDATE, PVNAME, PNNAME "
-        f"FROM PATIENT WHERE PNR = '{_esc(patient_id)}'"
-    )
-    rows = _fb_query(db_path, sql)
-    return rows[0] if rows else None
+_PATIENTS_SQL = (
+    "SELECT PNR, KNR, OPENDENTAID, SEXPAT, GDATE, PVNAME, PNNAME "
+    "FROM PATIENT WHERE PNR <> '1'"
+)
 
-
+# IMGINFO is deliberately not selected: FbBridge returns BLOBs as the string
+# "System.Byte[]", so it was never usable and only bloated every row.
+# The .im0 sidecar on disk carries the same data.
 _MEDIA_SQL = (
-    "SELECT v.PNR, v.VORGNR, v.AUFNDATUM, v.AUFNZEIT, v.ORGFILE, v.IMGINFO, "
+    "SELECT v.PNR, v.VORGNR, v.AUFNDATUM, v.AUFNZEIT, v.ORGFILE, "
     "v.KVOLT, v.MILLIAMP, v.DOSEAREAPRODUCT, v.ROEDAUER, v.ITYP, "
     "i.SOPINSTANCEUID, i.INSTANCENUMBER, i.MODALITY, i.SERIESINSTANCEUID, "
     "i.STUDYINSTANCEUID, i.SERIESDATE, i.SERIESTIME, i.SERIESNUMBER, "
@@ -229,16 +395,29 @@ _MEDIA_SQL = (
     "FROM XRAYVIDEO AS v "
     "LEFT JOIN DCMIMG AS i ON i.VORGNR = v.VORGNR "
     "LEFT JOIN STUDY  AS s ON s.UID    = i.STUDYINSTANCEUID "
-    "WHERE v.PNR = '{pid}'"
+    "WHERE v.PNR IN ({pids})"
 )
 
 
-def _esc(s: str) -> str:
-    return s.replace("'", "''")
-
-
-def _fb_query_media(db_path: str, patient_id: str) -> list:
-    return _fb_query(db_path, _MEDIA_SQL.format(pid=_esc(patient_id)))
+def _fb_query_media_batch(db_path: str, patient_ids: list, logger) -> list:
+    """
+    Media rows for a batch of patients. If a batch fails (e.g. FbBridge
+    timeout on a very image-heavy batch) it is split in half and retried,
+    down to a single patient, so one bad batch can't fail the whole load.
+    """
+    if not patient_ids:
+        return []
+    sql = _MEDIA_SQL.format(pids=",".join(f"'{_esc(p)}'" for p in patient_ids))
+    try:
+        return _fb_query(db_path, sql)
+    except Exception as exc:
+        if len(patient_ids) == 1:
+            logger.error(f"Failed to read media for patient {patient_ids[0]}: {exc}")
+            return []
+        logger.warning(f"Media batch of {len(patient_ids)} failed ({exc}) — splitting and retrying")
+        mid = len(patient_ids) // 2
+        return (_fb_query_media_batch(db_path, patient_ids[:mid], logger)
+                + _fb_query_media_batch(db_path, patient_ids[mid:], logger))
 
 
 # ---------------------------------------------------------------------------
@@ -246,12 +425,13 @@ def _fb_query_media(db_path: str, patient_id: str) -> list:
 # ---------------------------------------------------------------------------
 
 def _g(row: dict, *keys) -> Optional[str]:
-    """Get first non-empty value from row, case-insensitive key lookup."""
-    row_lower = {k.lower(): v for k, v in row.items()}
+    """First non-empty value from a row (rows have UPPER-CASE keys)."""
     for k in keys:
-        v = row_lower.get(k.lower())
-        if v is not None and str(v).strip():
-            return str(v).strip()
+        v = row.get(k.upper())
+        if v is not None:
+            s = str(v).strip()
+            if s:
+                return s
     return None
 
 
@@ -351,24 +531,49 @@ def _resolve_image_class_from_sidecar(im0_ini: dict, image_class: str, media_typ
     return image_class, media_type
 
 
+def _parse_imo(imo_ini: dict):
+    """Orientation / invert from a .imo sidecar. Operations apply in file order."""
+    ops = imo_ini.get("imageoperations")
+    if not ops:
+        return None, False
+    rot_steps   = 0
+    mirrored    = False
+    is_inverted = False
+    for op_val in ops.values():
+        v = op_val.strip()
+        if v == "Invert  st=0 r=1 g=1 b=1":
+            is_inverted = not is_inverted
+        elif v == "Rotate  st=0 ax10=900 anc=5":
+            rot_steps = (rot_steps + 3) % 4
+        elif v == "Rotate  st=0 ax10=1800 anc=5":
+            rot_steps = (rot_steps + 2) % 4
+        elif v == "Rotate  st=0 ax10=2700 anc=5":
+            rot_steps = (rot_steps + 1) % 4
+        elif v in ("Orient  st=0 or=1", "Orient  st=0 or=2"):
+            mirrored = not mirrored
+    orientation = {0: None, 1: "ROT90", 2: "ROT180", 3: "ROT270"}[rot_steps]
+    if mirrored:
+        orientation = f"MIRROR_{orientation}" if orientation else "MIRROR"
+    return orientation, is_inverted
+
+
 def _build_media_item(
     row: dict,
     xray_path: str,
     vid_path: str,
-    encoding: str = "utf-8",
+    encoding: str,
+    dirs: _DirIndex,
+    preview_cache: set,
 ) -> Optional[dict]:
     """
     Convert a single XRAYVIDEO/DCMIMG/STUDY joined row to the internal media dict.
-    Returns None if the row has no usable file or ITYP is unrecognised.
+    Returns None if ITYP is missing or unrecognised.
     """
     ityp_raw = _g(row, "ITYP")
     try:
         ityp = int(ityp_raw) if ityp_raw is not None else None
     except (ValueError, TypeError):
         ityp = None
-
-    if ityp is None:
-        return None
 
     if ityp == 0:
         base_path = vid_path
@@ -377,8 +582,13 @@ def _build_media_item(
     else:
         return None
 
-    orgfile = _g(row, "ORGFILE")
+    orgfile   = _g(row, "ORGFILE")
     file_path = os.path.join(base_path, orgfile) if orgfile else None
+
+    # One directory lookup tells us whether the image exists and its size
+    real_path, file_size = (dirs.find(file_path) if file_path else (None, None))
+    if real_path:
+        file_path = real_path
 
     # ── Step 1: resolve from MODALITY column ─────────────────────────────
     modality = _g(row, "MODALITY") or ""
@@ -386,119 +596,49 @@ def _build_media_item(
         image_class, media_type = _ITYP_0_CLASS
     else:
         image_class, media_type = _MODALITY_MAP.get(modality, _ITYP_1_DEFAULT)
-
-    # Flag modalities that need sidecar resolution
     needs_sidecar = modality in _MODALITY_NEEDS_SIDECAR
 
-    # ── Step 2: read .im0 sidecar ─────────────────────────────────────────
-    manufacturer  = None
-    serial_number = None
-    model_name    = None
-    station_name  = None
-    imager_pixel_x = None
-    imager_pixel_y = None
+    # ── Step 2: .im0 sidecar ─────────────────────────────────────────────
+    manufacturer = serial_number = model_name = station_name = None
+    imager_pixel_x = imager_pixel_y = None
+    orientation, is_inverted = None, False
 
-    if file_path and os.path.isfile(file_path):
-        imginfo_bytes = row.get("IMGINFO") or row.get("imginfo")
-        im0_ini: Optional[dict] = None
+    if real_path:
+        stem = os.path.splitext(real_path)[0]
 
-        if isinstance(imginfo_bytes, (bytes, bytearray)) and imginfo_bytes:
+        im0_path, _ = dirs.find(stem + ".im0")
+        if im0_path:
             try:
-                im0_ini = _read_ini_bytes(bytes(imginfo_bytes), encoding)
-            except Exception:
-                pass
+                im0_ini = _read_ini_file(im0_path, encoding)
+            except OSError:
+                im0_ini = None
+            if im0_ini:
+                manufacturer  = _ini_get(im0_ini, "XRAYEMITTER",         "Manufacturer")
+                serial_number = _ini_get(im0_ini, "RawImageCreationInfo", "SerialNr")
+                model_name    = _ini_get(im0_ini, "CREATION",             "SOURCE")
+                station_name  = _ini_get(im0_ini, "CREATION",             "MachineName")
 
-        if im0_ini is None:
-            im0_path = os.path.splitext(file_path)[0] + ".im0"
-            if os.path.isfile(im0_path):
-                try:
-                    im0_ini = _read_ini_file(im0_path, encoding)
-                except Exception:
-                    pass
+                if needs_sidecar:
+                    image_class, media_type = _resolve_image_class_from_sidecar(
+                        im0_ini, image_class, media_type
+                    )
 
-        if im0_ini:
-            manufacturer  = _ini_get(im0_ini, "XRAYEMITTER",         "Manufacturer")
-            serial_number = _ini_get(im0_ini, "RawImageCreationInfo", "SerialNr")
-            model_name    = _ini_get(im0_ini, "CREATION",             "SOURCE")
-            station_name  = _ini_get(im0_ini, "CREATION",             "MachineName")
+                dpi_x_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_X")
+                dpi_y_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_Y")
+                if dpi_x_str and dpi_y_str:
+                    try:
+                        imager_pixel_x = float(dpi_x_str.replace(",", ".")) / 25.4
+                        imager_pixel_y = float(dpi_y_str.replace(",", ".")) / 25.4
+                    except ValueError:
+                        pass
 
-            # Step 2a: resolve image type from sidecar when MODALITY is ambiguous
-            if needs_sidecar:
-                image_class, media_type = _resolve_image_class_from_sidecar(
-                    im0_ini, image_class, media_type
-                )
-
-            # Step 2b: pixel spacing from DPI
-            dpi_x_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_X")
-            dpi_y_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_Y")
-            if dpi_x_str and dpi_y_str:
-                try:
-                    mm_per_inch = 25.4
-                    imager_pixel_x = float(dpi_x_str.replace(",", ".")) / mm_per_inch
-                    imager_pixel_y = float(dpi_y_str.replace(",", ".")) / mm_per_inch
-                except (ValueError, AttributeError):
-                    pass
-
-    # ── Step 3: .imo sidecar (orientation / invert) ───────────────────────
-    orientation = None
-    is_inverted = False
-
-    if file_path and os.path.isfile(file_path):
-        imo_path = os.path.splitext(file_path)[0] + ".imo"
-        if os.path.isfile(imo_path):
+        # ── Step 3: .imo sidecar (orientation / invert) ──────────────────
+        imo_path, _ = dirs.find(stem + ".imo")
+        if imo_path:
             try:
-                imo_ini = _read_ini_file(imo_path, encoding)
-                ops_section = None
-                for sec in imo_ini:
-                    if sec.lower() == "imageoperations":
-                        ops_section = imo_ini[sec]
-                        break
-                if ops_section:
-                    rot_steps = 0
-                    mirrored  = False
-                    for _, op_val in sorted(ops_section.items()):
-                        v = op_val.strip()
-                        if v == "Invert  st=0 r=1 g=1 b=1":
-                            is_inverted = not is_inverted
-                        elif v == "Rotate  st=0 ax10=900 anc=5":
-                            rot_steps = (rot_steps + 3) % 4
-                        elif v == "Rotate  st=0 ax10=1800 anc=5":
-                            rot_steps = (rot_steps + 2) % 4
-                        elif v == "Rotate  st=0 ax10=2700 anc=5":
-                            rot_steps = (rot_steps + 1) % 4
-                        elif v in ("Orient  st=0 or=1", "Orient  st=0 or=2"):
-                            mirrored = not mirrored
-                    rot_map = {0: None, 1: "ROT90", 2: "ROT180", 3: "ROT270"}
-                    orientation = rot_map[rot_steps]
-                    if mirrored:
-                        orientation = f"MIRROR_{orientation}" if orientation else "MIRROR"
-            except Exception:
+                orientation, is_inverted = _parse_imo(_read_ini_file(imo_path, encoding))
+            except OSError:
                 pass
-
-    # ── Step 4: generate preview JPEG ────────────────────────────────────
-    preview_path = None
-    if file_path and os.path.isfile(file_path):
-        try:
-            from PIL import Image
-            import numpy as np
-            preview_file = file_path + ".preview.jpg"
-            if not os.path.isfile(preview_file):
-                with Image.open(file_path) as img:
-                    arr = np.array(img)
-                    if arr.dtype != np.uint8:
-                        arr_min, arr_max = arr.min(), arr.max()
-                        if arr_max > arr_min:
-                            arr = ((arr - arr_min) / (arr_max - arr_min) * 255).astype(np.uint8)
-                        else:
-                            arr = np.zeros_like(arr, dtype=np.uint8)
-                    preview_img = Image.fromarray(arr)
-                    if preview_img.mode not in ('L', 'RGB'):
-                        preview_img = preview_img.convert('L')
-                    preview_img.thumbnail((512, 512))
-                    preview_img.save(preview_file, "JPEG", quality=75)
-            preview_path = preview_file
-        except Exception:
-            preview_path = None
 
     # ── IDs / timestamps ─────────────────────────────────────────────────
     vorgnr     = _g(row, "VORGNR") or ""
@@ -507,12 +647,16 @@ def _build_media_item(
     sop_uid    = _g(row, "SOPINSTANCEUID") or ""
     acq_dt     = _parse_datetime(_g(row, "AUFNDATUM"), _g(row, "AUFNZEIT"))
 
-    file_size = None
-    if file_path and os.path.isfile(file_path):
-        try:
-            file_size = os.path.getsize(file_path)
-        except OSError:
-            pass
+    # ── Preview: use an already-cached one if it exists, else lazy ───────
+    preview_path = None
+    if real_path:
+        cached = _preview_cache_path(real_path, vorgnr)
+        if os.path.basename(cached).lower() in preview_cache:
+            preview_path = cached
+        else:
+            # Previews written next to the image by earlier versions
+            legacy, _ = dirs.find(real_path + ".preview.jpg")
+            preview_path = legacy
 
     dicom_tags = {
         "StudyInstanceUID":        study_uid,
@@ -544,7 +688,7 @@ def _build_media_item(
         ),
     }
 
-    return {
+    media = {
         "uid":          vorgnr,
         "sop_instance": sop_uid,
         "_study_uid":   study_uid,
@@ -562,6 +706,9 @@ def _build_media_item(
         "dicom_tags":   dicom_tags,
         "comments":     _g(row, "SERIESDESCRIPTION") or "",
     }
+    if real_path:
+        media["_fetch_preview"] = _make_preview_fetch(media)
+    return media
 
 
 # ---------------------------------------------------------------------------
@@ -667,12 +814,26 @@ class DBSWinSource(BaseDatasource):
             return False, msg
         fdb = _get_fdb_path(media_path)
         try:
-            rows = _fb_query(fdb, "SELECT COUNT(*) AS CNT FROM PATIENT WHERE PNR != '1'")
-            count = rows[0].get("CNT", rows[0].get("cnt", "?")) if rows else "?"
+            rows = _fb_query(fdb, "SELECT COUNT(*) AS CNT FROM PATIENT WHERE PNR <> '1'")
+            count = rows[0].get("CNT", "?") if rows else "?"
             return True, f"Connected to DUERRDBSWIN.FDB. Found {count} patient(s)."
         except Exception as exc:
             from datasources.fb_client import run_diag
             return False, f"{exc}\n\n--- FbBridge diagnostics ---\n{run_diag()}"
+
+    def reattach_fetch(self, patients: list) -> list:
+        """
+        Re-attach `_fetch_preview` after patients are restored from the
+        migration store (resumed migrations), which only keeps JSON.
+        Called by the engine before write_patients.
+        """
+        for patient in patients:
+            for study in patient.get("studies", {}).values():
+                for series in study.get("series", {}).values():
+                    for media in series.get("media", []):
+                        if media.get("file_path") and "_fetch_preview" not in media:
+                            media["_fetch_preview"] = _make_preview_fetch(media)
+        return patients
 
     def load(
         self,
@@ -680,18 +841,21 @@ class DBSWinSource(BaseDatasource):
         max_parallelism: int = 4,
         progress_callback: Optional[Callable] = None,
     ) -> list:
+        import time
+        t0 = time.time()
+
+        def _progress(pct: int, msg: str):
+            if progress_callback:
+                progress_callback(pct, 100, msg)
+
         media_path = self.get_config_value("MediaPath") or ""
         encoding   = self.get_config_value("Encoding") or "windows-1252"
-        skip_empty = (self.get_config_value("SkipEmptyPatients") or "On").strip().lower() in ("on", "true", "1")
+        # All patients load regardless of media (needed for PMS matching);
+        # filtering happens at migration time. Same as VistaSoft / SOPRO.
+        skip_empty = False
 
-        xray_path = (
-            self.get_config_value("XRayImgPath") or
-            _get_xray_image_path(media_path) or ""
-        )
-        vid_path = (
-            self.get_config_value("VidImgPath") or
-            _get_video_image_path(media_path) or ""
-        )
+        xray_path = self.get_config_value("XRayImgPath") or _get_xray_image_path(media_path) or ""
+        vid_path  = self.get_config_value("VidImgPath")  or _get_video_image_path(media_path) or ""
         self.set_config_value("XRayImgPath", xray_path)
         self.set_config_value("VidImgPath",  vid_path)
 
@@ -701,93 +865,95 @@ class DBSWinSource(BaseDatasource):
                 f"DUERRDBSWIN.FDB not found under {media_path}\\pr1\\database\\"
             )
 
-        self.logger.debug("Fetching patient IDs from DBSWin database")
-        patient_ids = _fb_query_patient_ids(fdb)
-        total = len(patient_ids)
-        self.logger.debug(f"Total patients: {total}")
+        # ── 1. All patients in one query ─────────────────────────────────
+        _progress(2, "Reading patients…")
+        patients: list = []
+        by_uid:   dict = {}
+        for row in _fb_query(fdb, _PATIENTS_SQL):
+            p = _build_patient(row)
+            if p["uid"] and p["uid"] not in by_uid:
+                by_uid[p["uid"]] = p
+                patients.append(p)
+        self.logger.info(f"DBSWin: {len(patients)} patients read in {time.time() - t0:.1f}s")
 
-        if progress_callback:
-            progress_callback(0, total, f"Loading media for {total} patients…")
+        # ── 2. Media rows, batched by patient, sequential ────────────────
+        uids     = [p["uid"] for p in patients]
+        batches  = [uids[i:i + _MEDIA_BATCH] for i in range(0, len(uids), _MEDIA_BATCH)]
+        rows: list = []
+        for n, batch in enumerate(batches, 1):
+            if cancel_flag():
+                return patients
+            rows.extend(_fb_query_media_batch(fdb, batch, self.logger))
+            _progress(5 + int(45 * n / max(len(batches), 1)),
+                      f"Reading media records… ({len(rows):,} so far)")
+        self.logger.info(f"DBSWin: {len(rows)} media rows read in {time.time() - t0:.1f}s")
 
-        patients  = []
-        completed = [0]
-        errors    = [0]
-        lock      = threading.Lock()
+        # ── 3. Sidecars + file checks in parallel (disk I/O only) ────────
+        dirs = _DirIndex()
+        try:
+            preview_cache = {n.lower() for n in os.listdir(_preview_cache_dir())}
+        except OSError:
+            preview_cache = set()
 
-        def process_patient(patient_id: str) -> Optional[dict]:
+        errors = [0]
+        def _safe_build(row):
             if cancel_flag():
                 return None
             try:
-                pat_row = _fb_query_patient(fdb, patient_id)
-                if not pat_row:
-                    raise ValueError(f"Patient row not found for PNR={patient_id}")
-                patient = _build_patient(pat_row)
-
-                for row in _fb_query_media(fdb, patient_id):
-                    if cancel_flag():
-                        break
-                    try:
-                        media_item = _build_media_item(row, xray_path, vid_path, encoding)
-                        if media_item is None:
-                            continue
-
-                        study_uid  = media_item.pop("_study_uid")
-                        series_uid = media_item.pop("_series_uid")
-
-                        study = patient["studies"].setdefault(study_uid, {
-                            "uid":            study_uid,
-                            "study_instance": study_uid,
-                            "study_datetime": media_item["dicom_tags"].get("StudyDate", ""),
-                            "accession":      media_item["dicom_tags"].get("AccessionNumber", ""),
-                            "description":    media_item["dicom_tags"].get("StudyDescription", ""),
-                            "ref_physician":  media_item["dicom_tags"].get("ReferringPhysicianName", ""),
-                            "series":         {},
-                        })
-                        series = study["series"].setdefault(series_uid, {
-                            "uid":        series_uid,
-                            "dicom_tags": media_item["dicom_tags"],
-                            "media":      [],
-                        })
-                        series["media"].append(media_item)
-
-                    except Exception as exc:
-                        self.logger.error(f"Failed to load media row for patient {patient_id}: {exc}")
-                        with lock:
-                            errors[0] += 1
-
-                return patient
-
+                return _build_media_item(row, xray_path, vid_path, encoding, dirs, preview_cache)
             except Exception as exc:
-                self.logger.error(f"Failed to load patient {patient_id}: {exc}")
-                with lock:
-                    errors[0] += 1
+                errors[0] += 1
+                self.logger.error(
+                    f"Failed to load media {_g(row, 'VORGNR')} for patient {_g(row, 'PNR')}: {exc}"
+                )
                 return None
 
-        with ThreadPoolExecutor(max_workers=max_parallelism) as pool:
-            futures = {pool.submit(process_patient, pid): pid for pid in patient_ids}
-            for fut in as_completed(futures):
-                if cancel_flag():
-                    break
-                patient = fut.result()
-                if patient is not None:
-                    has_media = any(
-                        series.get("media")
-                        for study in patient.get("studies", {}).values()
-                        for series in study.get("series", {}).values()
-                    )
-                    if has_media or not skip_empty:
-                        with lock:
-                            patients.append(patient)
+        workers = min(16, max(4, int(max_parallelism or 4) * 2))
+        items: list = []
+        total_rows = len(rows) or 1
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for i, item in enumerate(pool.map(_safe_build, rows, chunksize=64), 1):
+                items.append(item)
+                if i % 500 == 0:
+                    _progress(50 + int(45 * i / total_rows), f"Reading image details… {i:,}/{len(rows):,}")
+        if cancel_flag():
+            return patients
 
-                with lock:
-                    completed[0] += 1
-                if progress_callback:
-                    progress_callback(
-                        completed[0], total,
-                        f"Loaded {completed[0]}/{total} patients…"
-                    )
+        # ── 4. Assemble study → series → media in DB order ───────────────
+        missing_files = 0
+        for row, media_item in zip(rows, items):
+            if media_item is None:
+                continue
+            patient = by_uid.get(_g(row, "PNR") or "")
+            if patient is None:
+                continue
+            if media_item.get("size_bytes") is None:
+                missing_files += 1
+            study_uid  = media_item.pop("_study_uid")
+            series_uid = media_item.pop("_series_uid")
+            study = patient["studies"].setdefault(study_uid, {
+                "uid":            study_uid,
+                "study_instance": study_uid,
+                "study_datetime": media_item["dicom_tags"].get("StudyDate", ""),
+                "accession":      media_item["dicom_tags"].get("AccessionNumber", ""),
+                "description":    media_item["dicom_tags"].get("StudyDescription", ""),
+                "ref_physician":  media_item["dicom_tags"].get("ReferringPhysicianName", ""),
+                "series":         {},
+            })
+            series = study["series"].setdefault(series_uid, {
+                "uid":        series_uid,
+                "dicom_tags": media_item["dicom_tags"],
+                "media":      [],
+            })
+            series["media"].append(media_item)
 
+        if skip_empty:
+            patients = [p for p in patients if p["studies"]]
+
+        _progress(100, f"Loaded {len(patients):,} patients")
         self.logger.info(
-            f"DBSWin load complete: {len(patients)} patients, {errors[0]} error(s)"
+            f"DBSWin load complete: {len(patients)} patients, "
+            f"{sum(1 for i in items if i)} media, {missing_files} missing file(s), "
+            f"{errors[0]} error(s) in {time.time() - t0:.1f}s"
         )
         return patients

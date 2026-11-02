@@ -3231,11 +3231,13 @@ function renderMediaBrowser(patients) {
  
       // Flatten all media items across all patients
       const rows = [];
+      // Index raw patients by uid once (was a linear search per patient)
+      const rawByUid = new Map((_rawPatients || []).map(r => [r.uid, r]));
       patients.forEach(p => {
         const name = [p.given_names, p.family_name].filter(Boolean).join(' ') || p.uid || '—';
         // _rawPatients has studies; _loadedPatients (from /api/patients) has media_count
         // We need to iterate studies — try _rawPatients first
-        const raw = (_rawPatients || []).find(r => r.uid === p.uid) || p;
+        const raw = rawByUid.get(p.uid) || p;
         Object.values(raw.studies || {}).forEach(study => {
           Object.values(study.series || {}).forEach(series => {
             (series.media || []).forEach(m => {
@@ -3281,7 +3283,7 @@ function renderMediaBrowser(patients) {
         const label = modLabel[r.modality] || r.modality;
         return `<tr>
           <td style="padding:6px 8px;">
-            <img src="${previewUrl}" alt="preview"
+            <img src="${previewUrl}" alt="preview" loading="lazy" decoding="async"
               style="width:56px;height:42px;object-fit:cover;border-radius:4px;
                      background:var(--bg-hover);border:1px solid var(--border);"
               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">

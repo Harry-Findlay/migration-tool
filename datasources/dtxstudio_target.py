@@ -883,6 +883,17 @@ class DTXStudioTarget(BaseDatasource):
                                     with open(preview_path, "rb") as f:
                                         client.put_media_preview_data(new_media_id, f, pct)
                                     self.logger.info(f"        Preview:  {os.path.basename(preview_path)}")
+                                elif callable(media.get("_fetch_preview")):
+                                    # Source renders its preview on demand
+                                    try:
+                                        import io as _io
+                                        pdata = media["_fetch_preview"]()
+                                        if pdata:
+                                            pct = "image/png" if pdata[:4] == b"\x89PNG" else "image/jpeg"
+                                            client.put_media_preview_data(new_media_id, _io.BytesIO(pdata), pct)
+                                            self.logger.info("        Preview:  (generated)")
+                                    except Exception as pe:
+                                        self.logger.warning(f"        Preview failed: {pe}")
 
                             elif media.get("_fetch"):
                                 try:
