@@ -617,6 +617,10 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
 .log-line.warning { color: var(--yellow); }
 .log-line.info { color: var(--accent); }
 .log-ts { color: var(--text-3); margin-right: 6px; }
+.log-line.verbose { color: var(--text-3); display: none; }
+.log-panel.show-verbose .log-line.verbose { display: block; }
+.log-pat { color: var(--text-1); margin-right: 6px; font-weight: 600; }
+.prob-chip { display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:2px 8px; border-radius:10px; background:var(--bg-hover); color:var(--text-2); }
 
 .empty-state {
   text-align: center;
@@ -1328,6 +1332,7 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
               <button class="btn btn-ghost btn-sm" onclick="pmsFilterAll()" id="pmsFiltAll">All</button>
               <button class="btn btn-ghost btn-sm" onclick="pmsFilterMismatches()" id="pmsFiltMismatch"><i class="bi bi-exclamation-circle"></i> Mismatches</button>
               <button class="btn btn-ghost btn-sm" onclick="pmsFilterUnmatched()" id="pmsFiltUnmatched"><i class="bi bi-question-circle"></i> Unmatched</button>
+              <button class="btn btn-ghost btn-sm" onclick="pmsFilterSourceOnly()" id="pmsFiltSourceOnly" title="Source patients with no matching PMS record"><i class="bi bi-person-dash"></i> Source only<span id="pmsFiltSourceOnlyCount"></span></button>
             </div>
           </div>
           <div class="table-wrap">
@@ -1605,10 +1610,35 @@ tbody tr:hover td { background: var(--bg-hover); color: var(--text-1); }
         <div class="card">
           <div class="card-header" style="justify-content:space-between;">
             <span><i class="bi bi-terminal"></i> Migration Log</span>
-            <button class="btn btn-ghost btn-sm" onclick="clearLog()"><i class="bi bi-trash"></i> Clear</button>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-3);cursor:pointer;"
+                     title="Show every line the server writes to its log file">
+                <input type="checkbox" id="migLogVerbose" onchange="document.getElementById('migLog').classList.toggle('show-verbose', this.checked)"> Detailed
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="clearLog()"><i class="bi bi-trash"></i> Clear</button>
+            </div>
           </div>
           <div class="card-body" style="padding:0;">
-            <div class="log-panel" id="migLog"></div>
+            <div class="log-panel" id="migLog" style="height:320px;"></div>
+          </div>
+        </div>
+
+        <!-- Problems: failed patients and images -->
+        <div class="card" style="margin-top:16px;" id="migProblemsCard">
+          <div class="card-header" style="justify-content:space-between;">
+            <span><i class="bi bi-exclamation-triangle"></i> Problems <span id="migProblemsTitle" style="font-weight:400;color:var(--text-3);font-size:11px;margin-left:6px;"></span></span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span id="migProblemsSummary" style="display:flex;gap:6px;flex-wrap:wrap;"></span>
+              <button class="btn btn-ghost btn-sm" onclick="migProblemsCsv()" title="Download as CSV"><i class="bi bi-download"></i> CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap" style="max-height:320px;overflow-y:auto;">
+            <table>
+              <thead><tr><th style="width:70px;">Time</th><th>Patient</th><th style="width:120px;">What failed</th><th>Details</th></tr></thead>
+              <tbody id="migProblemsTbody">
+                <tr><td colspan="4"><div class="empty-state" style="padding:16px;"><i class="bi bi-check2-circle"></i><p>No problems</p></div></td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -2113,6 +2143,11 @@ async function checkServerStatus() {
   try {
     const d = await fetch(API + '/status', { credentials: 'include' }).then(r => r.json());
     setConnStatus(d.connected, d.status || 'Connected');
+    // Page reloaded while a migration is running or paused: pick it back up
+    if ((d.migration_status === 'running' || d.migration_status === 'paused') && !_migPollTimer) {
+      _setMigState(d.migration_status);
+      _startMigPoll();
+    }
   } catch {
     setConnStatus(false, 'Server offline (demo mode)');
   }
@@ -2516,30 +2551,45 @@ function pmsLoadFile(file) {
 }
 
 function parseCsv(text) {
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (!lines.length) return;
-  _pmsCsvHeaders = csvSplitLine(lines[0]);
-  _pmsCsvRows = lines.slice(1).map(l => {
-    const vals = csvSplitLine(l);
-    const row = {};
-    _pmsCsvHeaders.forEach((h, i) => row[h] = (vals[i] || '').trim());
-    return row;
-  }).filter(r => Object.values(r).some(v => v));
-}
+  // RFC 4180-style parser: quoted fields may contain commas, newlines and "" escapes.
+  // Strips a UTF-8 BOM and auto-detects comma / semicolon / tab delimiters.
+  text = String(text || '').replace(/^﻿/, '');
+  const firstLine = text.slice(0, text.search(/\r?\n|$/));
+  const delim = [',', ';', '\t']
+    .map(d => [d, firstLine.split(d).length])
+    .sort((a, b) => b[1] - a[1])[0][0];
 
-function csvSplitLine(line) {
-  const result = [];
-  let cur = '', inQuote = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') { inQuote = !inQuote; continue; }
-    if (c === ',' && !inQuote) { result.push(cur.trim()); cur = ''; continue; }
-    cur += c;
+  const records = [];
+  let row = [], cur = '', inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }
+        else inQuote = false;
+      } else cur += c;
+    } else if (c === '"') {
+      inQuote = true;
+    } else if (c === delim) {
+      row.push(cur.trim()); cur = '';
+    } else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur.trim()); cur = '';
+      if (row.some(v => v)) records.push(row);
+      row = [];
+    } else cur += c;
   }
-  result.push(cur.trim());
-  return result;
-}
+  row.push(cur.trim());
+  if (row.some(v => v)) records.push(row);
 
+  if (!records.length) { _pmsCsvHeaders = []; _pmsCsvRows = []; return; }
+  _pmsCsvHeaders = records[0];
+  _pmsCsvRows = records.slice(1).map(vals => {
+    const r = {};
+    _pmsCsvHeaders.forEach((h, i) => r[h] = vals[i] || '');
+    return r;
+  });
+}
 function pmsAutoDetect() {
   _pmsMapping = {};
   PMS_FIELDS.forEach(f => {
@@ -2614,182 +2664,279 @@ function pmsApplyMapping() {
 }
 
 function pmsCompare() {
-  // Match PMS rows against loaded source patients
-  _pmsCompared = _pmsMapped.map(pms => {
-    const surname    = (pms.surname || '').toLowerCase().trim();
-    const first_name = (pms.first_name || '').toLowerCase().trim();
-    const dob        = normaliseDob(pms.dob);
+  // Match PMS rows against loaded source patients using lookup maps
+  // (one pass over each list instead of a search per row).
+  const src = _pmsSourceIndex();
+  const push = (map, key, val) => { if (!key) return; const a = map.get(key); a ? a.push(val) : map.set(key, [val]); };
 
-    // Try NHS first, then DOB+surname, then surname+first
-    let source = null;
-    if (pms.nhs_number) {
-      source = _loadedPatients.find(p => (p.nhs_number||'').trim() === pms.nhs_number.trim());
-    }
-    if (!source) {
-      source = _loadedPatients.find(p =>
-        normaliseDob(p.dob) === dob &&
-        (p.family_name||'').toLowerCase().trim() === surname
-      );
-    }
-    if (!source) {
-      source = _loadedPatients.find(p =>
-        (p.family_name||'').toLowerCase().trim() === surname &&
-        (p.given_names||'').toLowerCase().trim().startsWith(first_name.slice(0,3))
-      );
-    }
+  const byNhs = new Map(), byDobSurname = new Map(), bySurname = new Map(), byDobFirst = new Map();
+  src.forEach(s => {
+    if (s.nhs) push(byNhs, s.nhs, s);
+    s.surnames.forEach(k => { push(byDobSurname, s.dob + '|' + k, s); push(bySurname, k, s); });
+    if (s.dob && s.first) push(byDobFirst, s.dob + '|' + s.first, s);
+  });
+  // Prefer a candidate whose first name matches, then one not already used
+  const used = new Set();
+  const pick = (cands, first) => {
+    if (!cands || !cands.length) return null;
+    const free = cands.filter(c => !used.has(c.p.uid));
+    const pool = free.length ? free : cands;
+    return pool.find(c => first && c.first === first) || pool[0];
+  };
 
+  _pmsCompared = _pmsMapped.map((pms, idx) => {
+    const surnames = _pmsSurnameKeys(pms.surname);
+    const first    = _pmsNameKey((pms.first_name || '').split(/\s+/)[0]);
+    const dob      = normaliseDob(pms.dob);
+    const nhs      = (pms.nhs_number || '').replace(/\s+/g, '');
+
+    // 1. NHS number  2. DOB + surname (incl. former names in brackets)
+    // 3. Surname + first name (first 3 letters) + a DOB that looks like a typo
+    //    of the same date — stops siblings (Prajit/Pramin Gurung) matching
+    // 4. DOB + first name (surname changed)
+    let hit = nhs ? pick(byNhs.get(nhs), first) : null, via = hit ? 'NHS number' : '';
+    if (!hit && dob) {
+      for (const k of surnames) { hit = pick(byDobSurname.get(dob + '|' + k), first); if (hit) break; }
+      if (hit) via = 'DOB + surname';
+    }
+    if (!hit && first) {
+      for (const k of surnames) {
+        const c = (bySurname.get(k) || []).filter(s =>
+          s.first.startsWith(first.slice(0, 3)) &&
+          // No DOB on one side: only accept an exact first name
+          ((dob && s.dob) ? _pmsDobLikelyTypo(dob, s.dob) : s.first === first));
+        hit = pick(c, first); if (hit) break;
+      }
+      if (hit) via = 'Surname + first name, DOB close';
+    }
+    if (!hit && dob && first) {
+      hit = pick(byDobFirst.get(dob + '|' + first), first);
+      if (hit) via = 'DOB + first name, surname differs';
+    }
+    if (hit) used.add(hit.p.uid);
+
+    const source = hit ? hit.p : null;
     let matchStatus = source ? 'matched' : 'unmatched';
     const conflicts = [];
-
-    if (source) {
-      if (normaliseDob(source.dob) !== dob && dob) {
+    if (hit) {
+      if (dob && hit.dob !== dob) {
         conflicts.push({ field:'DOB', pms: pms.dob, source: source.dob });
-        matchStatus = 'conflict';
       }
-      const srcSurname = (source.family_name||'').toLowerCase().trim();
-      if (srcSurname && srcSurname !== surname) {
+      // Surname conflict only if the current (un-bracketed) names differ
+      if (hit.surnames[0] && surnames[0] && hit.surnames[0] !== surnames[0]) {
         conflicts.push({ field:'Surname', pms: pms.surname, source: source.family_name });
-        matchStatus = 'conflict';
       }
+      if (conflicts.length) matchStatus = 'conflict';
     }
-
-    return { pms, source, sourceUid: source ? (source.uid || '') : '', matchStatus, conflicts };
+    return { pms, source, sourceUid: source ? (source.uid || '') : '', matchStatus, conflicts,
+             matchedBy: via, _idx: idx, _selected: true };
   });
 
+  _pmsRenderLimit = _PMS_PAGE;
   renderCompareTable(_pmsCompared);
   document.getElementById('pmsCompareCard').style.display = 'block';
-
-  const matched   = _pmsCompared.filter(r => r.matchStatus !== 'unmatched').length;
-  const conflicts = _pmsCompared.filter(r => r.matchStatus === 'conflict').length;
-  const unmatched = _pmsCompared.filter(r => r.matchStatus === 'unmatched').length;
-  document.getElementById('pmsMatchSummary').textContent =
-    `${matched} matched · ${conflicts} conflicts · ${unmatched} unmatched`;
-  appLog(`PMS comparison: ${matched} matched, ${conflicts} conflicts, ${unmatched} unmatched.`,
-    conflicts || unmatched ? 'warning' : 'success');
-
+  const { conflicts, unmatched } = _pmsUpdateSummary();
   if (conflicts) renderConflictResolution();
   document.getElementById('pmsDataSourceCard').style.display = 'block';
 }
 
+// True when two YYYY-MM-DD dates look like the same date mistyped:
+// same year and month, same year and day, day/month swapped, or same
+// day/month with the year differing by one digit (1985 vs 1958 / 1965).
+function _pmsDobLikelyTypo(a, b) {
+  const pa = a.split('-'), pb = b.split('-');
+  if (pa.length !== 3 || pb.length !== 3) return false;
+  const [ya, ma, da] = pa, [yb, mb, db] = pb;
+  if (ya === yb) return ma === mb || da === db || (ma === db && da === mb);
+  if (ma === mb && da === db) {
+    let diff = 0;
+    for (let i = 0; i < 4; i++) if (ya[i] !== yb[i]) diff++;
+    return diff === 1 || (ya[2] === yb[3] && ya[3] === yb[2] && ya.slice(0, 2) === yb.slice(0, 2));
+  }
+  return false;
+}
+
+// Source patients pre-normalised once for matching and suggestions
+function _pmsSourceIndex() {
+  return _loadedPatients.map(p => {
+    const surnames = _pmsSurnameKeys(p.family_name);
+    const first    = _pmsNameKey((p.given_names || '').split(/\s+/)[0]);
+    return { p, surnames, first, dob: normaliseDob(p.dob || ''),
+             nhs: (p.nhs_number || '').replace(/\s+/g, ''),
+             search: [(p.family_name||''), (p.given_names||''), (p.dob||''), (p.id||'')].join(' ').toLowerCase() };
+  });
+}
+
+// Lower-case letters only: "O'Brien" → "obrien", "Smith-Jones" → "smithjones", "Zoë" → "zoe"
+function _pmsNameKey(s) {
+  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z]/g, '');
+}
+
+// Surname keys: [current name, …former names found in brackets]
+// "Guilford (was Cartledge)" → ['guilford', 'cartledge']
+// "Smith (nee Jones)" → ['smith', 'jones']
+function _pmsSurnameKeys(s) {
+  const raw = String(s || '');
+  const keys = [_pmsNameKey(raw.replace(/[\(\[][^\)\]]*[\)\]]?/g, ' '))];
+  (raw.match(/[\(\[]([^\)\]]*)[\)\]]?/g) || []).forEach(b => {
+    const inner = b.replace(/[\(\)\[\]]/g, ' ')
+      .replace(/\b(was|nee|née|formerly|previously|prev|aka|maiden|name|known as)\b/gi, ' ');
+    const k = _pmsNameKey(inner);
+    if (k) keys.push(k);
+  });
+  return [...new Set(keys)].filter((k, i) => k || i === 0);
+}
+
+function _pmsSourceOnlyList() {
+  const linked = new Set(_pmsCompared.map(r => r.sourceUid).filter(Boolean));
+  return _loadedPatients.filter(p => !linked.has(p.uid));
+}
+
+function _pmsUpdateSummary() {
+  let matched = 0, conflicts = 0, unmatched = 0;
+  _pmsCompared.forEach(r => {
+    if (r.matchStatus === 'unmatched') unmatched++;
+    else { matched++; if (r.matchStatus === 'conflict') conflicts++; }
+  });
+  const sourceOnly = _pmsSourceOnlyList().length;
+  document.getElementById('pmsMatchSummary').textContent =
+    `${matched} matched · ${conflicts} conflicts · ${unmatched} unmatched · ${sourceOnly} source only`;
+  const lbl = document.getElementById('pmsFiltSourceOnlyCount');
+  if (lbl) lbl.textContent = sourceOnly ? ` (${sourceOnly})` : '';
+  appLog(`PMS comparison: ${matched} matched, ${conflicts} conflicts, ${unmatched} unmatched, ${sourceOnly} in source but not in PMS.`,
+    conflicts || unmatched ? 'warning' : 'success');
+  return { matched, conflicts, unmatched, sourceOnly };
+}
+
 function normaliseDob(dob) {
   if (!dob) return '';
-  // Try to parse common formats: DD/MM/YYYY, YYYY-MM-DD, DD-MM-YYYY
-  const clean = dob.replace(/[^\d]/g, '');
-  if (clean.length === 8) {
-    // Try YYYYMMDD
-    if (clean.slice(0,4) > '1900') return `${clean.slice(0,4)}-${clean.slice(4,6)}-${clean.slice(6,8)}`;
-    // Try DDMMYYYY
-    return `${clean.slice(4,8)}-${clean.slice(2,4)}-${clean.slice(0,2)}`;
+  const s = String(dob).trim();
+  let m;
+  // YYYY-MM-DD / YYYY/MM/DD / YYYY.MM.DD (optionally followed by a time)
+  if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/)))
+    return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  // DD/MM/YYYY / DD-MM-YYYY / DD.MM.YYYY (UK order; optionally followed by a time)
+  if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/)))
+    return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  // 8 digits, no separators: YYYYMMDD if it reads as a valid year/month, else DDMMYYYY
+  if (/^\d{8}$/.test(s)) {
+    const y = +s.slice(0,4), mo = +s.slice(4,6);
+    if (y >= 1850 && y <= 2100 && mo >= 1 && mo <= 12)
+      return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+    return `${s.slice(4,8)}-${s.slice(2,4)}-${s.slice(0,2)}`;
   }
-  return dob.trim();
+  return s;
 }
 
 // Manual PMS links: pms_index → source patient
 let _pmsManualLinks = {};
+let _pmsSrcIdxCache = null;   // [{p, surnames, first, dob, search}] — rebuilt when patients change
+function _pmsSrcIdx() {
+  if (!_pmsSrcIdxCache || _pmsSrcIdxCache.length !== _loadedPatients.length ||
+      (_pmsSrcIdxCache[0] && _pmsSrcIdxCache[0].p !== _loadedPatients[0])) {
+    _pmsSrcIdxCache = _pmsSourceIndex();
+  }
+  return _pmsSrcIdxCache;
+}
+function _pmsAttr(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 function pmsManualLink(pmsIndex, sourceUid) {
+  const row = _pmsCompared[pmsIndex];
+  if (!row) return;
   if (!sourceUid) {
     delete _pmsManualLinks[pmsIndex];
-  } else {
-    _pmsManualLinks[pmsIndex] = sourceUid;
-    // Re-run compare to reflect the link
-    const row = _pmsCompared[pmsIndex];
-    if (row) {
-      const sp = _loadedPatients.find(p => p.uid === sourceUid);
-      if (sp) {
-        row.source    = {
-          family_name: sp.family_name || '',
-          given_names: sp.given_names || '',
-          dob:         sp.dob || '',
-          patient_ref: sp.id || '',
-        };
-        row.sourceUid    = sourceUid;
-        row.matchStatus  = 'matched';
-        row.conflicts    = [];
-        row._manualLink  = true;
-      }
-    }
-    renderCompareTable(_pmsCompared);
-    const matched   = _pmsCompared.filter(r => r.matchStatus !== 'unmatched').length;
-    const unmatched = _pmsCompared.filter(r => r.matchStatus === 'unmatched').length;
-    const conflicts = _pmsCompared.filter(r => r.matchStatus === 'conflict').length;
-    document.getElementById('pmsMatchSummary').textContent =
-      `${matched} matched · ${conflicts} conflicts · ${unmatched} unmatched`;
+    return;
   }
+  const sp = _loadedPatients.find(p => p.uid === sourceUid);
+  if (!sp) return;
+  _pmsManualLinks[pmsIndex] = sourceUid;
+  row.source      = sp;
+  row.sourceUid   = sourceUid;
+  row.matchStatus = 'matched';
+  row.conflicts   = [];
+  row._manualLink = true;
+  row.matchedBy   = 'Linked manually';
+  renderCompareTable(_pmsCompared);
+  _pmsUpdateSummary();
+  appLog(`Manually linked PMS row ${pmsIndex + 1} to source patient ${sp.family_name||''}, ${sp.given_names||''}`, 'success');
 }
 
 function _pmsSuggestMatches(surname, firstName, dob, limit) {
-  // Score each loaded patient by similarity to the PMS row
-  const surnameL    = (surname   || '').toLowerCase().trim();
-  const firstNameL  = (firstName || '').toLowerCase().trim();
-  const normDob     = normaliseDob(dob || '');
+  // Score each source patient by similarity to the PMS row (keeps top `limit`)
+  const surnames = _pmsSurnameKeys(surname);
+  const sur      = surnames[0] || '';
+  const first    = _pmsNameKey((firstName || '').split(/\s+/)[0]);
+  const nDob     = normaliseDob(dob || '');
+  const top = [];
+  for (const s of _pmsSrcIdx()) {
+    let score = 0;
+    if (s.surnames.some(k => surnames.includes(k)))        score += 40;
+    else if (sur && s.surnames[0].startsWith(sur.slice(0,3))) score += 15;
+    else if (s.surnames[0] && sur.startsWith(s.surnames[0].slice(0,3))) score += 10;
+    if (first && s.first === first)                         score += 20;
+    else if (first && s.first.startsWith(first.slice(0,2))) score += 8;
+    if (nDob && s.dob === nDob)                             score += 30;
+    else if (nDob && s.dob.slice(0,4) === nDob.slice(0,4))  score += 5;
+    if (score <= 0) continue;
+    if (top.length < limit || score > top[top.length - 1]._num) {
+      top.push({ p: s.p, _num: score });
+      top.sort((a, b) => b._num - a._num);
+      if (top.length > limit) top.pop();
+    }
+  }
+  return top.map(t => ({ ...t.p, _num: t._num, _score: t._num >= 60 ? 'exact' : t._num }));
+}
 
-  return _loadedPatients
-    .map(sp => {
-      const spSurname = (sp.family_name || '').toLowerCase().trim();
-      const spFirst   = (sp.given_names || '').toLowerCase().trim();
-      const spDob     = normaliseDob(sp.dob || '');
-      let score = 0;
-
-      if (spSurname === surnameL)                          score += 40;
-      else if (spSurname.startsWith(surnameL.slice(0,3))) score += 15;
-      else if (surnameL.startsWith(spSurname.slice(0,3))) score += 10;
-
-      if (spFirst === firstNameL)                          score += 20;
-      else if (spFirst.startsWith(firstNameL.slice(0,2))) score += 8;
-
-      if (normDob && spDob === normDob)                    score += 30;
-      else if (normDob && spDob.slice(0,4) === normDob.slice(0,4)) score += 5;
-
-      const isExact = score >= 60;
-      return { ...sp, _score: isExact ? 'exact' : score, _num: score };
-    })
-    .filter(sp => sp._num > 0)
-    .sort((a, b) => b._num - a._num)
-    .slice(0, limit);
+function _pmsSuggestionHtml(pmsIndex, resultsId, list, showRef) {
+  if (!list.length) return `<div style="padding:6px 8px;font-size:11px;color:var(--text-3);">No patients found</div>`;
+  return list.map(sp => `
+    <div class="pms-suggestion"
+      onmousedown="event.preventDefault();pmsManualLink(${pmsIndex},'${_pmsAttr(sp.uid)}');document.getElementById('${resultsId}').style.display='none';"
+      style="padding:5px 8px;cursor:pointer;border-bottom:1px solid var(--border-dim);font-size:11px;background:var(--bg-2,#1e1e2e);"
+      onmouseover="this.style.background='var(--bg-hover,#2a2a3e)'" onmouseout="this.style.background='var(--bg-2,#1e1e2e)'">
+      <span style="font-weight:600;">${escHtml(sp.family_name||'')} ${escHtml(sp.given_names||'')}</span>
+      <span style="color:var(--text-3);margin-left:6px;">${escHtml(sp.dob||'—')}</span>
+      ${sp._score === 'exact' ? '<span style="color:var(--green);font-size:9px;margin-left:4px;">exact</span>' : ''}
+      ${showRef ? `<span style="color:var(--text-3);margin-left:6px;font-size:10px;">${escHtml(sp.id||'')}</span>` : ''}
+    </div>`).join('');
 }
 
 function pmsSearchInput(pmsIndex, query, resultsId) {
-  const q = query.toLowerCase().trim();
+  // Suggestions are computed only when a search box is focused or typed in,
+  // not for every unmatched row at render time.
+  const q  = (query || '').toLowerCase().trim();
   const el = document.getElementById(resultsId);
   if (!el) return;
-
-  const matches = q.length < 1
-    ? _pmsSuggestMatches(
-        (_pmsCompared[pmsIndex]?.pms?.surname || ''),
-        (_pmsCompared[pmsIndex]?.pms?.first_name || ''),
-        (_pmsCompared[pmsIndex]?.pms?.dob || ''),
-        5)
-    : _loadedPatients
-        .filter(sp =>
-          (sp.family_name || '').toLowerCase().includes(q) ||
-          (sp.given_names || '').toLowerCase().includes(q) ||
-          (sp.dob || '').includes(q) ||
-          (sp.id  || '').toLowerCase().includes(q)
-        )
-        .slice(0, 8);
-
-  if (!matches.length) {
-    el.innerHTML = `<div style="padding:6px 8px;font-size:11px;color:var(--text-3);">No patients found</div>`;
+  const pms = _pmsCompared[pmsIndex]?.pms || {};
+  let list;
+  if (!q) {
+    list = _pmsSuggestMatches(pms.surname, pms.first_name, pms.dob, 5);
   } else {
-    el.innerHTML = matches.map(sp => `
-      <div class="pms-suggestion"
-        onclick="pmsManualLink(${pmsIndex},'${escHtml(sp.uid)}');document.getElementById('${resultsId}').style.display='none';"
-        style="padding:5px 8px;cursor:pointer;border-bottom:1px solid var(--border-dim);font-size:11px;"
-        onmouseover="this.style.background='var(--bg-hover,#2a2a3e)'" onmouseout="this.style.background='var(--bg-2,#1e1e2e)'"
-        <span style="font-weight:600;">${escHtml(sp.family_name||'')} ${escHtml(sp.given_names||'')}</span>
-        <span style="color:var(--text-3);margin-left:6px;">${escHtml(sp.dob||'—')}</span>
-        <span style="color:var(--text-3);margin-left:6px;font-size:10px;">${escHtml(sp.id||'')}</span>
-      </div>`).join('');
+    list = [];
+    for (const s of _pmsSrcIdx()) {
+      if (s.search.includes(q)) { list.push(s.p); if (list.length >= 8) break; }
+    }
   }
+  el.innerHTML = _pmsSuggestionHtml(pmsIndex, resultsId, list, !!q);
   el.style.display = 'block';
 }
 
 let _pmsFilter = 'all';
 let _pmsFieldOverrides = {};
+const _PMS_PAGE = 500;          // rows rendered at a time — keeps large PMS lists responsive
+let _pmsRenderLimit = _PMS_PAGE;
 function pmsSetOverride(uid, field, val) { _pmsFieldOverrides[uid+':'+field] = val; }
 function pmsGetOverride(uid, field) { return _pmsFieldOverrides[uid+':'+field] || null; }
+function pmsShowMore() { _pmsRenderLimit += _PMS_PAGE; renderCompareTable(_pmsCompared); }
+
 function renderCompareTable(rows) {
+  const tbody = document.getElementById('pmsCompareTbody');
+  if (_pmsFilter === 'sourceonly') { _renderSourceOnlyTable(tbody); return; }
+
   const filtered = rows.filter(r => {
     if (_pmsFilter === 'mismatches') return r.matchStatus === 'conflict';
     if (_pmsFilter === 'unmatched')  return r.matchStatus === 'unmatched';
@@ -2800,12 +2947,11 @@ function renderCompareTable(rows) {
     if (s === 'conflict')  return '<span class="badge badge-yellow">Conflict</span>';
     return '<span class="badge badge-gray">Unmatched</span>';
   };
-  const tbody = document.getElementById('pmsCompareTbody');
   if (!filtered.length) {
     tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state" style="padding:20px;"><i class="bi bi-check2-circle"></i><p>No rows match this filter</p></div></td></tr>`;
     return;
   }
- 
+
   // Render a clickable field cell.
   // States cycle: null (global) → 'pms' → 'source' → null
   // Visual: dim if no override, blue underline for PMS, amber for source.
@@ -2814,7 +2960,10 @@ function renderCompareTable(rows) {
     const displayVal = cur === 'pms'    ? pmsVal
                      : cur === 'source' ? srcVal
                      : pmsVal; // global = show PMS val (what will be used if PMS mode)
-    const hasDiff = pmsVal && srcVal && pmsVal !== srcVal;
+    // Compare like-for-like: DOBs by date, names ignoring case/spacing
+    const hasDiff = !!(pmsVal && srcVal) && (fieldKey === 'dob'
+      ? normaliseDob(pmsVal) !== normaliseDob(srcVal)
+      : String(pmsVal).trim().toLowerCase() !== String(srcVal).trim().toLowerCase());
     if (!hasDiff && !pmsVal && !srcVal) {
       return `<td class="mono fs-11" style="color:var(--text-3);">—</td>`;
     }
@@ -2826,9 +2975,8 @@ function renderCompareTable(rows) {
     const titleText = hasDiff
       ? `Click to cycle override\nGlobal → PMS (${pmsVal}) → Source (${srcVal})\nCurrent: ${cur || 'global'}`
       : displayVal;
-    // onclick cycles through states
     const onclick = hasDiff && sourceUid
-      ? `pmsClickCell('${sourceUid}','${fieldKey}');`
+      ? `pmsClickCell('${_pmsAttr(sourceUid)}','${fieldKey}');`
       : '';
     const cursor  = hasDiff && sourceUid ? 'cursor:pointer;' : '';
     const badge   = cur === 'pms'    ? '<span style="font-size:8px;vertical-align:super;color:var(--accent);margin-left:2px;">PMS</span>'
@@ -2836,12 +2984,14 @@ function renderCompareTable(rows) {
                   : '';
     return `<td class="mono fs-11"
       style="${cursor}border-bottom:${underline};padding-bottom:3px;"
-      title="${escHtml(titleText)}"
+      title="${_pmsAttr(titleText)}"
       onclick="${onclick}"
     >${escHtml(displayVal || '—')}${badge}</td>`;
   };
- 
-  tbody.innerHTML = filtered.map((r, i) => {
+
+  const shown = filtered.slice(0, _pmsRenderLimit);
+  let html = shown.map(r => {
+      const i   = r._idx;                      // index into _pmsCompared, not the filtered list
       const p   = r.pms    || {};
       const s   = r.source || {};
       const uid = r.sourceUid || (r.source ? r.source.uid : '') || '';
@@ -2849,40 +2999,29 @@ function renderCompareTable(rows) {
                   : r.matchStatus === 'unmatched' ? 'style="background:rgba(255,80,80,0.05)"'
                   : '';
 
-      // Build match cell before template literal
       let matchCell = matchBadge(r.matchStatus);
+      if (r.matchedBy) {
+        const why = r.matchedBy + (r.conflicts && r.conflicts.length
+          ? ' — differs: ' + r.conflicts.map(c => c.field).join(', ') : '');
+        matchCell += `<div style="font-size:9px;color:var(--text-3);margin-top:3px;white-space:nowrap;" title="${_pmsAttr(why)}">${escHtml(r.matchedBy)}</div>`;
+      }
       if (r.matchStatus === 'unmatched' || r._manualLink) {
-        const searchId = `pmsSearch_${i}`;
         const resultsId = `pmsResults_${i}`;
-        // Pre-compute top suggestions ranked by name similarity to PMS row
-        const suggestions = _pmsSuggestMatches(p.surname, p.first_name, p.dob, 5);
-        const suggHtml = suggestions.length
-          ? suggestions.map(sp => `
-              <div class="pms-suggestion" onclick="pmsManualLink(${i},'${escHtml(sp.uid)}');document.getElementById('${resultsId}').style.display='none';"
-                style="padding:5px 8px;cursor:pointer;border-bottom:1px solid var(--border-dim);font-size:11px;"
-                onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background=''">
-                <span style="font-weight:600;">${escHtml(sp.family_name||'')} ${escHtml(sp.given_names||'')}</span>
-                <span style="color:var(--text-3);margin-left:6px;">${escHtml(sp.dob||'—')}</span>
-                ${sp._score === 'exact' ? '<span style="color:var(--green);font-size:9px;margin-left:4px;">exact</span>' : ''}
-              </div>`) .join('')
-          : `<div style="padding:6px 8px;font-size:11px;color:var(--text-3);">No suggestions</div>`;
-
         matchCell += `<div style="margin-top:5px;position:relative;">
-          <input id="${searchId}" type="text" placeholder="Search source patient…"
-            value="${r._manualLink ? escHtml((r.source.family_name||'')+' '+(r.source.given_names||'')) : ''}"
+          <input type="text" placeholder="Search source patient…"
+            value="${r._manualLink ? _pmsAttr((s.family_name||'')+' '+(s.given_names||'')) : ''}"
             style="font-size:11px;padding:3px 7px;width:190px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-1);"
             oninput="pmsSearchInput(${i}, this.value, '${resultsId}')"
-            onfocus="document.getElementById('${resultsId}').style.display='block'"
+            onfocus="pmsSearchInput(${i}, this.value, '${resultsId}')"
             onblur="setTimeout(()=>{ const el=document.getElementById('${resultsId}'); if(el) el.style.display='none'; },200)"
           >
-          <div id="${resultsId}" style="display:none;position:absolute;z-index:99;left:0;top:100%;width:260px;background:var(--bg-2,#1e1e2e);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.6);max-height:200px;overflow-y:auto;">
-            ${suggHtml}
-          </div>
+          <div id="${resultsId}" style="display:none;position:absolute;z-index:99;left:0;top:100%;width:280px;background:var(--bg-2,#1e1e2e);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.6);max-height:220px;overflow-y:auto;"></div>
         </div>`;
       }
 
       return `<tr ${rowBg} data-idx="${i}">
-        <td><input type="checkbox" class="pms-row-chk" data-idx="${i}" checked></td>
+        <td><input type="checkbox" class="pms-row-chk" data-idx="${i}" ${r._selected !== false ? 'checked' : ''}
+              onchange="pmsToggleRow(${i}, this.checked)"></td>
         ${fieldCell(uid, 'surname',     p.surname,     s.family_name)}
         ${fieldCell(uid, 'first_name',  p.first_name,  s.given_names)}
         ${fieldCell(uid, 'dob',         p.dob,         s.dob)}
@@ -2894,7 +3033,42 @@ function renderCompareTable(rows) {
         <td class="mono fs-11">${escHtml(s.id || s.patient_ref||'—')}</td>
       </tr>`;
     }).join('');
+  html += _pmsMoreRow(filtered.length, shown.length);
+  tbody.innerHTML = html;
+}
+
+function _pmsMoreRow(total, shown) {
+  if (shown >= total) return '';
+  return `<tr><td colspan="10" style="text-align:center;padding:12px;">
+    <span style="font-size:11px;color:var(--text-3);margin-right:10px;">Showing ${shown.toLocaleString()} of ${total.toLocaleString()}</span>
+    <button class="btn btn-ghost btn-sm" onclick="pmsShowMore()"><i class="bi bi-chevron-down"></i> Show ${Math.min(_PMS_PAGE, total - shown).toLocaleString()} more</button>
+  </td></tr>`;
+}
+
+// Source patients that no PMS row is linked to. They still migrate,
+// using their source demographics, as nothing in the PMS file overrides them.
+function _renderSourceOnlyTable(tbody) {
+  const list = _pmsSourceOnlyList();
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state" style="padding:20px;"><i class="bi bi-check2-circle"></i><p>Every source patient has a PMS record</p></div></td></tr>`;
+    return;
   }
+  const shown = list.slice(0, _pmsRenderLimit);
+  tbody.innerHTML = shown.map(s => `
+    <tr style="background:rgba(80,140,255,0.05)">
+      <td></td>
+      <td class="mono fs-11" style="color:var(--text-3);">—</td>
+      <td class="mono fs-11" style="color:var(--text-3);">—</td>
+      <td class="mono fs-11" style="color:var(--text-3);">—</td>
+      <td class="mono fs-11" style="color:var(--text-3);">—</td>
+      <td><span class="badge badge-accent" title="In the source but not in the PMS file. Migrates with source details.">Source only</span>
+        <span class="mono fs-11" style="color:var(--text-3);margin-left:6px;">${(s.media_count ?? 0).toLocaleString()} media</span></td>
+      <td style="color:var(--text-1);">${escHtml(s.family_name||'—')}</td>
+      <td>${escHtml(s.given_names||'—')}</td>
+      <td class="mono fs-11">${escHtml(s.dob||'—')}</td>
+      <td class="mono fs-11">${escHtml(s.id || s.patient_ref||'—')}</td>
+    </tr>`).join('') + _pmsMoreRow(list.length, shown.length);
+}
 
 function pmsCycleColumn(fieldKey) {
   // Determine current majority state for this column
@@ -2941,20 +3115,32 @@ function pmsClickCell(sourceUid, fieldKey) {
   renderCompareTable(_pmsCompared);
 }
 
-function pmsFilterAll()        { _pmsFilter='all';        renderCompareTable(_pmsCompared); setActive('pmsFiltAll'); }
-function pmsFilterMismatches() { _pmsFilter='mismatches'; renderCompareTable(_pmsCompared); setActive('pmsFiltMismatch'); }
-function pmsFilterUnmatched()  { _pmsFilter='unmatched';  renderCompareTable(_pmsCompared); setActive('pmsFiltUnmatched'); }
+function _pmsSetFilter(f, id) {
+  _pmsFilter = f;
+  _pmsRenderLimit = _PMS_PAGE;
+  renderCompareTable(_pmsCompared);
+  setActive(id);
+}
+function pmsFilterAll()        { _pmsSetFilter('all',        'pmsFiltAll'); }
+function pmsFilterMismatches() { _pmsSetFilter('mismatches', 'pmsFiltMismatch'); }
+function pmsFilterUnmatched()  { _pmsSetFilter('unmatched',  'pmsFiltUnmatched'); }
+function pmsFilterSourceOnly() { _pmsSetFilter('sourceonly', 'pmsFiltSourceOnly'); }
 function setActive(id) {
-  ['pmsFiltAll','pmsFiltMismatch','pmsFiltUnmatched'].forEach(i => {
+  ['pmsFiltAll','pmsFiltMismatch','pmsFiltUnmatched','pmsFiltSourceOnly'].forEach(i => {
     document.getElementById(i)?.classList.remove('active');
   });
   document.getElementById(id)?.classList.add('active');
 }
 
-function pmsToggleAll(checked) {
-  document.querySelectorAll('.pms-row-chk').forEach(c => c.checked = checked);
+function pmsToggleRow(idx, checked) {
+  if (_pmsCompared[idx]) _pmsCompared[idx]._selected = checked;
 }
 
+function pmsToggleAll(checked) {
+  // Applies to every row, including ones not currently rendered
+  _pmsCompared.forEach(r => r._selected = checked);
+  document.querySelectorAll('.pms-row-chk').forEach(c => c.checked = checked);
+}
 function renderConflictResolution() {
   const conflicts = _pmsCompared.filter(r => r.matchStatus === 'conflict');
   document.getElementById('pmsConflictCount').textContent = `${conflicts.length} patient(s) with conflicts`;
@@ -3018,6 +3204,8 @@ async function pmsConfirm() {
     const uid = r.sourceUid || r.source_uid || '';
     return {
       ...r.pms,
+      // Send DOB as YYYY-MM-DD — targets (e.g. DTX Studio) reject DD/MM/YYYY
+      dob: normaliseDob(r.pms.dob) || r.pms.dob || '',
       source_uid: uid,
       source: r.source,
       // Per-field overrides: null means "use global data source setting"
@@ -3363,8 +3551,39 @@ function refreshPatients() {
 let _migState = 'idle';
 let _migPollTimer = null;
 
+function _migParallelism() {
+  return Math.max(1, Math.min(16, parseInt(document.getElementById('media_parallel')?.value, 10) || 4));
+}
+
+// Filters page → server
+function _migFilters() {
+  const on = id => !!document.getElementById(id)?.checked;
+  return {
+    surname_prefix: (document.getElementById('filterSurname')?.value || '').trim(),
+    skip_no_media:  on('flt_no_media'),
+    media_types: {
+      pano: on('flt_pano'), ceph: on('flt_ceph'), intra: on('flt_intra'),
+      dvt: on('flt_dvt'), photo: on('flt_photo'), video: on('flt_video'),
+    },
+  };
+}
+
 async function migRun() {
   if (_migState === 'running') return;
+  if (_migState === 'paused') {
+    // Resume the paused run in place — never start a second migration over it
+    try {
+      await api('POST', '/migrate/resume', {});
+      _setMigState('running');
+      updateMigUI('Running…', 'yellow', null, 'Resumed.');
+      appLog('Migration resumed.', 'info');
+      _startMigPoll();
+    } catch (e) { appLog('Resume failed: ' + e.message, 'error'); }
+    return;
+  }
+  const f = _migFilters();
+  if (f.surname_prefix) appLog(`Filter: only surnames starting with "${f.surname_prefix}".`, 'warning');
+  _migResetLiveLog();
   _setMigState('running');
   updateMigUI('Running…', 'yellow', 0, 'Starting migration…');
   appLog('Migration started.', 'info');
@@ -3374,7 +3593,11 @@ async function migRun() {
     const d = await api('POST', '/migrate/start', {
       source: _selectedSource, target: _selectedTarget,
       source_config: getSourceConfig(), target_config: getTargetConfig(),
-      incremental
+      incremental,
+      filters: f,
+      // "Upload Parallelism" in Media Settings — patients written at once
+      // (only used by targets that support it, e.g. DTX Studio)
+      max_parallelism: _migParallelism(),
     });
     appLog('Migration queued, session: ' + (d.session_id||'demo'), 'success');
     _startMigPoll();
@@ -3405,9 +3628,10 @@ function _startMigPoll() {
   clearInterval(_migPollTimer);
   _migPollTimer = setInterval(async () => {
     try {
-      const d = await api('GET', '/migrate/status');
+      const d = await api('GET', '/migrate/status?since=' + _migLogSeq);
       const pct = Math.round((d.current / Math.max(d.total,1)) * 100);
       updateMigUI(d.status_label, _dotColor(d.status), pct, d.message);
+      if ((d.status === 'running' || d.status === 'paused') && _migState !== d.status) _setMigState(d.status);
       if (d.counters) updateMigStats(d.counters);
       if (d.status === 'completed' || d.status === 'failed' || d.status === 'cancelled') {
         clearInterval(_migPollTimer);
@@ -3415,7 +3639,10 @@ function _startMigPoll() {
         appLog('Migration ' + d.status + ': ' + d.message, d.status === 'completed' ? 'success' : 'error');
         loadHistory();
       }
-      if (d.log_line) migLog(d.log_line, d.log_level || 'info');
+      (d.log || []).forEach(l => migLog(l.msg, l.level, l.ts, l.patient));
+      if (d.problems && d.problems.length) _migAddProblems(d.problems);
+      if (d.problem_counts) _migRenderProblemSummary(d.problem_counts);
+      if (typeof d.log_seq === 'number') _migLogSeq = d.log_seq;
     } catch {
       clearInterval(_migPollTimer);
       _setMigState('idle');
@@ -3476,15 +3703,92 @@ function _setMigState(state) {
 }
 
 /* ── MIGRATION LOG ──────────────────────────────────────────── */
-function migLog(msg, level) {
-  const ts = new Date().toTimeString().slice(0,8);
+function migLog(msg, level, ts, patient) {
+  ts = ts || new Date().toTimeString().slice(0,8);
   const el = document.getElementById('migLog');
   if (!el) return;
+  const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
   const line = document.createElement('div');
   line.className = 'log-line ' + (level||'info');
-  line.innerHTML = `<span class="log-ts">[${ts}]</span>${escHtml(msg)}`;
+  // Don't repeat the patient name when the message already starts with it
+  const pat = patient && !String(msg).includes(patient) ? `<span class="log-pat">${escHtml(patient)}</span>` : '';
+  line.innerHTML = `<span class="log-ts">[${ts}]</span>${pat}${escHtml(msg)}`;
   el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
+  while (el.childElementCount > 3000) el.removeChild(el.firstChild);
+  if (atBottom) el.scrollTop = el.scrollHeight;
+}
+
+/* ── MIGRATION PROBLEMS ─────────────────────────────────────── */
+let _migLogSeq   = 0;
+let _migProblems = [];   // [{ts, patient, stage, message, level}]
+
+function _migResetLiveLog() {
+  _migProblems = [];
+  _renderMigProblems();
+  _migRenderProblemSummary({});
+  const t = document.getElementById('migProblemsTitle'); if (t) t.textContent = '';
+}
+
+function _migAddProblems(list) {
+  _migProblems.push(...list);
+  _renderMigProblems();
+}
+
+function _migRenderProblemSummary(counts) {
+  const el = document.getElementById('migProblemsSummary');
+  if (!el) return;
+  el.innerHTML = Object.entries(counts || {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `<span class="prob-chip">${escHtml(k)} <b>${v.toLocaleString()}</b></span>`).join('');
+}
+
+function _renderMigProblems() {
+  const tbody = document.getElementById('migProblemsTbody');
+  if (!tbody) return;
+  if (!_migProblems.length) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state" style="padding:16px;"><i class="bi bi-check2-circle"></i><p>No problems</p></div></td></tr>`;
+    return;
+  }
+  // Newest first; render the latest 500 (CSV has everything)
+  const rows = _migProblems.slice(-500).reverse();
+  tbody.innerHTML = rows.map(p => `
+    <tr>
+      <td class="mono fs-11" style="color:var(--text-3);">${escHtml(p.ts || '')}</td>
+      <td style="color:var(--text-1);font-weight:600;">${escHtml(p.patient || '—')}</td>
+      <td><span class="badge ${p.level === 'warning' ? 'badge-yellow' : 'badge-red'}">${escHtml(p.stage || '')}</span></td>
+      <td class="mono fs-11" style="white-space:normal;word-break:break-word;">${escHtml(p.message || '')}</td>
+    </tr>`).join('');
+}
+
+function migProblemsCsv() {
+  if (!_migProblems.length) { appLog('No problems to export.', 'info'); return; }
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const csv = ['Time,Patient,What failed,Details']
+    .concat(_migProblems.map(p => [p.ts || p.updated_at, p.patient, p.stage, p.message].map(q).join(',')))
+    .join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'migration-problems.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Failed patients for a past session (from Session History)
+async function showSessionFailures(id) {
+  try {
+    const d = await api('GET', `/history/${id}/failures`);
+    _migProblems = (d.failures || []).map(f => ({
+      ts: (f.updated_at || '').replace('T', ' ').slice(11, 19),
+      patient: f.patient, stage: f.stage, message: f.message, level: 'error',
+    }));
+    _renderMigProblems();
+    const counts = {};
+    _migProblems.forEach(p => counts[p.stage] = (counts[p.stage] || 0) + 1);
+    _migRenderProblemSummary(counts);
+    const t = document.getElementById('migProblemsTitle');
+    if (t) t.textContent = `— session ${id.slice(0, 8)}`;
+    document.getElementById('migProblemsCard')?.scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { appLog('Could not load failures: ' + e.message, 'error'); }
 }
 
 function clearLog() { const el = document.getElementById('migLog'); if(el) el.innerHTML = ''; }
@@ -3516,17 +3820,24 @@ function renderHistory(sessions) {
       <td class="mono">${s.done_patients||0} / ${s.total_patients||0}</td>
       <td style="display:flex;gap:4px;">
         ${s.status==='paused' ? `<button class="btn btn-ghost btn-sm" onclick="resumeSession('${s.session_id}')"><i class="bi bi-play-fill"></i> Resume</button>` : ''}
+        ${(s.failed_patients||0) > 0 ? `<button class="btn btn-ghost btn-sm" style="color:var(--yellow);" onclick="showSessionFailures('${s.session_id}')" title="Show failed patients"><i class="bi bi-exclamation-triangle"></i> ${s.failed_patients}</button>` : ''}
         <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteSession('${s.session_id}')"><i class="bi bi-trash"></i></button>
       </td>
     </tr>`).join('');
 }
  
 async function resumeSession(id) {
+  _migResetLiveLog();
   appLog(`Resuming session ${id}…`, 'info');
   _setMigState('running');
   updateMigUI('Resuming…', 'yellow', null, `Resuming session ${id.slice(0,8)}…`);
-  await api('POST', '/migrate/resume', { session_id: id });
-  _startMigPoll();
+  try {
+    await api('POST', '/migrate/resume', { session_id: id, max_parallelism: _migParallelism() });
+    _startMigPoll();
+  } catch (e) {
+    appLog('Resume failed: ' + e.message, 'error');
+    _setMigState('idle');
+  }
 }
  
 async function deleteSession(id) {

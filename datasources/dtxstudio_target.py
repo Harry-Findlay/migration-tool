@@ -70,31 +70,113 @@ class CoreClient:
             h.update(extra)
         return h
 
-    def _request(self, method: str, url: str, body: bytes = None, content_type: str = None) -> bytes:
+    # ── Transport ──────────────────────────────────────────────────
+    # One keep-alive connection per client (a client is used by one thread),
+    # instead of a new TCP + TLS handshake for every request. Transient
+    # failures are retried; uploads are streamed from disk with a timeout
+    # that scales with size.
+    _RETRY_STATUS = {429, 502, 503, 504}
+    _STALE_ERRORS = (ConnectionResetError, BrokenPipeError, ConnectionAbortedError)
+
+    def _connection(self, timeout: float):
+        import http.client
+        from urllib.parse import urlsplit
+        if getattr(self, "_conn", None) is None:
+            u = urlsplit(self.base_url)
+            if u.scheme == "https":
+                self._conn = http.client.HTTPSConnection(
+                    u.hostname, u.port or 443, timeout=timeout, context=self._ssl_ctx)
+            else:
+                self._conn = http.client.HTTPConnection(u.hostname, u.port or 80, timeout=timeout)
+            self._conn_fresh = True
+        else:
+            self._conn.timeout = timeout
+            if self._conn.sock is not None:
+                self._conn.sock.settimeout(timeout)
+            self._conn_fresh = False
+        return self._conn
+
+    def close(self):
+        conn, self._conn = getattr(self, "_conn", None), None
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    def _request(self, method: str, url: str, body=None, content_type: str = None,
+                 timeout: float = None) -> bytes:
+        import http.client
+        import time
+        from urllib.parse import urlsplit
+
+        u = urlsplit(url)
+        path = u.path + (f"?{u.query}" if u.query else "")
         headers = self._headers()
         if content_type:
             headers["Content-Type"] = content_type
-        req = Request(url, data=body, headers=headers, method=method)
-        try:
-            with urlopen(req, timeout=30, context=self._ssl_ctx) as resp:
-                return resp.read()
-        except HTTPError as exc:
-            body_snippet = ""
+
+        # Body: bytes, or a seekable file object streamed in chunks
+        start, length = 0, 0
+        if body is not None and hasattr(body, "read"):
+            start = body.tell()
+            body.seek(0, 2)
+            length = body.tell() - start
+            body.seek(start)
+        elif body is not None:
+            length = len(body)
+        if body is not None:
+            headers["Content-Length"] = str(length)
+        if timeout is None:
+            timeout = 60 if length < 5_000_000 else max(120, length / 1_000_000 * 5)
+
+        idempotent = method in ("GET", "PUT", "DELETE", "HEAD")
+        attempts = 4 if idempotent else 2
+        last_exc = None
+        for attempt in range(attempts):
+            if attempt:
+                time.sleep(min(2 ** (attempt - 1), 8))
+            if body is not None and hasattr(body, "read"):
+                body.seek(start)
+            fresh = True
             try:
-                body_snippet = exc.read().decode(errors="replace")[:300]
-            except Exception:
-                pass
-            raise ConnectionError(
-                f"HTTP {exc.code} {exc.reason} from {url}"
-                + (f": {body_snippet}" if body_snippet else "")
-            ) from exc
-        except URLError as exc:
-            reason = exc.reason
-            if isinstance(reason, Exception):
-                reason = f"{type(reason).__name__}: {reason}"
-            raise ConnectionError(f"Cannot reach {url}: {reason}") from exc
-        except Exception as exc:
-            raise ConnectionError(f"[{type(exc).__name__}] {exc}") from exc
+                conn = self._connection(timeout)
+                fresh = self._conn_fresh
+                conn.request(method, path, body=body, headers=headers)
+                resp = conn.getresponse()
+                data = resp.read()
+                if resp.will_close:
+                    self.close()
+            except (http.client.RemoteDisconnected, *self._STALE_ERRORS) as exc:
+                # A reused keep-alive connection the server had already closed:
+                # the request never reached it, so retrying is safe for any method.
+                self.close()
+                last_exc = exc
+                if not fresh or idempotent:
+                    continue
+                break
+            except (TimeoutError, OSError, http.client.HTTPException) as exc:
+                self.close()
+                last_exc = exc
+                if idempotent:
+                    continue
+                break
+
+            if resp.status >= 400:
+                snippet = data.decode(errors="replace")[:300]
+                err = ConnectionError(
+                    f"HTTP {resp.status} {resp.reason} from {url}" + (f": {snippet}" if snippet else ""))
+                # 429/5xx gateway errors mean the server did not process the request
+                if resp.status in self._RETRY_STATUS and attempt + 1 < attempts:
+                    last_exc = err
+                    continue
+                raise err
+            return data
+
+        reason = last_exc
+        if isinstance(reason, Exception):
+            reason = f"{type(reason).__name__}: {reason}"
+        raise ConnectionError(f"Cannot reach {url}: {reason}")
 
     def _get(self, path: str) -> any:
         raw = self._request("GET", self._url(path))
@@ -111,8 +193,8 @@ class CoreClient:
         return json.loads(raw) if raw else None
 
     def _put_stream(self, path: str, stream, content_type: str) -> bytes:
-        data = stream.read() if hasattr(stream, "read") else stream
-        raw = self._request("PUT", self._url(path), body=data, content_type=content_type)
+        # File objects are streamed, not read into memory (CBCT volumes can be hundreds of MB)
+        raw = self._request("PUT", self._url(path), body=stream, content_type=content_type)
         return raw or b""
 
     def _patch(self, path: str, payload: dict):
@@ -143,7 +225,9 @@ class CoreClient:
 
     def search_patients_by_pms_id(self, patient_id: str) -> list:
         """GET dw-endpoint/api/patients?api-resource-version=2&search.patientPmsId=...&sort.onLastCapturedDate=DESC"""
-        return self._get(f"patients?api-resource-version=2&search.patientPmsId={patient_id}&sort.onLastCapturedDate=DESC")
+        from urllib.parse import quote
+        return self._get(f"patients?api-resource-version=2&search.patientPmsId={quote(str(patient_id), safe='')}"
+                         f"&sort.onLastCapturedDate=DESC")
 
     def search_patients_by_clinic_id(self, patient_id: str) -> list:
         """GET dw-endpoint/api/patients?api-resource-version=2&search.patientDicomId=...&sort.onLastCapturedDate=DESC"""
@@ -271,33 +355,6 @@ class CoreClient:
 def _find_file(path: str) -> str | None:
     """
     Find a file that may or may not have an extension.
-    VistaSoft stores files without extensions in the DB path but
-    the actual files on disk may have .jpg, .dcm, .vsx, etc.
-    Returns the actual path if found, None otherwise.
-    """
-    if not path:
-        return None
-    if os.path.isfile(path):
-        return path
-    # Try common image extensions
-    for ext in (".jpg", ".jpeg", ".dcm", ".png", ".bmp", ".tif", ".tiff",
-                ".vsx", ".vsf", ".raw", ".bin", ".dat", ".img"):
-        candidate = path + ext
-        if os.path.isfile(candidate):
-            return candidate
-    # Try listing the parent directory for a file starting with the same name
-    parent = os.path.dirname(path)
-    base   = os.path.basename(path).lower()
-    if os.path.isdir(parent):
-        for f in os.listdir(parent):
-            if f.lower().startswith(base):
-                return os.path.join(parent, f)
-    return None
-
-
-def _find_file(path: str) -> str | None:
-    """
-    Find a file that may or may not have an extension.
     VistaSoft stores files without extensions but the actual files
     on disk may have .dcm, .jpg etc.
     """
@@ -310,11 +367,15 @@ def _find_file(path: str) -> str | None:
         candidate = path + ext
         if os.path.isfile(candidate):
             return candidate
+    # Same name with some other extension. Must be "<name>." exactly — a bare
+    # prefix match could pick up a different image ("123" vs "1234.dcm").
     parent = os.path.dirname(path)
     base   = os.path.basename(path).lower()
     if os.path.isdir(parent):
         for f in os.listdir(parent):
-            if f.lower().startswith(base):
+            fl = f.lower()
+            if fl == base or (fl.startswith(base + ".")
+                              and not fl.endswith((".json", ".jpg.tmp", ".tmp"))):
                 return os.path.join(parent, f)
     return None
 
@@ -568,6 +629,7 @@ def _build_dicom_tags_request(sidecar: dict) -> dict:
         ("BitsAllocated",    "bitsAllocated"),
         ("BitsStored",       "bitsStored"),
         ("HighBit",          "highBit"),
+        ("PixelRepresentation", "pixelRepresentation"),
     ]:
         v = _int(sidecar.get(src))
         if v is not None:
@@ -607,14 +669,125 @@ def _build_dicom_tags_request(sidecar: dict) -> dict:
     return tags
 
 
+_NO_PNG_CLASSES = {"Dvt", "Video"}      # volumes / movies keep their own format
+
+
+def _image_to_png(data: bytes):
+    """
+    Re-encode a 2D image (DICOM, JPEG, BMP, TIFF…) as PNG, losslessly.
+    Greyscale above 8 bits is scaled to the full 16-bit range so every viewer
+    shows it correctly whatever the original BitsStored. Returns
+    (png_bytes, pixel_tags) or (None, None) if it can't be decoded here.
+    """
+    import io
+    import numpy as np
+    from PIL import Image
+
+    arr = None
+    if len(data) > 132 and data[128:132] == b"DICM":
+        from datasources.dicom_header import read_dicom_image
+        info = read_dicom_image(data)
+        if not info:
+            return None, None
+        arr, bits = info["array"], info["bits_stored"]
+    else:
+        try:
+            img = Image.open(io.BytesIO(data))
+            img.load()
+        except Exception:
+            return None, None
+        if img.mode in ("I;16", "I;16L", "I;16B", "I"):
+            arr, bits = np.asarray(img).astype(np.int32), 16
+        elif img.mode == "L":
+            arr, bits = np.asarray(img), 8
+        else:
+            arr, bits = np.asarray(img.convert("RGB")), 8
+
+    if arr.ndim == 3:
+        out = Image.fromarray(arr.astype(np.uint8), "RGB")
+        tags = {"SamplesPerPixel": 3, "PhotometricInterpretation": "RGB",
+                "BitsAllocated": 8, "BitsStored": 8, "HighBit": 7}
+    elif bits <= 8:
+        out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "L")
+        tags = {"SamplesPerPixel": 1, "PhotometricInterpretation": "MONOCHROME2",
+                "BitsAllocated": 8, "BitsStored": 8, "HighBit": 7}
+    else:
+        full = (1 << bits) - 1
+        a16 = (arr.astype(np.float64) * (65535.0 / full) + 0.5).astype(np.uint16) if bits < 16 \
+            else arr.astype(np.uint16)
+        out = Image.fromarray(a16)          # mode I;16
+        tags = {"SamplesPerPixel": 1, "PhotometricInterpretation": "MONOCHROME2",
+                "BitsAllocated": 16, "BitsStored": 16, "HighBit": 15}
+    tags.update({"Rows": out.size[1], "Columns": out.size[0], "PixelRepresentation": 0})
+    buf = io.BytesIO()
+    out.save(buf, "PNG", compress_level=3)
+    return buf.getvalue(), tags
+
+
+_PIXEL_TAG_KEYS = ("Rows", "Columns", "SamplesPerPixel", "PhotometricInterpretation",
+                   "BitsAllocated", "BitsStored", "HighBit", "PixelRepresentation")
+
+
+def _dicom_pixel_tags(data: bytes = None, path: str = None) -> dict:
+    """Pixel-layout tags read from the DICOM being uploaded ({} if not DICOM)."""
+    try:
+        from datasources.dicom_header import read_dicom_header, read_dicom_header_bytes
+        hdr = read_dicom_header_bytes(data) if data is not None else read_dicom_header(path)
+    except Exception:
+        hdr = None
+    if not hdr:
+        return {}
+    return {k: hdr[k] for k in _PIXEL_TAG_KEYS if hdr.get(k) not in (None, "")}
+
+
+def _merge_pixel_tags(source_tags, file_tags: dict) -> dict:
+    tags = dict(source_tags or {})
+    tags.update(file_tags or {})          # the uploaded file is the truth
+    return tags
+
+
+def _as_list(resp) -> list:
+    """DTX list endpoints return a bare list or a paged object — accept both."""
+    if isinstance(resp, list):
+        return resp
+    if isinstance(resp, dict):
+        for k in ("items", "content", "data", "results", "patients", "media", "value"):
+            if isinstance(resp.get(k), list):
+                return resp[k]
+    return []
+
+
+def _norm(s) -> str:
+    return " ".join(str(s or "").split()).lower()
+
+
+def _same_person(existing: dict, patient: dict) -> bool:
+    """A DTX patient with the same PMS ID only counts as the same person if
+    the surname or the date of birth also agrees — guards against PMS-ID
+    collisions with patients already in DTX from another system."""
+    ex_last = _norm(existing.get("lastname") or existing.get("lastName"))
+    src_last = _norm(patient.get("family_name"))
+    if ex_last and src_last and ex_last == src_last:
+        return True
+    ex_dob = str(existing.get("dateOfBirth") or existing.get("birthDate") or "")[:10]
+    src_dob = str(patient.get("birth_date") or patient.get("dob") or "")[:10]
+    return bool(ex_dob and src_dob and ex_dob == src_dob)
+
+
+def _media_sop(media: dict) -> str:
+    tags = media.get("dicom_tags") or {}
+    return str(tags.get("SOPInstanceUID") or media.get("sop_instance") or "").strip()
+
+
 def _map_gender(sex: str) -> Optional[str]:
     """Map Firebird SEX to DTX Studio gender enum: MALE / FEMALE / OTHER / None.
     From C# source: corePatient.Gender switch { "MALE" => Male, "FEMALE" => Female, "OTHER" => Other, _ => null }
     """
     s = (sex or "").strip().upper()
-    if s in ("M", "MALE", "1"):
+    # VistaSoft stores the ASCII code of M / F / O (77 / 70 / 79)
+    if s in ("M", "MALE", "1", "77"):
         return "MALE"
-    if s in ("F", "FEMALE", "2"):
+    if s in ("F", "FEMALE", "2", "70"):
         return "FEMALE"
     if s:
         return "OTHER"
@@ -622,6 +795,10 @@ def _map_gender(sex: str) -> Optional[str]:
 
 
 class DTXStudioTarget(BaseDatasource):
+    # Each write_patients call builds its own client and holds no shared
+    # state, so the engine may write several patients at once.
+    supports_parallel_writes = True
+
 
     @property
     def name(self) -> str:
@@ -773,15 +950,91 @@ class DTXStudioTarget(BaseDatasource):
         """
         client  = self._make_client()
         results = {"success": 0, "failed": 0, "errors": [],
-                   "media_uploaded": 0, "media_missing": 0}
-
-        # Fetch one existing patient to log the gender field format the API uses
+                   "media_uploaded": 0, "media_missing": 0, "media_existing": 0}
         try:
-            existing = client.get_patients()
-            if existing:
-                self.logger.info(f"Existing patient sample from DTX Studio: {existing[0]}")
-        except Exception:
-            pass
+            return self._write_patients(client, patients, results, progress_callback)
+        finally:
+            client.close()
+
+    _search_warned = False
+    _send_pixel_rep = True      # cleared if this Core rejects pixelRepresentation
+
+    def _put_dicom_tags(self, client, media_id: str, tags: dict):
+        """PUT the media DICOM tags. Never fails the image."""
+        req = _build_dicom_tags_request(tags)
+        if not req:
+            return
+        if not DTXStudioTarget._send_pixel_rep:
+            req.pop("pixelRepresentation", None)
+        try:
+            client.create_media_dicom_tags(media_id, req)
+            return
+        except Exception as exc:
+            if "pixelRepresentation" not in req:
+                self.logger.warning(f"        DICOM tags failed: {exc}")
+                return
+            first = exc
+        # Some Core versions reject pixelRepresentation — retry without it
+        req.pop("pixelRepresentation", None)
+        try:
+            client.create_media_dicom_tags(media_id, req)
+            DTXStudioTarget._send_pixel_rep = False
+            self.logger.info("        DTX Core rejected pixelRepresentation in DICOM tags — sending without it")
+        except Exception as exc:
+            self.logger.warning(f"        DICOM tags failed: {exc} (first attempt: {first})")
+
+    def _find_existing_patient(self, client, patient: dict) -> Optional[dict]:
+        """
+        Look the patient up in DTX by PMS ID before creating it, so a retry of
+        a partly-migrated patient (or an incremental run after a filtered one)
+        adds to the existing DTX patient instead of creating a duplicate.
+        """
+        pms_id = str(patient.get("id", "") or "").strip()
+        if not pms_id:
+            return None
+        try:
+            found = _as_list(client.search_patients_by_pms_id(pms_id))
+        except Exception as exc:
+            if not DTXStudioTarget._search_warned:
+                DTXStudioTarget._search_warned = True
+                self.logger.warning(f"DTX patient search by PMS ID failed ({exc}) — "
+                                    f"duplicate check skipped, patients will be created.")
+            return None
+        matches = [p for p in found
+                   if str(p.get("pmsId", "")).strip().lower() == pms_id.lower() and p.get("id")]
+        same = [p for p in matches if _same_person(p, patient)]
+        if matches and not same:
+            self.logger.warning(f"  DTX already has a patient with PMS ID {pms_id} but a different "
+                                f"surname and date of birth — creating a separate patient.")
+            return None
+        if len(same) > 1:
+            self.logger.warning(f"  {len(same)} DTX patients share PMS ID {pms_id} — using the most recent.")
+        return same[0] if same else None
+
+    def _existing_index(self, client, dtx_patient_id: str) -> dict:
+        """Studies (by StudyInstanceUID) and media (by SOPInstanceUID) the DTX
+        patient already has."""
+        studies, media = {}, {}
+        for st in _as_list(client.get_patient_studies(dtx_patient_id)):
+            uid = str(st.get("studyInstanceUid") or "").strip()
+            if uid and st.get("id"):
+                studies[uid] = st["id"]
+        for m in _as_list(client.get_patient_media(dtx_patient_id)):
+            mid = m.get("id")
+            if not mid:
+                continue
+            sop = str(m.get("sopInstanceUid") or "").strip()
+            if not sop:
+                try:
+                    tags = client.get_media_dicom_tags(mid) or {}
+                    sop = str(tags.get("sopInstanceUid") or tags.get("SopInstanceUid") or "").strip()
+                except Exception:
+                    sop = ""
+            if sop:
+                media[sop] = (mid, bool(m.get("hasFile", True)))
+        return {"studies": studies, "media": media}
+
+    def _write_patients(self, client, patients, results, progress_callback):
 
         for i, patient in enumerate(patients):
             name = f"{patient.get('given_names', '')} {patient.get('family_name', '')}".strip()
@@ -799,10 +1052,18 @@ class DTXStudioTarget(BaseDatasource):
                     "gender":     gender,
                 }
                 payload = {k: v for k, v in payload.items() if v is not None}
-                self.logger.info(f"Creating patient payload: {payload}")
-                new_patient    = client.create_patient(payload)
-                new_patient_id = new_patient.get("id", "")
-                self.logger.info(f"Created patient {new_patient_id} — studies: {len(patient.get('studies', {}))}")
+                existing = self._find_existing_patient(client, patient)
+                if existing:
+                    new_patient_id = existing["id"]
+                    idx = self._existing_index(client, new_patient_id)
+                    self.logger.info(f"Patient already in DTX ({new_patient_id}) — adding missing images "
+                                     f"({len(idx['media'])} already there)")
+                else:
+                    idx = None
+                    self.logger.debug(f"Creating patient payload: {payload}")
+                    new_patient    = client.create_patient(payload)
+                    new_patient_id = new_patient.get("id", "")
+                    self.logger.info(f"Created patient {new_patient_id} — studies: {len(patient.get('studies', {}))}")
 
                 # 2. Create studies
                 studies = patient.get("studies", {})
@@ -812,71 +1073,161 @@ class DTXStudioTarget(BaseDatasource):
                     raw_study_dt = study.get("study_datetime", "") or ""
                     study_dt = _format_study_datetime(raw_study_dt)
 
-                    new_study = client.create_patient_study(new_patient_id, {
-                        "studyInstanceUid":       study.get("study_instance", "") or None,
-                        "studyDateTime":          study_dt or None,
-                        "accessionNumber":        study.get("accession", "") or None,
-                        "studyDescription":       study.get("description", "") or None,
-                        "referringPhysicianName": study.get("ref_physician", "") or None,
-                    })
-                    new_study_id = new_study.get("id", "")
-                    self.logger.info(f"    Created study {new_study_id}")
+                    study_uid = str(study.get("study_instance", "") or "").strip()
+                    existing_series = []
+                    if idx and study_uid and study_uid in idx["studies"]:
+                        new_study_id = idx["studies"][study_uid]
+                        existing_series = [x.get("id") for x in _as_list(client.get_study_series(new_study_id))
+                                           if x.get("id")]
+                        self.logger.info(f"    Using existing study {new_study_id}")
+                    else:
+                        new_study = client.create_patient_study(new_patient_id, {
+                            "studyInstanceUid":       study_uid or None,
+                            "studyDateTime":          study_dt or None,
+                            "accessionNumber":        study.get("accession", "") or None,
+                            "studyDescription":       study.get("description", "") or None,
+                            "referringPhysicianName": study.get("ref_physician", "") or None,
+                        })
+                        new_study_id = new_study.get("id", "")
+                        self.logger.info(f"    Created study {new_study_id}")
 
                     # 3. Create series
                     series_list = study.get("series", {})
                     self.logger.info(f"    Series to create: {len(series_list)}")
-                    for series in series_list.values():
-                        new_series = client.create_study_series(new_study_id, {})
-                        new_series_id = new_series.get("id", "")
-                        self.logger.info(f"      Created series {new_series_id}")
+                    for s_no, series in enumerate(series_list.values()):
+                        if s_no < len(existing_series):
+                            new_series_id = existing_series[s_no]
+                        else:
+                            new_series = client.create_study_series(new_study_id, {})
+                            new_series_id = new_series.get("id", "")
+                            self.logger.info(f"      Created series {new_series_id}")
 
-                        if series.get("dicom_tags"):
-                            client.create_series_dicom_tags(new_series_id, series["dicom_tags"])
+                            if series.get("dicom_tags"):
+                                client.create_series_dicom_tags(new_series_id, series["dicom_tags"])
 
                         # 4. Create media entries and upload binary data
                         media_list = series.get("media", [])
                         self.logger.info(f"      Media items to upload: {len(media_list)}")
                         for media in media_list:
-                            media_type = _map_media_type(media.get("image_class", ""))
-                            payload = {"mediaType": media_type}
-                            modality = (
-                                _map_modality_from_sidecar({"ImageClass": media.get("image_class", ""), 
-                                                            "Modality": media.get("modality", "")})
-                                or _map_modality_from_sidecar(media.get("dicom_tags") or {})
-                            )
-                            if modality:
-                                payload["modality"] = modality
-                            acq_dt = (_parse_acq_datetime(media.get("dicom_tags") or {}) or
-                                      _normalise_datetime(media.get("acq_datetime") or ""))
-                            if acq_dt:
-                                payload["acquisitionDate"] = acq_dt
-                            new_media = client.create_series_media(new_series_id, payload)
-                            new_media_id = new_media.get("id", "")
-                            self.logger.info(f"        Created media {new_media_id[:8]}… "
-                                             f"type={new_media.get('mediaType')} "
-                                             f"modality={new_media.get('modality')} "
-                                             f"acqDate={str(new_media.get('acquisitionDate',''))[:10]} ")
+                            import io as _io
+                            import mimetypes as _mt
 
-                            if media.get("dicom_tags"):
+                            # Already in DTX from an earlier run? Skip it if its
+                            # image arrived; re-upload into the same record if not.
+                            reuse_media_id = None
+                            sop = _media_sop(media)
+                            if idx and sop and sop in idx["media"]:
+                                mid, has_file = idx["media"][sop]
+                                if has_file:
+                                    results["media_existing"] = results.get("media_existing", 0) + 1
+                                    self.logger.info(f"        Already in DTX: {mid[:8]}… — skipped")
+                                    continue
+                                reuse_media_id = mid
+
+                            # 4a. Get the image data first, so a missing / unreadable
+                            #     file doesn't leave an empty media record in DTX.
+                            #     A source-supplied _fetch (e.g. a converted image)
+                            #     wins over the raw file on disk.
+                            fetch = media.get("_fetch") if callable(media.get("_fetch")) else None
+                            data_obj, data_desc, file_tags = None, "", {}
+                            if fetch:
                                 try:
-                                    dicom_req = _build_dicom_tags_request(media["dicom_tags"])
-                                    if dicom_req:
-                                        client.create_media_dicom_tags(new_media_id, dicom_req)
-                                except Exception as exc:
-                                    self.logger.warning(f"        DICOM tags failed: {exc}")
+                                    data = fetch()
+                                    if data:
+                                        data_obj, data_desc = _io.BytesIO(data), f"{len(data):,} bytes"
+                                        file_tags = _dicom_pixel_tags(data=data)
+                                    else:
+                                        raise FileNotFoundError(media.get("file_path") or "no data")
+                                except Exception as fe:
+                                    self.logger.warning(f"        Image not migrated — could not read/convert "
+                                                        f"{media.get('file_path') or media.get('uid','')}: {fe}")
+                                    results["media_missing"] += 1
+                                    continue
+                                ct = media.get("content_type") or "application/dicom"
+                            else:
+                                file_path = _find_file(media.get("file_path", ""))
+                                if not file_path:
+                                    self.logger.warning(f"        Image not migrated — no file: {media.get('file_path','')}")
+                                    results["media_missing"] += 1
+                                    continue
+                                ct = (media.get("content_type") or _mt.guess_type(file_path)[0]
+                                      or "application/octet-stream")
+                                data_obj, data_desc = open(file_path, "rb"), os.path.basename(file_path)
+                                file_tags = _dicom_pixel_tags(path=file_path)
 
-                            # 5. Upload file — use _find_file for extensionless paths
-                            file_path = _find_file(media.get("file_path", ""))
-                            if file_path:
-                                import mimetypes as _mt
-                                ct = (media.get("content_type") or
-                                      _mt.guess_type(file_path)[0] or
-                                      "application/octet-stream")
-                                with open(file_path, "rb") as f:
-                                    client.put_media_data(new_media_id, f, ct)
-                                self.logger.info(f"        Uploaded: {os.path.basename(file_path)}")
+                            # 4a-bis. DTX stores 2D images as PNG (the original TPIS
+                            #     migrator always PUT image/png). DICOM / JPEG data
+                            #     is re-encoded losslessly; DTX's viewer coped with
+                            #     raw DICOM but its exporter and Diagnose did not.
+                            if (_map_media_type(media.get("image_class", "")) == "IMAGE"
+                                    and (media.get("image_class") or "") not in _NO_PNG_CLASSES
+                                    and not ct.startswith("image/png")):
+                                try:
+                                    if fetch:
+                                        raw = data
+                                    else:
+                                        with open(file_path, "rb") as fh:
+                                            raw = fh.read()
+                                    png, png_tags = _image_to_png(raw)
+                                except Exception as ce:
+                                    png, png_tags = None, None
+                                    self.logger.warning(f"        PNG conversion failed, uploading original: {ce}")
+                                if png:
+                                    try:
+                                        data_obj.close()
+                                    except Exception:
+                                        pass
+                                    data_obj = _io.BytesIO(png)
+                                    data_desc = f"{data_desc} → PNG {len(png):,} bytes"
+                                    ct, file_tags = "image/png", png_tags
+                                else:
+                                    self.logger.warning(f"        Kept original format ({ct}) — could not decode it to PNG")
 
-                                # Preview
+                            try:
+                                if reuse_media_id:
+                                    new_media_id = reuse_media_id
+                                    self.logger.info(f"        Re-uploading into existing media {new_media_id[:8]}…")
+                                else:
+                                    # 4b. Create the media record
+                                    media_type = _map_media_type(media.get("image_class", ""))
+                                    payload = {"mediaType": media_type}
+                                    modality = (
+                                        _map_modality_from_sidecar({"ImageClass": media.get("image_class", ""),
+                                                                    "Modality": media.get("modality", "")})
+                                        or _map_modality_from_sidecar(media.get("dicom_tags") or {})
+                                    )
+                                    if modality:
+                                        payload["modality"] = modality
+                                    acq_dt = (_parse_acq_datetime(media.get("dicom_tags") or {}) or
+                                              _normalise_datetime(media.get("acq_datetime") or ""))
+                                    if acq_dt:
+                                        payload["acquisitionDate"] = acq_dt
+                                    new_media = client.create_series_media(new_series_id, payload)
+                                    new_media_id = new_media.get("id", "")
+                                    self.logger.info(f"        Created media {new_media_id[:8]}… "
+                                                     f"type={new_media.get('mediaType')} "
+                                                     f"modality={new_media.get('modality')} "
+                                                     f"acqDate={str(new_media.get('acquisitionDate',''))[:10]} ")
+
+                                # DICOM tags: the source's values, with the pixel
+                                # layout taken from the file actually uploaded (DTX
+                                # needs Rows/Columns/bits to export / decode it)
+                                tags = _merge_pixel_tags(media.get("dicom_tags"), file_tags)
+                                if tags:
+                                    self._put_dicom_tags(client, new_media_id, tags)
+
+                                # 5. Upload the image (streamed)
+                                client.put_media_data(new_media_id, data_obj, ct)
+                                self.logger.info(f"        Uploaded: {data_desc} ({ct})")
+                            finally:
+                                try:
+                                    data_obj.close()
+                                except Exception:
+                                    pass
+
+                            # 6. Preview — a ready-made file, or one the source renders
+                            #    on demand. Never fails the patient.
+                            try:
                                 preview_path = media.get("preview_path")
                                 if preview_path and os.path.isfile(preview_path):
                                     pct = _mt.guess_type(preview_path)[0] or "image/jpeg"
@@ -884,32 +1235,13 @@ class DTXStudioTarget(BaseDatasource):
                                         client.put_media_preview_data(new_media_id, f, pct)
                                     self.logger.info(f"        Preview:  {os.path.basename(preview_path)}")
                                 elif callable(media.get("_fetch_preview")):
-                                    # Source renders its preview on demand
-                                    try:
-                                        import io as _io
-                                        pdata = media["_fetch_preview"]()
-                                        if pdata:
-                                            pct = "image/png" if pdata[:4] == b"\x89PNG" else "image/jpeg"
-                                            client.put_media_preview_data(new_media_id, _io.BytesIO(pdata), pct)
-                                            self.logger.info("        Preview:  (generated)")
-                                    except Exception as pe:
-                                        self.logger.warning(f"        Preview failed: {pe}")
-
-                            elif media.get("_fetch"):
-                                try:
-                                    data = media["_fetch"]()
-                                    import io
-                                    ct = media.get("content_type") or "application/dicom"
-                                    client.put_media_data(new_media_id, io.BytesIO(data), ct)
-                                    self.logger.info(f"        Uploaded: (fetched {len(data)} bytes)")
-                                except Exception as fe:
-                                    self.logger.warning(f"        Fetch failed: {fe}")
-                                    results["media_missing"] += 1
-                                    continue
-                            else:
-                                self.logger.warning(f"        No file: {media.get('file_path','')}")
-                                results["media_missing"] += 1
-                                continue
+                                    pdata = media["_fetch_preview"]()
+                                    if pdata:
+                                        pct = "image/png" if pdata[:4] == b"\x89PNG" else "image/jpeg"
+                                        client.put_media_preview_data(new_media_id, _io.BytesIO(pdata), pct)
+                                        self.logger.info("        Preview:  (generated)")
+                            except Exception as pe:
+                                self.logger.warning(f"        Preview failed: {pe}")
 
                             results["media_uploaded"] += 1
 

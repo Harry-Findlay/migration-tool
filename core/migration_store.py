@@ -247,6 +247,11 @@ class MigrationStore:
         )
         self._conn.commit()
 
+    def clear_migrated_for_target(self, target_key: str):
+        """Forget which patients reached this target (after its data was cleared)."""
+        self._conn.execute("DELETE FROM migrated_ids WHERE target_key=?", (target_key,))
+        self._conn.commit()
+
     def count_migrated(self, source_key: str, target_key: str) -> int:
         row = self._conn.execute(
             "SELECT COUNT(*) as n FROM migrated_ids WHERE source_key=? AND target_key=?",

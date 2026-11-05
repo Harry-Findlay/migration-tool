@@ -61,14 +61,19 @@ WANTED = {
     "StudyInstanceUID":          (0x0020, 0x000D),
     "SeriesInstanceUID":         (0x0020, 0x000E),
     "InstanceNumber":            (0x0020, 0x0013),
+    "SamplesPerPixel":           (0x0028, 0x0002),
     "PhotometricInterpretation": (0x0028, 0x0004),
     "NumberOfFrames":            (0x0028, 0x0008),
     "Rows":                      (0x0028, 0x0010),
     "Columns":                   (0x0028, 0x0011),
+    "BitsAllocated":             (0x0028, 0x0100),
     "BitsStored":                (0x0028, 0x0101),
+    "HighBit":                   (0x0028, 0x0102),
+    "PixelRepresentation":       (0x0028, 0x0103),
 }
 _BY_TAG = {v: k for k, v in WANTED.items()}
-_US_TAGS = {(0x0028, 0x0010), (0x0028, 0x0011), (0x0028, 0x0101)}
+_US_TAGS = {(0x0028, 0x0002), (0x0028, 0x0010), (0x0028, 0x0011), (0x0028, 0x0100),
+            (0x0028, 0x0101), (0x0028, 0x0102), (0x0028, 0x0103)}
 
 # Person-name / free-text VRs are decoded with the character set; UIDs etc. are ASCII
 _TEXT_TAGS = {(0x0010, 0x0010), (0x0008, 0x0090), (0x0008, 0x1030),
@@ -83,6 +88,7 @@ _ITEM       = (0xFFFE, 0xE000)
 _ITEM_DELIM = (0xFFFE, 0xE00D)
 _SEQ_DELIM  = (0xFFFE, 0xE0DD)
 _PIXEL_DATA = (0x7FE0, 0x0010)
+_PIXEL_POS  = ("pixel", "pos")          # internal: (offset, length) of Pixel Data
 
 _CHARSETS = {
     "ISO_IR 6":   "ascii",
@@ -123,10 +129,24 @@ def read_dicom_header(path: str, fallback_encoding: str = "windows-1252") -> Opt
     """
     try:
         with open(path, "rb") as f:
-            return _parse(f, fallback_encoding)
+            out = _parse(f, fallback_encoding)
+        if out:
+            out.pop("_pixel_pos", None)
+        return out
     except _Stop:
         return None
     except (OSError, struct.error):
+        return None
+
+
+def read_dicom_header_bytes(data: bytes, fallback_encoding: str = "windows-1252") -> Optional[dict]:
+    """read_dicom_header() for an in-memory DICOM (e.g. a converted image)."""
+    import io
+    try:
+        return _parse(io.BytesIO(data), fallback_encoding)
+    except _Stop:
+        return None
+    except struct.error:
         return None
 
 
@@ -149,6 +169,9 @@ def _parse(f: BinaryIO, fallback_encoding: str) -> Optional[dict]:
     explicit = ts != _TS_IMPLICIT_LE
     endian   = ">" if ts == _TS_EXPLICIT_BE else "<"
     _walk(f, explicit, endian, raw, top_level=True, end=None)
+    pixel_pos = raw.pop(_PIXEL_POS, None)
+    if pixel_pos:
+        out["_pixel_pos"] = pixel_pos
 
     cs = (raw.get((0x0008, 0x0005)) or b"").decode("ascii", "replace")
     cs = cs.split("\\")[-1].strip().strip("\x00")
@@ -226,6 +249,7 @@ def _walk(f: BinaryIO, explicit: bool, endian: str, raw: dict,
         if tag == _ITEM_DELIM:
             return
         if top_level and tag == _PIXEL_DATA:
+            raw[_PIXEL_POS] = (f.tell(), length)
             return
 
         if length == _UNDEFINED:
@@ -255,3 +279,101 @@ def _skip_items(f: BinaryIO, explicit: bool, endian: str):
             _walk(f, explicit, endian, {}, top_level=False, end=None)
         else:
             f.seek(length, os.SEEK_CUR)
+
+
+# ── Pixel data → array (for re-encoding, e.g. DICOM → PNG) ─────────────────────
+
+_UNCOMPRESSED = {"1.2.840.10008.1.2", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.2"}
+
+
+def _fragments(data: bytes, pos: int) -> list:
+    """Fragments of encapsulated pixel data starting at `pos` (after the
+    Pixel Data element header). The first item is the offset table."""
+    frags, i = [], pos
+    while i + 8 <= len(data):
+        g, e, ln = struct.unpack("<HHI", data[i:i + 8])
+        i += 8
+        if (g, e) == _SEQ_DELIM:
+            break
+        if (g, e) != _ITEM:
+            return []
+        frags.append(data[i:i + ln])
+        i += ln
+    return frags[1:]
+
+
+def read_dicom_image(data: bytes) -> Optional[dict]:
+    """
+    Decode a single-frame DICOM image held in memory.
+    Returns {"array": numpy array (rows x cols, or rows x cols x 3 for colour),
+             "bits_stored": int, "photometric": "MONOCHROME2" | "RGB"}
+    — MONOCHROME1 is inverted to MONOCHROME2 — or None if the file can't be
+    decoded here (multi-frame, JPEG-lossless, unusual layouts).
+    """
+    import io
+    import numpy as np
+    hdr = read_dicom_header_bytes(data)
+    if not hdr or "_pixel_pos" not in hdr:
+        return None
+    try:
+        rows, cols = int(hdr.get("Rows", 0)), int(hdr.get("Columns", 0))
+        spp   = int(hdr.get("SamplesPerPixel") or 1)
+        alloc = int(hdr.get("BitsAllocated") or 8)
+        stored = int(hdr.get("BitsStored") or alloc)
+        signed = int(hdr.get("PixelRepresentation") or 0) == 1
+        frames = int((hdr.get("NumberOfFrames") or "1").strip() or 1)
+    except ValueError:
+        return None
+    photo = (hdr.get("PhotometricInterpretation") or "MONOCHROME2").upper()
+    if not rows or not cols or frames > 1 or spp not in (1, 3):
+        return None
+    ts = hdr.get("TransferSyntaxUID", "")
+    pos, length = hdr["_pixel_pos"]
+
+    if ts in _UNCOMPRESSED and length != _UNDEFINED:
+        if alloc not in (8, 16):
+            return None
+        end = ">" if ts == _TS_EXPLICIT_BE else "<"
+        dt = np.dtype("u1") if alloc == 8 else np.dtype(end + ("i2" if signed else "u2"))
+        n = rows * cols * spp
+        buf = data[pos:pos + n * dt.itemsize]
+        if len(buf) < n * dt.itemsize:
+            return None
+        arr = np.frombuffer(buf, dtype=dt, count=n)
+        if spp == 3:
+            # PlanarConfiguration isn't in the header subset; colour DICOMs are
+            # almost always interleaved
+            arr = arr.reshape(rows, cols, 3)
+        else:
+            arr = arr.reshape(rows, cols)
+    elif length == _UNDEFINED:
+        frags = _fragments(data, pos)
+        if not frags:
+            return None
+        try:
+            from PIL import Image
+            img = Image.open(io.BytesIO(b"".join(frags)))
+            img.load()
+        except Exception:
+            return None          # e.g. JPEG lossless — Pillow can't decode it
+        if img.mode in ("RGB", "YCbCr", "RGBA", "P"):
+            arr, spp = np.asarray(img.convert("RGB")), 3
+        else:
+            arr = np.asarray(img)
+        photo = "RGB" if spp == 3 else photo
+    else:
+        return None
+
+    if spp == 1:
+        a = arr.astype(np.int32)
+        if signed:
+            a = a + (1 << (stored - 1))
+        a = np.clip(a, 0, (1 << stored) - 1)
+        if photo == "MONOCHROME1":
+            a = ((1 << stored) - 1) - a
+        arr, photo = a, "MONOCHROME2"
+    elif photo.startswith("YBR") and length != _UNDEFINED:
+        return None              # uncompressed YBR — not worth supporting here
+    else:
+        photo = "RGB"
+    return {"array": arr, "bits_stored": stored, "photometric": photo}

@@ -62,6 +62,7 @@ import os
 import sys
 import json
 import logging
+import re
 import threading
 import datetime
 from typing import Optional
@@ -172,7 +173,7 @@ if "--encrypt-env" in sys.argv:
 _env_file = os.path.join(BASE_DIR, ".env")
 _load_encrypted_env(_env_file)
 
-from core.engine          import MigrationEngine
+from core.engine          import MigrationEngine, migration_context
 from core.migration_store import MigrationStore
 from core.models          import MigrationStatus
 from auth.google_oauth    import auth_bp, require_auth, get_current_user
@@ -272,6 +273,9 @@ class AppState:
 
         # Patients loaded from source
         self.loaded_patients: list = []
+        self.patient_index: dict = {}    # uid -> loaded patient (preview lookups)
+        self.load_fingerprint = None     # (source, settings) the loaded patients came from
+        self.load_time        = 0.0
         self.load_meta: dict = {}
 
         # Live migration progress (updated by engine callbacks)
@@ -279,7 +283,9 @@ class AppState:
         self.migration_pct: int     = 0
         self.migration_message: str = ""
         self.migration_counters: dict = {}
-        self.migration_log: list    = []        # [{ts, msg, level}]
+        self.migration_log: list    = []        # [{seq, ts, msg, level, patient}]
+        self.migration_log_seq: int = 0         # increases forever; clients poll with ?since=
+        self.migration_problems: list = []      # [{seq, ts, patient, stage, message}]
         self.session_id: Optional[str] = None
 
         # DICOM export state
@@ -324,8 +330,93 @@ def _get_or_build_target(name: str) -> object:
         raise ValueError(f"Unknown target: {name}")
     return cls()
 
-def _push_log(msg: str, level: str = "info"):
-        ts = datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M:%S")
+_log_lock = threading.Lock()      # separate from _state_lock: log records can arrive while it is held
+_MIG_LOG_MAX      = 5000
+_MIG_PROBLEMS_MAX = 5000
+
+
+def _push_log(msg: str, level: str = "info", patient: str = None):
+    """Append a line to the in-app migration log (polled via /api/migrate/status)."""
+    ts = datetime.datetime.now().strftime("%H:%M:%S")
+    with _log_lock:
+        _app.migration_log_seq += 1
+        _app.migration_log.append({"seq": _app.migration_log_seq, "ts": ts,
+                                   "msg": str(msg), "level": level, "patient": patient or ""})
+        if len(_app.migration_log) > _MIG_LOG_MAX:
+            del _app.migration_log[: len(_app.migration_log) - _MIG_LOG_MAX]
+
+
+def _push_problem(patient: str, stage: str, message: str, level: str = "error"):
+    """Record a failed patient / image for the Problems table."""
+    ts = datetime.datetime.now().strftime("%H:%M:%S")
+    with _log_lock:
+        _app.migration_log_seq += 1
+        _app.migration_problems.append({"seq": _app.migration_log_seq, "ts": ts,
+                                        "patient": patient or "", "stage": stage,
+                                        "message": str(message), "level": level})
+        if len(_app.migration_problems) > _MIG_PROBLEMS_MAX:
+            del _app.migration_problems[: len(_app.migration_problems) - _MIG_PROBLEMS_MAX]
+
+
+def _failure_stage(text: str) -> str:
+    """Which step a patient failure happened at, from the error text (DTX API paths etc.)."""
+    t = (text or "").lower()
+    if "/media" in t or "media" in t and "upload" in t:
+        return "Image"
+    if "/series" in t:
+        return "Series"
+    if "/studies" in t or "/study" in t:
+        return "Study"
+    if "/patients" in t or "patient" in t:
+        return "Patient record"
+    return "Patient"
+
+
+class _MigrationLogHandler(logging.Handler):
+    """
+    Mirrors what sources / targets write to the log file into the in-app
+    migration log while a migration is active, tagged with the patient being
+    written. Warnings and errors that belong to a patient (an image that
+    could not be read or uploaded, failed DICOM tags…) also go to Problems.
+    """
+    _SKIP = ("werkzeug", "auth", "urllib3")
+
+    def emit(self, record):
+        try:
+            if _app.migration_status not in ("running", "paused"):
+                return
+            if record.name.startswith(self._SKIP):
+                return
+            msg = record.getMessage()
+            # Patient failures are already reported via the engine's progress events
+            if re.match(r"\s*Failed( to (migrate|write patient))? ", msg):
+                return
+            if record.levelno >= logging.ERROR:
+                level = "error"
+            elif record.levelno >= logging.WARNING:
+                level = "warning"
+            elif record.levelno >= logging.INFO:
+                level = "verbose"
+            else:
+                return
+            patient = getattr(migration_context, "patient", None)
+            _push_log(msg.strip(), level, patient)
+            if patient and level in ("warning", "error"):
+                low = msg.lower()
+                stage = ("Image not migrated" if ("not migrated" in low or "no file" in low
+                                                  or "fetch failed" in low or "not found" in low)
+                         else "Preview"    if "preview" in low
+                         else "DICOM tags" if "dicom tags" in low
+                         else "Image"      if "media" in low or "image" in low
+                         else "Warning")
+                _push_problem(patient, stage, msg.strip(), level)
+        except Exception:
+            pass
+
+
+_mig_log_handler = _MigrationLogHandler(level=logging.INFO)
+logging.getLogger().addHandler(_mig_log_handler)
+
 
 def _local_db_path(remote_path: str):
         """
@@ -788,6 +879,18 @@ def api_browse_folder():
 # API — Load data
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _source_fingerprint(source) -> tuple:
+    """Identifies a source object and its current settings, so patients loaded
+    for the UI are only reused by a migration if nothing has changed since."""
+    items = tuple(sorted((c.key, str(c.value)) for c in (getattr(source, "configuration", None) or [])))
+    return (id(source), getattr(source, "name", ""), items)
+
+
+# Loaded patients older than this are re-read at migration start, so images
+# added in the source since are picked up.
+_PRELOAD_MAX_AGE = 2 * 3600
+
+
 @app.route("/api/load", methods=["POST"])
 @require_auth
 def api_load():
@@ -879,6 +982,9 @@ def api_load():
 
     with _state_lock:
         _app.loaded_patients = patients
+        _app.patient_index    = {p.get("uid"): p for p in patients}
+        _app.load_fingerprint = _source_fingerprint(source)
+        _app.load_time        = time.time()
         _app.load_meta = {
             "patients_count": len(patients),
             "media":          media_count,
@@ -981,13 +1087,12 @@ def api_overview():
     with _state_lock:
         meta     = _app.load_meta
         patients = _app.loaded_patients
-        src_name = _app.source_name
-        tgt_name = _app.target_name
+        source   = _app.source
+        target   = _app.target
 
-    migrated_count = _app.store.count_migrated(
-        src_name.lower().replace(" ", "_"),
-        tgt_name.lower().replace(" ", "_"),
-    )
+    # Same keys the engine records migrated patients under (datasource .name)
+    migrated_count = (_app.store.count_migrated(source.name, target.name)
+                      if source and target else 0)
 
     return _ok(
         patients_count=meta.get("patients_count", 0),
@@ -1004,6 +1109,10 @@ def api_overview():
 
 def _on_progress(current, total, message, counters=None):
     pct = int((current / max(total, 1)) * 100)
+    event = None
+    if counters:
+        counters = dict(counters)
+        event = counters.pop("event", None)
     with _state_lock:
         _app.migration_pct     = pct
         _app.migration_message = message
@@ -1011,7 +1120,17 @@ def _on_progress(current, total, message, counters=None):
             _app.migration_counters = counters
         if _app.migration_status not in ("paused", "cancelled"):
             _app.migration_status = "running"
-    _push_log(message, "info")
+
+    level, patient = "info", None
+    if event:
+        patient = event.get("patient")
+        if event.get("type") == "patient_failed":
+            level = "error"
+            err = event.get("error", "")
+            _push_problem(patient, _failure_stage(err), err, "error")
+        elif event.get("type") == "patient_done":
+            level = "warning" if event.get("media_missing") else "success"
+    _push_log(message, level, patient)
 
 
 def _make_migration_callbacks(user_email: str):
@@ -1050,6 +1169,8 @@ def api_migrate_start():
             return _err("A migration is already running.")
         source = _app.source
         target = _app.target
+    if _app.engine.is_running():
+        return _err("A migration is paused — resume or cancel it before starting a new one.")
 
     if not source or not target:
         return _err("Source or target not configured.")
@@ -1066,7 +1187,9 @@ def api_migrate_start():
         _app.migration_pct      = 0
         _app.migration_message  = "Starting…"
         _app.migration_counters = {}
+    with _log_lock:
         _app.migration_log      = []
+        _app.migration_problems = []
 
     _user_email = _current_user().get("email", "")
     _on_complete, _on_error = _make_migration_callbacks(_user_email)
@@ -1080,14 +1203,44 @@ def api_migrate_start():
             source._pms_patients    = []
             source._pms_data_source = "source"
 
-    _app.engine.run(
-        source=source, target=target,
-        max_parallelism=max_par,
-        incremental=incremental,
-        on_progress=_on_progress,
-        on_complete=_on_complete,
-        on_error=_on_error,
-    )
+    # Filters page: surname prefix, image types, skip patients without images
+    raw_f = body.get("filters") or {}
+    filters = {
+        "surname_prefix": str(raw_f.get("surname_prefix") or "").strip(),
+        "media_types":    raw_f.get("media_types") if isinstance(raw_f.get("media_types"), dict) else None,
+        "skip_no_media":  bool(raw_f.get("skip_no_media", False)),
+    }
+
+    # Reuse the patients loaded on the Load page when they came from this same
+    # source with the same settings and are recent — avoids reading the whole
+    # source again. "reload": true in the body forces a fresh read.
+    import time as _time
+    with _state_lock:
+        preloaded = None
+        if (not body.get("reload") and _app.loaded_patients
+                and _app.load_fingerprint == _source_fingerprint(source)
+                and _time.time() - _app.load_time < _PRELOAD_MAX_AGE):
+            preloaded = _app.loaded_patients
+    if preloaded:
+        _push_log(f"Using the {len(preloaded)} patient(s) already loaded — no second source read.", "info")
+
+    try:
+        _app.engine.run(
+            source=source, target=target,
+            max_parallelism=max_par,
+            incremental=incremental,
+            on_progress=_on_progress,
+            on_complete=_on_complete,
+            on_error=_on_error,
+            filters=filters,
+            preloaded=preloaded,
+        )
+    except RuntimeError as exc:
+        with _state_lock:
+            _app.migration_status = "idle"
+        return _err(str(exc))
+    if filters["surname_prefix"] or filters["skip_no_media"] or filters["media_types"]:
+        _push_log(f"Filters: {filters}", "info")
 
     _app.store.audit("migration_started",
                      f"incremental={incremental}",
@@ -1120,8 +1273,10 @@ def api_migrate_resume():
         target = _app.target
         current_status = _app.migration_status
 
-    if current_status == "paused" and not session_id:
-        # Resume in-process paused migration
+    # The paused migration is still alive in this process (waiting for Resume):
+    # wake it, whether Resume came from the main button or from history.
+    if _app.engine.is_running() and (
+            not session_id or session_id == _app.engine.current_session_id):
         _app.engine.resume()
         with _state_lock:
             _app.migration_status = "running"
@@ -1134,14 +1289,21 @@ def api_migrate_resume():
             _app.migration_status   = "running"
             _app.migration_pct      = 0
             _app.migration_message  = f"Resuming session {session_id[:8]}…"
+        with _log_lock:
             _app.migration_log      = []
+            _app.migration_problems = []
 
+        if _app.engine.is_running():
+            with _state_lock:
+                _app.migration_status = "paused"
+            return _err("Another migration is paused — resume or cancel it first.")
         _app.engine = MigrationEngine(store=_app.store)
         _user_email = _current_user().get("email", "")
         _on_complete, _on_error = _make_migration_callbacks(_user_email)
- 
+
         _app.engine.run(
             source=source, target=target,
+            max_parallelism=int(body.get("max_parallelism", 4)),
             resume_session_id=session_id,
             on_progress=_on_progress,
             on_complete=_on_complete,
@@ -1169,12 +1331,23 @@ def api_migrate_cancel():
 @app.route("/api/migrate/status")
 @require_auth
 def api_migrate_status():
+    # ?since=<seq> returns only lines / problems newer than what the page has
+    try:
+        since = int(request.args.get("since", 0))
+    except ValueError:
+        since = 0
     with _state_lock:
         status   = _app.migration_status
         pct      = _app.migration_pct
         message  = _app.migration_message
         counters = _app.migration_counters
-        log      = _app.migration_log[-50:]   # last 50 lines
+    with _log_lock:
+        log      = [l for l in _app.migration_log if l["seq"] > since][-1000:]
+        problems = [p for p in _app.migration_problems if p["seq"] > since]
+        log_seq  = _app.migration_log_seq
+        problem_counts: dict = {}
+        for p in _app.migration_problems:
+            problem_counts[p["stage"]] = problem_counts.get(p["stage"], 0) + 1
 
     # Fetch live session row if we have one
     session_row = None
@@ -1198,6 +1371,9 @@ def api_migrate_status():
         message=message,
         counters=counters,
         log=log,
+        log_seq=log_seq,
+        problems=problems,
+        problem_counts=problem_counts,
         session=session_row,
     )
 
@@ -1221,6 +1397,37 @@ def api_history_detail(session_id):
         return _err("Session not found.", 404)
     patients = _app.store.get_all_patient_states(session_id)
     return _ok(session=sess, patients=patients)
+
+
+@app.route("/api/history/<session_id>/failures")
+@require_auth
+def api_history_failures(session_id):
+    """Failed patients for a past session (patient name, stage, error)."""
+    states = [st for st in _app.store.get_all_patient_states(session_id)
+              if st.get("status") == "failed"]
+    names = {}
+    try:
+        rows = _app.store._conn.execute(
+            "SELECT patient_uid, patient_json FROM patient_state WHERE session_id=? AND status='failed'",
+            (session_id,),
+        ).fetchall()
+        for r in rows:
+            try:
+                pj = json.loads(r["patient_json"])
+                names[r["patient_uid"]] = (f"{pj.get('given_names','')} {pj.get('family_name','')}".strip()
+                                           or r["patient_uid"])
+            except Exception:
+                pass
+    except Exception:
+        pass
+    failures = [{
+        "patient":    names.get(st["patient_uid"], st["patient_uid"]),
+        "uid":        st["patient_uid"],
+        "stage":      _failure_stage(st.get("error_msg", "")),
+        "message":    st.get("error_msg", ""),
+        "updated_at": st.get("updated_at", ""),
+    } for st in states]
+    return _ok(failures=failures)
 
 
 @app.route("/api/history/<session_id>", methods=["DELETE"])
@@ -1814,10 +2021,7 @@ def api_media_preview():
         return _err("patient_uid and media_uid are required", 400)
 
     with _state_lock:
-        patients = _app.loaded_patients
-
-    # Find the patient
-    patient = next((p for p in patients if p.get("uid") == patient_uid), None)
+        patient = _app.patient_index.get(patient_uid)
     if not patient:
         return _err("Patient not found", 404)
 
@@ -1947,6 +2151,9 @@ def api_clear_migrated():
                     except Exception:
                         pass
             logger.info(f"Removed {removed_dirs} patient image folder(s).")
+
+        # The cleared patients must be migrated again by an incremental run
+        _app.store.clear_migrated_for_target(target.name)
 
         _app.store.audit("clear_migrated_data",
                             f"db={db_path_remote}",

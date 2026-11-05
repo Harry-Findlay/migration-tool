@@ -30,11 +30,12 @@ so ALL database reads here are sequential and done in bulk:
   N queries for media, batched by patient (_MEDIA_BATCH patients per query)
 instead of two process launches per patient.
 
-Previews are NOT generated during load. Each media item carries a
-`_fetch_preview` callable that renders a small JPEG on first use and caches it
-under %PROGRAMDATA%\\ITInfinityMigrator\\preview_cache\\dbswin\\ — nothing is
-written into the practice's XrayImg / VidImg folders. `preview_path` is filled
-in once a cached preview exists.
+Images are converted on demand, not during load. DBSWin keeps the raw image and
+re-applies its display settings (window, invert, filter, brightness, rotation)
+each time it opens one; each media item carries `_fetch` (the image as DBSWin
+shows it: DICOM for X-rays, JPEG for camera images) and `_fetch_preview`.
+Results are cached under %PROGRAMDATA%\\ITInfinityMigrator\\ — nothing is
+written into the practice's XrayImg / VidImg folders.
 
 MODALITY → image_class / media_type mapping (from C# reference):
   OT → unknown (fallback to sidecar)
@@ -260,101 +261,524 @@ class _DirIndex:
 
 
 # ---------------------------------------------------------------------------
-# Preview generation (on demand, cached outside the practice's folders)
+# Image conversion
+#
+# DBSWin stores the raw plate/sensor image in the .XTF (JPEG 2000, usually
+# 8-bit with a square-root tone curve) and re-applies its display settings
+# every time the image is opened. Those settings live in sidecar files:
+#
+#   .ima  [ImageAfterLoad]   DDIP8To16Square HValue=N   8-bit → 16-bit expansion
+#   .imo  [ImageOperations]  filter / invert / rotate / mirror, in order
+#         [ZoomGray]         Lower / Upper display window (16-bit values)
+#         [Luminance]        Brightness / Contrast / Gamma (50 / 50 / 20 = neutral)
+#   .im0  same sections as at acquisition — used when .imo lacks one
+#
+# Targets get the image as DBSWin shows it, as a DICOM (X-rays) or JPEG
+# (camera images), built on demand and cached outside the practice folders:
+#   %PROGRAMDATA%\ITInfinityMigrator\converted\dbswin\
+#   %PROGRAMDATA%\ITInfinityMigrator\preview_cache\dbswin\
+#
+# The DBSWin sharpening filter (DDIP Sc_Filter_Image) is proprietary; it is
+# approximated with a two-scale unsharp mask.
 # ---------------------------------------------------------------------------
 
-def _preview_cache_dir() -> str:
+_RENDER_VERSION = "r5"   # bump to invalidate cached conversions / previews
+_ZOOMGRAY_SCALE = 0.58     # DDIP8To16Square output → [ZoomGray] units
+
+_IMPL_UID = "2.25.29861396240039232786060277192702024864"   # fixed implementation class UID
+
+_SOP_CLASS = {
+    "Intra": "1.2.840.10008.5.1.4.1.1.1.3",   # Digital Intra-Oral X-Ray — For Presentation
+    "Pano":  "1.2.840.10008.5.1.4.1.1.1.1",   # Digital X-Ray — For Presentation
+    "Ceph":  "1.2.840.10008.5.1.4.1.1.1.1",
+}
+_SOP_CLASS_SC = "1.2.840.10008.5.1.4.1.1.7"    # Secondary Capture
+_CLASS_TO_DICOM_MODALITY = {"Intra": "IO", "Pano": "PX", "Ceph": "DX", "Dvt": "CT", "Snapshot": "XC"}
+
+
+def _cache_dir(kind: str) -> str:
     base = os.environ.get("PROGRAMDATA") or tempfile.gettempdir()
-    d = os.path.join(base, "ITInfinityMigrator", "preview_cache", "dbswin")
+    d = os.path.join(base, "ITInfinityMigrator", kind, "dbswin")
     os.makedirs(d, exist_ok=True)
     return d
 
 
-def _preview_cache_path(file_path: str, media_uid: str) -> str:
+def _cache_key(file_path: str, media_uid: str, bake: bool) -> str:
     key = media_uid or hashlib.md5(file_path.lower().encode("utf-8", "replace")).hexdigest()
-    return os.path.join(_preview_cache_dir(), re.sub(r"[^A-Za-z0-9_-]", "_", key) + ".jpg")
+    return f"{re.sub(r'[^A-Za-z0-9_-]', '_', key)}.{_RENDER_VERSION}{'' if bake else '.raw'}"
 
 
-def _render_preview_jpeg(src_path: str) -> bytes:
+def _preview_cache_path(file_path: str, media_uid: str, bake: bool = True) -> str:
+    return os.path.join(_cache_dir("preview_cache"), _cache_key(file_path, media_uid, bake) + ".jpg")
+
+
+def _write_atomic(path: str, data: bytes):
+    tmp = f"{path}.{os.getpid()}.{threading.get_ident()}.tmp"
+    with open(tmp, "wb") as f:
+        f.write(data)
+    os.replace(tmp, path)
+
+
+def _to_uid(value: str) -> str:
+    """Return a valid DICOM UID: the value itself if valid, else a stable 2.25 UID."""
+    v = (value or "").strip()
+    if v and len(v) <= 64 and re.fullmatch(r"[0-9]+(\.[0-9]+)+", v) and not re.search(r"\.0[0-9]", v):
+        return v
+    seed = v or os.urandom(16).hex()
+    return "2.25." + str(int(hashlib.md5(seed.encode("utf-8", "replace")).hexdigest(), 16))
+
+
+def _find_sidecar(stem: str, ext: str) -> Optional[str]:
+    p = stem + ext
+    if os.path.isfile(p):
+        return p
+    folder, base = os.path.split(stem)
+    want = (base + ext).lower()
+    try:
+        for n in os.listdir(folder or "."):
+            if n.lower() == want:
+                return os.path.join(folder, n)
+    except OSError:
+        pass
+    return None
+
+
+def _load_display_settings(src_path: str, encoding: Optional[str]) -> dict:
+    """Read DBSWin's display settings for an image from its .imo / .im0 / .ima."""
+    stem = os.path.splitext(src_path)[0]
+
+    def _read(ext):
+        p = _find_sidecar(stem, ext)
+        if not p:
+            return {}
+        try:
+            return _read_ini_file(p, encoding)
+        except OSError:
+            return {}
+
+    imo, im0, ima = _read(".imo"), _read(".im0"), _read(".ima")
+
+    def _section(name):
+        return imo.get(name) or im0.get(name) or {}
+
+    ops = list(_section("imageoperations").values())
+
+    def _num(sec, key, default):
+        try:
+            return float(str(sec.get(key, default)).replace(",", "."))
+        except ValueError:
+            return float(default)
+
+    zoom = _section("zoomgray")
+    lum  = _section("luminance")
+
+    hvalue = None
+    for op in (ima.get("imageafterload") or {}).values():
+        if "DDIP8To16Square" in op:
+            m = re.search(r"HValue=(\d+)", op)
+            hvalue = int(m.group(1)) if m else 65535
+
+    return {
+        "ops":        ops,
+        "lower":      _num(zoom, "lower", -1) if zoom else None,
+        "upper":      _num(zoom, "upper", -1) if zoom else None,
+        "brightness": _num(lum, "brightness", 50),
+        "contrast":   _num(lum, "contrast", 50),
+        "gamma":      _num(lum, "gamma", 20),
+        "hvalue":     hvalue,
+    }
+
+
+def _gauss_blur(x, sigma: float):
+    import numpy as np
+    if sigma < 0.3:
+        return x
+    if sigma >= 6:
+        # Wide blur: do it at reduced resolution and scale back up — ~10x
+        # faster, and the result is smooth anyway (mean difference in the
+        # final image < 0.5 grey levels).
+        from PIL import Image
+        f = int(sigma / 3)
+        h, w = x.shape
+        small = np.asarray(Image.fromarray(np.ascontiguousarray(x, dtype=np.float32), mode="F")
+                           .resize((max(1, w // f), max(1, h // f)), Image.BOX))
+        sb = _gauss_blur(small, sigma / f)
+        return np.asarray(Image.fromarray(np.ascontiguousarray(sb, dtype=np.float32), mode="F")
+                          .resize((w, h), Image.BILINEAR))
+    r = max(1, int(3 * sigma + 0.5))
+    k = np.exp(-0.5 * (np.arange(-r, r + 1) / sigma) ** 2).astype(np.float32)
+    k /= k.sum()
+    p = np.pad(x, ((r, r), (r, r)), mode="reflect")
+    # Separable convolution via cumulative windows of shifted copies
+    rows = sum(k[i] * p[:, i:i + x.shape[1]] for i in range(2 * r + 1))
+    return sum(k[i] * rows[i:i + x.shape[0], :] for i in range(2 * r + 1))
+
+
+def _apply_geometry(arr, ops):
+    """Rotate / mirror in the order DBSWin recorded them."""
+    import numpy as np
+    for op in ops:
+        v = op.strip()
+        if v.startswith("Rotate"):
+            m = re.search(r"ax10=(\d+)", v)
+            ang = int(m.group(1)) // 10 if m else 0
+            k = (ang // 90) % 4             # ax10=900 → 90° anticlockwise
+            if k:
+                arr = np.rot90(arr, k)
+        elif v.startswith("Orient"):
+            if "or=1" in v:
+                arr = arr[:, ::-1]           # mirror left/right
+            elif "or=2" in v:
+                arr = arr[::-1, :]           # mirror top/bottom
+    return np.ascontiguousarray(arr)
+
+
+def _open_image(src_path: str, max_size: Optional[int]):
+    """Open an image, decoding JPEG 2000 / JPEG at reduced size when only a preview is needed."""
+    from PIL import Image
+    img = Image.open(src_path)
+    scale = 1
+    if max_size:
+        try:
+            if getattr(img, "format", "") == "JPEG2000":
+                w, h = img.size
+                r = 0
+                while r < 5 and (max(w, h) >> (r + 1)) >= max_size:
+                    r += 1
+                if r:
+                    img.reduce = r
+                    scale = 1 << r
+            elif getattr(img, "format", "") == "JPEG":
+                img.draft(img.mode, (max_size, max_size))
+            img.load()
+        except Exception:
+            img = Image.open(src_path)
+            scale = 1
+    img.load()
+    return img, scale
+
+
+def _ddip_param(op: str, key: str, default: float) -> float:
+    m = re.search(r"\b" + key + r"=(-?[\d.]+)", op)
+    try:
+        return float(m.group(1)) if m else default
+    except ValueError:
+        return default
+
+
+def _ddip_filter(v, op: str, scale: float):
     """
-    Render a small greyscale/RGB JPEG preview of a DBSWin image.
-
-    JPEG 2000 files are decoded at reduced resolution (wavelet level skip),
-    which is roughly 10-20x faster than a full decode for a 512px preview.
-    High bit-depth images are normalised over their full range, matching the
-    previews that were previously generated during load.
+    DBSWin's Gauss_FD2 frequency filter, driven by its recorded parameters, e.g.
+        Type=Gauss_FD2 al1=1.00 al0=0.0 ftp=10.0 ah0=0.5 ah1=1.00 fhp=0.70
+    Calibrated against a DBSWin screenshot of the same image: it behaves as a
+    local-contrast boost of gain al1 at Gaussian radius ftp px (matched both
+    the tones and the grain of DBSWin's view). ah1 is treated as the gain for
+    fine detail above the fhp cut-off (1.0 = unchanged).
     """
+    al1 = _ddip_param(op, "al1", 1.0)
+    ftp = _ddip_param(op, "ftp", 10.0)
+    ah1 = _ddip_param(op, "ah1", 1.0)
+    fhp = _ddip_param(op, "fhp", 0.7)
+    if al1:
+        v = v + al1 * (v - _gauss_blur(v, max(ftp, 0.5) / scale))
+    if ah1 != 1.0:
+        sigma = max(1.0 / max(fhp, 0.05), 0.5) / scale
+        base = _gauss_blur(v, sigma)
+        v = base + ah1 * (v - base)
+    return v
+
+
+def _render_xray(src_path: str, disp: dict, bake: bool, max_size: Optional[int] = None):
+    """
+    Render a DBSWin X-ray as DBSWin displays it. Returns a float32 array in 0..1
+    (0 = black). With bake=False only the tone expansion is applied.
+    """
+    import numpy as np
+    img, scale = _open_image(src_path, max_size)
+    with img:
+        if img.mode not in ("L", "I;16", "I;16L", "I;16B", "I", "F"):
+            img = img.convert("L")
+        a = np.asarray(img).astype(np.float32)
+        eight_bit = img.mode == "L"
+
+    # 1. Tone expansion (8-bit square-root encoded → 16-bit linear)
+    h = disp.get("hvalue")
+    if eight_bit and h:
+        v = (a / 255.0) ** 2 * h
+        full = float(h)
+    elif eight_bit:
+        v = a * 257.0
+        full = 65535.0
+    else:
+        v = a
+        full = float(v.max() or 65535)
+
+    if not bake:
+        x = np.clip(v / full, 0, 1)
+        return x
+
+    # 2. Image operations in recorded order (filter now; invert after windowing)
+    invert = False
+    geometry = []
+    for op in disp.get("ops", []):
+        s = op.strip()
+        if s.startswith("Invert"):
+            invert = not invert
+        elif s.startswith("Rotate") or s.startswith("Orient"):
+            geometry.append(s)
+        elif "Sc_Filter_Image" in s:
+            v = _ddip_filter(v, s, scale)
+
+    # 3. Display window ([ZoomGray] Lower/Upper, in 16-bit units)
+    lo, hi = disp.get("lower"), disp.get("upper")
+    if lo is not None and hi is not None and hi > lo and eight_bit and h:
+        # [ZoomGray] is in DBSWin's internal 16-bit scale, which is ~0.58 x
+        # the DDIP8To16Square output (calibrated on a DBSWin screenshot; the
+        # same factor also explained a second image). Without it the window
+        # was too narrow and crushed the shadows to black.
+        v = v * _ZOOMGRAY_SCALE
+    if lo is None or hi is None or hi <= lo:
+        lo, hi = (float(p) for p in np.percentile(v, [0.5, 99.5]))
+        if hi <= lo:
+            hi = lo + 1
+    elif eight_bit and not h and hi <= 255:
+        lo, hi = lo * 257.0, hi * 257.0
+    x = np.clip((v - lo) / (hi - lo), 0, 1)
+
+    if invert:
+        x = 1.0 - x
+
+    # 4. Brightness / contrast / gamma (DBSWin neutral = 50 / 50 / 20). The
+    #    display is linear in the windowed values (no display gamma); small
+    #    slider moves have a small effect (Brightness 45 / Gamma 19 were barely
+    #    measurable against DBSWin's view).
+    c = 1.0 + (disp.get("contrast", 50) - 50) / 50.0
+    b = (disp.get("brightness", 50) - 50) / 250.0
+    x = np.clip((x - 0.5) * c + 0.5 + b, 0, 1)
+    g = disp.get("gamma", 20) or 20
+    if g != 20:
+        x = np.power(x, g / 20.0)
+
+    # 5. Rotation / mirroring
+    if geometry:
+        x = _apply_geometry(x, geometry)
+    return x.astype(np.float32)
+
+
+def _render_photo(src_path: str, disp: dict, bake: bool, max_size: Optional[int] = None):
+    """Camera image as an 8-bit RGB / L PIL image, with DBSWin rotation applied."""
+    import numpy as np
+    from PIL import Image
+    img, _ = _open_image(src_path, max_size)
+    with img:
+        if img.mode not in ("L", "RGB"):
+            img = img.convert("RGB")
+        arr = np.asarray(img)
+    if bake:
+        geometry = [o for o in disp.get("ops", []) if o.strip().startswith(("Rotate", "Orient"))]
+        if geometry:
+            arr = _apply_geometry(arr, geometry)
+    return Image.fromarray(arr)
+
+
+def _dicom_8bit(pixels, meta: dict) -> bytes:
+    """
+    Minimal MONOCHROME2 DICOM (Explicit VR Little Endian, uncompressed).
+    `pixels` is a 2-D uint16 array holding 12-bit values (0..4095) — the
+    layout intraoral sensors and DTX itself write — or a uint8 array.
+    `meta` carries patient / study / image values.
+    (8-bit X-rays displayed in DTX Studio Home, but went black there after
+    being opened in DTX Studio Clinic / Diagnose.)
+    """
+    import struct
+    rows, cols = pixels.shape
+
+    def el(group, elem, vr, value: bytes) -> bytes:
+        if len(value) % 2:
+            value += b"\x00" if vr in ("UI", "OB", "OW", "UN") else b" "
+        head = struct.pack("<HH", group, elem) + vr.encode("ascii")
+        if vr in ("OB", "OW", "SQ", "UN", "UT", "UC", "UR"):
+            return head + b"\x00\x00" + struct.pack("<I", len(value)) + value
+        return head + struct.pack("<H", len(value)) + value
+
+    def txt(s, vr="LO", limit=64) -> bytes:
+        return str(s or "")[:limit].encode("latin-1", "replace")
+
+    def us(n) -> bytes:
+        return struct.pack("<H", int(n))
+
+    wide = pixels.dtype.itemsize > 1
+    if wide:
+        pixels = pixels.astype("<u2", copy=False)
+    bits_alloc, bits_stored = (16, 12) if wide else (8, 8)
+    wc, ww = (b"2047.5", b"4096") if wide else (b"127.5", b"256")
+
+    sop_class = meta["sop_class"]
+    sop_inst  = meta["sop_instance"]
+    ts        = "1.2.840.10008.1.2.1"
+
+    group2 = (el(0x0002, 0x0001, "OB", b"\x00\x01")
+              + el(0x0002, 0x0002, "UI", sop_class.encode())
+              + el(0x0002, 0x0003, "UI", sop_inst.encode())
+              + el(0x0002, 0x0010, "UI", ts.encode())
+              + el(0x0002, 0x0012, "UI", _IMPL_UID.encode())
+              + el(0x0002, 0x0013, "SH", b"ITINF_MIGRATOR"))
+    meta_hdr = el(0x0002, 0x0000, "UL", struct.pack("<I", len(group2))) + group2
+
+    ps = meta.get("pixel_spacing_mm")
+    ps_str = f"{ps:.6f}\\{ps:.6f}".encode() if ps else None
+    ds = b"".join([
+        el(0x0008, 0x0005, "CS", b"ISO_IR 100"),
+        el(0x0008, 0x0008, "CS", b"DERIVED\\PRIMARY"),
+        el(0x0008, 0x0016, "UI", sop_class.encode()),
+        el(0x0008, 0x0018, "UI", sop_inst.encode()),
+        el(0x0008, 0x0020, "DA", txt(meta.get("date"), limit=8)),
+        el(0x0008, 0x0022, "DA", txt(meta.get("date"), limit=8)),
+        el(0x0008, 0x0023, "DA", txt(meta.get("date"), limit=8)),
+        el(0x0008, 0x0030, "TM", txt(meta.get("time"), limit=6)),
+        el(0x0008, 0x0032, "TM", txt(meta.get("time"), limit=6)),
+        el(0x0008, 0x0033, "TM", txt(meta.get("time"), limit=6)),
+        el(0x0008, 0x0060, "CS", txt(meta.get("modality"), limit=16)),
+        el(0x0008, 0x0068, "CS", b"FOR PRESENTATION"),
+        el(0x0008, 0x0070, "LO", txt(meta.get("manufacturer"))),
+        el(0x0008, 0x2111, "ST", b"DBSWin display settings applied by IT INFINITY Migration Tool"),
+        el(0x0010, 0x0010, "PN", txt(meta.get("patient_name"))),
+        el(0x0010, 0x0020, "LO", txt(meta.get("patient_id"))),
+        el(0x0010, 0x0030, "DA", txt(meta.get("patient_dob"), limit=8)),
+        el(0x0010, 0x0040, "CS", txt(meta.get("patient_sex"), limit=16)),
+        el(0x0018, 0x1164, "DS", ps_str) if ps_str else b"",
+        el(0x0020, 0x000D, "UI", meta["study_uid"].encode()),
+        el(0x0020, 0x000E, "UI", meta["series_uid"].encode()),
+        el(0x0020, 0x0013, "IS", txt(meta.get("instance_number") or "1", limit=12)),
+        el(0x0020, 0x0020, "CS", b""),
+        el(0x0028, 0x0002, "US", us(1)),
+        el(0x0028, 0x0004, "CS", b"MONOCHROME2"),
+        el(0x0028, 0x0010, "US", us(rows)),
+        el(0x0028, 0x0011, "US", us(cols)),
+        el(0x0028, 0x0030, "DS", ps_str) if ps_str else b"",
+        el(0x0028, 0x0100, "US", us(bits_alloc)),
+        el(0x0028, 0x0101, "US", us(bits_stored)),
+        el(0x0028, 0x0102, "US", us(bits_stored - 1)),
+        el(0x0028, 0x0103, "US", us(0)),
+        el(0x0028, 0x1040, "CS", b"LIN"),
+        # DX image module (type 1): higher values = less X-ray (bone white)
+        el(0x0028, 0x1041, "SS", struct.pack("<h", -1)),
+        el(0x0028, 0x1050, "DS", wc),
+        el(0x0028, 0x1051, "DS", ww),
+        el(0x0028, 0x2110, "CS", b"01"),
+        el(0x2050, 0x0020, "CS", b"IDENTITY"),
+        el(0x7FE0, 0x0010, "OW" if wide else "OB", pixels.tobytes()),
+    ])
+    return b"\x00" * 128 + b"DICM" + meta_hdr + ds
+
+
+def _dicom_meta(media: dict, rows_cols_scale: float = 1.0) -> dict:
+    """Header values for the converted DICOM, from the media / patient info."""
+    tags = media.get("dicom_tags") or {}
+    pat  = media.get("_patient_info") or {}
+    acq  = media.get("acq_datetime") or ""
+    date = acq[:10].replace("-", "") if acq else ""
+    time_ = acq[11:19].replace(":", "") if len(acq) >= 19 else ""
+    sex = {"MALE": "M", "FEMALE": "F", "OTHER": "O"}.get((pat.get("sex") or "").upper(), "")
+    ps = media.get("_pixel_spacing_mm")
+    if not ps:   # resumed runs lose underscore keys — recover from the tag
+        try:
+            ps = float(str(tags.get("ImagerPixelSpacing") or "").split("\\")[0]) or None
+        except ValueError:
+            ps = None
+    return {
+        "sop_class":       _SOP_CLASS.get(media.get("image_class"), _SOP_CLASS_SC),
+        "sop_instance":    tags.get("SOPInstanceUID") or _to_uid(media.get("uid", "")),
+        "study_uid":       tags.get("StudyInstanceUID") or _to_uid("study-" + media.get("uid", "")),
+        "series_uid":      tags.get("SeriesInstanceUID") or _to_uid("series-" + media.get("uid", "")),
+        "instance_number": tags.get("InstanceNumber") or "1",
+        "modality":        _CLASS_TO_DICOM_MODALITY.get(media.get("image_class"), "OT"),
+        "manufacturer":    tags.get("Manufacturer") or "",
+        "date": date, "time": time_,
+        "patient_name":    "^".join(x for x in (pat.get("family_name"), pat.get("given_names")) if x),
+        "patient_id":      pat.get("id") or "",
+        "patient_dob":     (pat.get("dob") or "").replace("-", ""),
+        "patient_sex":     sex,
+        "pixel_spacing_mm": ps * rows_cols_scale if ps else None,
+    }
+
+
+def _converted_bytes(media: dict, bake: bool, encoding: Optional[str]) -> Optional[bytes]:
+    """The file a target should receive: DICOM for X-rays, JPEG for camera images."""
+    import io
+    import numpy as np
+    src = media.get("file_path")
+    if not src or not os.path.isfile(src):
+        return None
+    is_photo = media.get("content_type") == "image/jpeg"
+    # Not cached on disk: a full practice is tens of GB of converted images,
+    # and writing them cost more time than re-rendering a retried image.
+    disp = _load_display_settings(src, encoding)
+    if is_photo:
+        img = _render_photo(src, disp, bake)
+        buf = io.BytesIO()
+        img.save(buf, "JPEG", quality=95)
+        data = buf.getvalue()
+    else:
+        x = _render_xray(src, disp, bake)
+        pixels = (np.clip(x, 0, 1) * 4095.0 + 0.5).astype(np.uint16)
+        data = _dicom_8bit(pixels, _dicom_meta(media))
+    return data
+
+
+def _preview_bytes(media: dict, bake: bool, encoding: Optional[str]) -> Optional[bytes]:
+    """Small JPEG matching the converted image."""
     import io
     import numpy as np
     from PIL import Image
-
-    def _open_reduced():
-        img = Image.open(src_path)
-        if getattr(img, "format", "") == "JPEG2000":
-            w, h = img.size
-            r = 0
-            while r < 5 and (max(w, h) >> (r + 1)) >= _PREVIEW_MAX:
-                r += 1
-            if r:
-                img.reduce = r
-        elif getattr(img, "format", "") == "JPEG":
-            img.draft(img.mode, (_PREVIEW_MAX, _PREVIEW_MAX))
-        img.load()
-        return img
-
-    try:
-        img = _open_reduced()
-    except Exception:
-        # Reduced decode isn't supported by every codestream — full decode
-        img = Image.open(src_path)
-        img.load()
-
-    with img:
-        arr = np.asarray(img)
-        if arr.dtype != np.uint8:
-            arr = arr.astype(np.float32)
-            lo, hi = float(arr.min()), float(arr.max())
-            if hi > lo:
-                arr = ((arr - lo) / (hi - lo) * 255.0).astype(np.uint8)
-            else:
-                arr = np.zeros(arr.shape, dtype=np.uint8)
-        preview = Image.fromarray(arr)
-        if preview.mode not in ("L", "RGB"):
-            preview = preview.convert("RGB" if arr.ndim == 3 else "L")
-        preview.thumbnail((_PREVIEW_MAX, _PREVIEW_MAX))
-        buf = io.BytesIO()
-        preview.save(buf, "JPEG", quality=75)
-        return buf.getvalue()
+    src = media.get("file_path")
+    if not src or not os.path.isfile(src):
+        return None
+    dest = _preview_cache_path(src, media.get("uid", ""), bake)
+    if os.path.isfile(dest):
+        with open(dest, "rb") as f:
+            return f.read()
+    disp = _load_display_settings(src, encoding)
+    if media.get("content_type") == "image/jpeg":
+        img = _render_photo(src, disp, bake, max_size=_PREVIEW_MAX)
+    else:
+        x = _render_xray(src, disp, bake, max_size=_PREVIEW_MAX)
+        img = Image.fromarray((np.clip(x, 0, 1) * 255.0 + 0.5).astype(np.uint8))
+    img.thumbnail((_PREVIEW_MAX, _PREVIEW_MAX))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=80)
+    data = buf.getvalue()
+    _write_atomic(dest, data)
+    return data
 
 
-def _make_preview_fetch(media: dict) -> Callable[[], Optional[bytes]]:
+def _attach_fetchers(media: dict, patient: Optional[dict], bake: bool, encoding: Optional[str]):
     """
-    Build the `_fetch_preview` callable for one media item.
-
-    First call renders and caches the JPEG, then sets media["preview_path"]
-    so later readers (Media page, targets) can use the file directly.
+    Give a media item its on-demand callables:
+      _fetch          converted file for upload (DICOM / JPEG)
+      _fetch_preview  matching JPEG preview; also fills in preview_path
     """
-    def _fetch() -> Optional[bytes]:
+    if patient is not None:
+        media["_patient_info"] = {k: patient.get(k) for k in
+                                  ("family_name", "given_names", "id", "dob", "sex")}
+    if not media.get("file_path"):
+        return
+
+    def _fetch():
+        return _converted_bytes(media, bake, encoding)
+
+    def _fetch_preview():
         p = media.get("preview_path")
         if p and os.path.isfile(p):
             with open(p, "rb") as f:
                 return f.read()
-        src = media.get("file_path")
-        if not src or not os.path.isfile(src):
-            return None
-        dest = _preview_cache_path(src, media.get("uid", ""))
-        if os.path.isfile(dest):
-            with open(dest, "rb") as f:
-                data = f.read()
-        else:
-            data = _render_preview_jpeg(src)
-            tmp = f"{dest}.{os.getpid()}.{threading.get_ident()}.tmp"
-            with open(tmp, "wb") as f:
-                f.write(data)
-            os.replace(tmp, dest)   # atomic — safe if two requests race
-        media["preview_path"] = dest
+        data = _preview_bytes(media, bake, encoding)
+        if data:
+            media["preview_path"] = _preview_cache_path(media["file_path"], media.get("uid", ""), bake)
         return data
-    return _fetch
+
+    media["_fetch"] = _fetch
+    media["_fetch_preview"] = _fetch_preview
 
 
 # ---------------------------------------------------------------------------
@@ -491,6 +915,7 @@ def _build_patient(row: dict) -> dict:
         "given_names":   _g(row, "PVNAME") or "",
         "family_name":   _g(row, "PNNAME") or "",
         "dob":           _parse_date(_g(row, "GDATE")),
+        "birth_date":    _parse_date(_g(row, "GDATE")),   # standard key used by targets
         "sex":           _parse_gender(_g(row, "SEXPAT")),
         "studies":       {},
     }
@@ -564,6 +989,7 @@ def _build_media_item(
     encoding: str,
     dirs: _DirIndex,
     preview_cache: set,
+    bake: bool = True,
 ) -> Optional[dict]:
     """
     Convert a single XRAYVIDEO/DCMIMG/STUDY joined row to the internal media dict.
@@ -600,7 +1026,7 @@ def _build_media_item(
 
     # ── Step 2: .im0 sidecar ─────────────────────────────────────────────
     manufacturer = serial_number = model_name = station_name = None
-    imager_pixel_x = imager_pixel_y = None
+    imager_dpi = None
     orientation, is_inverted = None, False
 
     if real_path:
@@ -623,12 +1049,11 @@ def _build_media_item(
                         im0_ini, image_class, media_type
                     )
 
+                # Pixel size: 25.4 mm / dots-per-inch (previously inverted)
                 dpi_x_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_X")
-                dpi_y_str = _ini_get(im0_ini, "CREATION", "InputDeviceDPI_Y")
-                if dpi_x_str and dpi_y_str:
+                if dpi_x_str:
                     try:
-                        imager_pixel_x = float(dpi_x_str.replace(",", ".")) / 25.4
-                        imager_pixel_y = float(dpi_y_str.replace(",", ".")) / 25.4
+                        imager_dpi = float(dpi_x_str.replace(",", ".")) or None
                     except ValueError:
                         pass
 
@@ -647,22 +1072,34 @@ def _build_media_item(
     sop_uid    = _g(row, "SOPINSTANCEUID") or ""
     acq_dt     = _parse_datetime(_g(row, "AUFNDATUM"), _g(row, "AUFNZEIT"))
 
-    # ── Preview: use an already-cached one if it exists, else lazy ───────
+    # ── Preview: use an already-converted one if it exists, else lazy ────
+    # (".preview.jpg" files left next to images by earlier versions show the
+    #  raw image and are deliberately ignored.)
     preview_path = None
     if real_path:
-        cached = _preview_cache_path(real_path, vorgnr)
+        cached = _preview_cache_path(real_path, vorgnr, bake)
         if os.path.basename(cached).lower() in preview_cache:
             preview_path = cached
-        else:
-            # Previews written next to the image by earlier versions
-            legacy, _ = dirs.find(real_path + ".preview.jpg")
-            preview_path = legacy
+
+    # Valid DICOM UIDs (DBSWin falls back to the hex VORGNR when DCMIMG has none)
+    study_tag_uid  = _to_uid(_g(row, "STUDYINSTANCEUID") or ("study-" + vorgnr))
+    series_tag_uid = _to_uid(_g(row, "SERIESINSTANCEUID") or ("series-" + vorgnr))
+    sop_uid        = _to_uid(sop_uid or vorgnr)
+    is_photo       = ityp == 0
+    pixel_mm       = (25.4 / imager_dpi) if imager_dpi else None
 
     dicom_tags = {
-        "StudyInstanceUID":        study_uid,
-        "SeriesInstanceUID":       series_uid,
+        "StudyInstanceUID":        study_tag_uid,
+        "SeriesInstanceUID":       series_tag_uid,
         "SOPInstanceUID":          sop_uid,
-        "Modality":                modality,
+        # What the converted file actually is (DBSWin often stores "OT")
+        "Modality":                _CLASS_TO_DICOM_MODALITY.get(image_class, "OT"),
+        "SOPClassUID":             (None if is_photo else _SOP_CLASS.get(image_class, _SOP_CLASS_SC)),
+        "PhotometricInterpretation": "RGB" if is_photo else "MONOCHROME2",
+        "SamplesPerPixel":         3 if is_photo else 1,
+        "BitsAllocated":           8 if is_photo else 16,
+        "BitsStored":              8 if is_photo else 12,
+        "HighBit":                 7 if is_photo else 11,
         "StudyDate":               _g(row, "STUDYDATE") or "",
         "StudyTime":               _g(row, "STUDYTIME") or "",
         "SeriesDate":              _g(row, "SERIESDATE") or "",
@@ -682,10 +1119,7 @@ def _build_media_item(
         "DeviceSerialNumber":      serial_number or "",
         "ManufacturerModelName":   model_name or "",
         "StationName":             station_name or "",
-        "ImagerPixelSpacing":      (
-            f"{imager_pixel_x:.6f}\\{imager_pixel_y:.6f}"
-            if imager_pixel_x and imager_pixel_y else ""
-        ),
+        "ImagerPixelSpacing":      (f"{pixel_mm:.6f}\\{pixel_mm:.6f}" if pixel_mm else ""),
     }
 
     media = {
@@ -697,7 +1131,7 @@ def _build_media_item(
         "media_type":   media_type,
         "modality":     modality,
         "file_path":    file_path,
-        "content_type": "image/jp2",
+        "content_type": "image/jpeg" if is_photo else "application/dicom",
         "preview_path": preview_path,
         "size_bytes":   file_size,
         "acq_datetime": acq_dt,
@@ -705,9 +1139,8 @@ def _build_media_item(
         "is_inverted":  is_inverted,
         "dicom_tags":   dicom_tags,
         "comments":     _g(row, "SERIESDESCRIPTION") or "",
+        "_pixel_spacing_mm": pixel_mm,
     }
-    if real_path:
-        media["_fetch_preview"] = _make_preview_fetch(media)
     return media
 
 
@@ -753,6 +1186,19 @@ class DBSWinSource(BaseDatasource):
                 advanced=True,
                 options=COMMON_ENCODINGS,
                 config_type=ConfigurationType.SELECT,
+                group="Advanced",
+            ),
+            ConfigurationItem(
+                key="BakeDisplaySettings",
+                name="Apply DBSWin Image Settings",
+                description=(
+                    "Migrate X-rays as DBSWin displays them: window, invert, filter, "
+                    "brightness/contrast and rotation from the .imo/.im0 files. "
+                    "Off sends the unprocessed image."
+                ),
+                value="On",
+                advanced=True,
+                config_type=ConfigurationType.SWITCH,
                 group="Advanced",
             ),
             ConfigurationItem(
@@ -821,18 +1267,23 @@ class DBSWinSource(BaseDatasource):
             from datasources.fb_client import run_diag
             return False, f"{exc}\n\n--- FbBridge diagnostics ---\n{run_diag()}"
 
+    def _bake(self) -> bool:
+        return (self.get_config_value("BakeDisplaySettings") or "On").strip().lower() in ("on", "true", "1")
+
     def reattach_fetch(self, patients: list) -> list:
         """
-        Re-attach `_fetch_preview` after patients are restored from the
-        migration store (resumed migrations), which only keeps JSON.
+        Re-attach `_fetch` / `_fetch_preview` after patients are restored from
+        the migration store (resumed migrations), which only keeps JSON.
         Called by the engine before write_patients.
         """
+        bake     = self._bake()
+        encoding = self.get_config_value("Encoding") or "windows-1252"
         for patient in patients:
             for study in patient.get("studies", {}).values():
                 for series in study.get("series", {}).values():
                     for media in series.get("media", []):
-                        if media.get("file_path") and "_fetch_preview" not in media:
-                            media["_fetch_preview"] = _make_preview_fetch(media)
+                        if "_fetch" not in media:
+                            _attach_fetchers(media, patient, bake, encoding)
         return patients
 
     def load(
@@ -890,8 +1341,9 @@ class DBSWinSource(BaseDatasource):
 
         # ── 3. Sidecars + file checks in parallel (disk I/O only) ────────
         dirs = _DirIndex()
+        bake = self._bake()
         try:
-            preview_cache = {n.lower() for n in os.listdir(_preview_cache_dir())}
+            preview_cache = {n.lower() for n in os.listdir(_cache_dir("preview_cache"))}
         except OSError:
             preview_cache = set()
 
@@ -900,7 +1352,7 @@ class DBSWinSource(BaseDatasource):
             if cancel_flag():
                 return None
             try:
-                return _build_media_item(row, xray_path, vid_path, encoding, dirs, preview_cache)
+                return _build_media_item(row, xray_path, vid_path, encoding, dirs, preview_cache, bake)
             except Exception as exc:
                 errors[0] += 1
                 self.logger.error(
@@ -931,10 +1383,14 @@ class DBSWinSource(BaseDatasource):
                 missing_files += 1
             study_uid  = media_item.pop("_study_uid")
             series_uid = media_item.pop("_series_uid")
+            _attach_fetchers(media_item, patient, bake, encoding)
             study = patient["studies"].setdefault(study_uid, {
                 "uid":            study_uid,
                 "study_instance": study_uid,
-                "study_datetime": media_item["dicom_tags"].get("StudyDate", ""),
+                # ISO date-time (FbBridge returns dates in the server's locale)
+                "study_datetime": (_parse_datetime(media_item["dicom_tags"].get("StudyDate"),
+                                                   media_item["dicom_tags"].get("StudyTime"))
+                                   or media_item.get("acq_datetime", "")),
                 "accession":      media_item["dicom_tags"].get("AccessionNumber", ""),
                 "description":    media_item["dicom_tags"].get("StudyDescription", ""),
                 "ref_physician":  media_item["dicom_tags"].get("ReferringPhysicianName", ""),

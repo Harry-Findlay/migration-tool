@@ -381,6 +381,7 @@ class VistaSoftTarget(BaseDatasource):
             _db_is_temp = False
 
         written = skipped = errors = images_written = images_missing = 0
+        error_msgs: list = []
         total = len(patients)
 
         def _q(s, n=1020):
@@ -415,11 +416,17 @@ class VistaSoftTarget(BaseDatasource):
                 # ── Insert PATIENT row ────────────────────────────────────
                 p_uid = str(_uuid_mod.uuid4())
                 ph    = _uuid_to_ms_hex(p_uid)
-                sex   = {"MALE":77,"FEMALE":70,"OTHER":79}.get(
-                          (patient.get("gender") or "").upper(), "NULL")
-                bd    = (f"'{patient.get('date_of_birth') or patient.get('birth_date')}'"
-                         if (patient.get("date_of_birth") or patient.get("birth_date"))
-                         else "NULL")
+                # Sources use "sex" (DTX source: "gender"); accept M/F/O, words or VistaSoft codes
+                _sx = str(patient.get("sex") or patient.get("gender") or "").strip().upper()
+                sex = {"MALE": 77, "M": 77, "77": 77, "FEMALE": 70, "F": 70, "70": 70,
+                       "OTHER": 79, "O": 79, "79": 79}.get(_sx, "NULL")
+                _bd = (patient.get("date_of_birth") or patient.get("birth_date")
+                       or patient.get("dob") or "")
+                _bd = _re.sub(r"[T ].*$", "", str(_bd).strip())
+                _m  = _re.match(r"^(\d{1,2})[/.](\d{1,2})[/.](\d{4})$", _bd)   # DD/MM/YYYY
+                if _m:
+                    _bd = f"{_m.group(3)}-{int(_m.group(2)):02d}-{int(_m.group(1)):02d}"
+                bd = f"'{_q(_bd, 10)}'" if _re.match(r"^\d{4}-\d{2}-\d{2}$", _bd) else "NULL"
                 pms   = _q(patient.get("pms_id") or patient.get("id") or "")
                 src_i = _q(dtx_id)
 
@@ -765,6 +772,7 @@ class VistaSoftTarget(BaseDatasource):
 
             except Exception as exc:
                 errors += 1
+                error_msgs.append(str(exc))
                 self.logger.error(f"  Failed {name}: {exc}")
                 if progress_callback:
                     progress_callback(i+1, total, f"Failed: {name}")
@@ -790,5 +798,5 @@ class VistaSoftTarget(BaseDatasource):
             "failed":         errors,
             "media_uploaded": images_written,
             "media_missing":  images_missing,
-            "errors":         [],
+            "errors":         error_msgs,
         }

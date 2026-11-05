@@ -16,6 +16,10 @@ from typing import Callable, Optional
 from .models import MigrationResult, MigrationStatus
 from .migration_store import MigrationStore
 
+# Set on the worker thread while a patient is being written, so log records
+# from sources / targets can be tied to the patient in the in-app log.
+migration_context = threading.local()
+
 
 class MigrationEngine:
     def __init__(self, store: Optional[MigrationStore] = None):
@@ -36,11 +40,20 @@ class MigrationEngine:
             resume_session_id: Optional[str] = None,
             on_progress: Optional[Callable] = None,
             on_complete: Optional[Callable] = None,
-            on_error: Optional[Callable] = None):
+            on_error: Optional[Callable] = None,
+            filters: Optional[dict] = None,
+            preloaded: Optional[list] = None):
+
+        if self.is_running():
+            raise RuntimeError("A migration is already running or paused — resume or cancel it first.")
 
         self._cancelled = False
         self._paused    = False
         self._pause_event.set()
+        self._filters   = filters or {}
+        # Patients already loaded for the UI (same source + settings) — saves
+        # reading the whole source a second time at the start of the run.
+        self._preloaded = preloaded
 
         self._thread = threading.Thread(
             target=self._execute,
@@ -107,6 +120,73 @@ class MigrationEngine:
             result.append(merged)
         return result
 
+    # Filters page → image classes (image_class values used by every source)
+    _CLASS_FILTER_KEYS = {
+        "Pano": "pano", "Ceph": "ceph",
+        "Intra": "intra", "Xray": "intra",
+        "Dvt": "dvt",
+        "Snapshot": "photo", "Proof": "photo",
+        "Video": "video",
+    }
+
+    @classmethod
+    def _apply_filters(cls, patients: list, filters: dict) -> tuple:
+        """
+        Apply the Filters page: surname prefix, included image types, and
+        skipping patients left with no media. Returns (patients, summary).
+        Builds new patient / study / series dicts so the loaded data the
+        server keeps for the UI is not modified.
+        """
+        if not filters:
+            return patients, ""
+        prefix  = (filters.get("surname_prefix") or "").strip().lower()
+        types   = filters.get("media_types")          # {"pano": True, ...} or None
+        skip_no = bool(filters.get("skip_no_media"))
+
+        out, dropped_media, dropped_pat = [], 0, 0
+        for p in patients:
+            if prefix and not (p.get("family_name") or "").strip().lower().startswith(prefix):
+                continue
+            if types:
+                studies = {}
+                for sk, st in (p.get("studies") or {}).items():
+                    series = {}
+                    for rk, se in (st.get("series") or {}).items():
+                        keep = []
+                        for m in se.get("media") or []:
+                            key = cls._CLASS_FILTER_KEYS.get(m.get("image_class") or "")
+                            if key is None or types.get(key, True):
+                                keep.append(m)
+                            else:
+                                dropped_media += 1
+                        if keep:
+                            series[rk] = dict(se, media=keep)
+                    if series:
+                        studies[sk] = dict(st, series=series)
+                removed = sum(len(se.get("media") or []) for st in (p.get("studies") or {}).values()
+                              for se in (st.get("series") or {}).values()) - \
+                          sum(len(se.get("media") or []) for st in studies.values()
+                              for se in st["series"].values())
+                p = dict(p, studies=studies)
+                if removed:
+                    # Kept in the stored patient JSON (no leading "_"), so a
+                    # resumed session still knows images were held back.
+                    p["filtered_media"] = removed
+            if skip_no and not any(se.get("media") for st in (p.get("studies") or {}).values()
+                                   for se in (st.get("series") or {}).values()):
+                dropped_pat += 1
+                continue
+            out.append(p)
+
+        parts = []
+        if prefix:
+            parts.append(f"surname starts with '{filters.get('surname_prefix').strip()}'")
+        if dropped_media:
+            parts.append(f"{dropped_media} image(s) excluded by type")
+        if dropped_pat:
+            parts.append(f"{dropped_pat} patient(s) without images skipped")
+        return out, "; ".join(parts)
+
     def _cancel_flag(self) -> bool:
         return self._cancelled
 
@@ -161,11 +241,16 @@ class MigrationEngine:
                     pct = 15 + int((current / max(total, 1)) * 30)
                     _progress(pct, 100, message)
 
-                all_patients = source.load(
-                    cancel_flag=self._cancel_or_pause_flag,
-                    max_parallelism=max_parallelism,
-                    progress_callback=source_progress,
-                )
+                preloaded, self._preloaded = self._preloaded, None
+                if preloaded:
+                    all_patients = list(preloaded)
+                    _progress(45, 100, f"Using the {len(all_patients)} patient(s) already loaded from the source.")
+                else:
+                    all_patients = source.load(
+                        cancel_flag=self._cancel_or_pause_flag,
+                        max_parallelism=max_parallelism,
+                        progress_callback=source_progress,
+                    )
 
                 # ── Apply PMS overrides if confirmed ──────────────────────
                 if getattr(source, '_pms_patients', None):
@@ -174,6 +259,11 @@ class MigrationEngine:
                         source._pms_patients,
                         source._pms_data_source,
                     )
+
+                before_filters = len(all_patients)
+                all_patients, filter_note = self._apply_filters(all_patients, getattr(self, "_filters", {}))
+                if filter_note:
+                    _progress(46, 100, f"Filters: {len(all_patients)} of {before_filters} patient(s) selected — {filter_note}.")
 
                 if self._cancelled:
                     result.status  = MigrationStatus.CANCELLED
@@ -224,96 +314,163 @@ class MigrationEngine:
             media_missing  = 0
             errors = []
 
-            for patient in patients:
-                if self._paused:
-                    self.store.update_session_status(
-                        session_id, "paused",
-                        message=f"Paused after {done}/{total} patients.",
-                        done_patients=done, failed_patients=failed,
-                        media_uploaded=media_uploaded, media_missing=media_missing,
-                    )
-                    result.status  = MigrationStatus.PAUSED
-                    result.message = f"Migration paused after {done} of {total} patient(s)."
-                    result.patients_remaining = total - done
-                    result.patients_failed    = failed
-                    result.media_uploaded     = media_uploaded
-                    result.media_missing      = media_missing
-                    if on_complete:
-                        on_complete(result)
-                    return
+            # ── Patient loop ───────────────────────────────────────────────
+            # Targets that can take concurrent writes (each call is
+            # self-contained, e.g. DTX Studio's REST API) set
+            # supports_parallel_writes = True and get several patients in
+            # flight at once. Others (VistaSoft: one Firebird embedded
+            # process at a time) keep the original one-at-a-time behaviour.
+            # All store / progress updates stay on this thread.
+            import concurrent.futures as _cf
 
-                if self._cancelled:
-                    self.store.update_session_status(
-                        session_id, "cancelled",
-                        message=f"Cancelled after {done}/{total} patients.",
-                        done_patients=done, failed_patients=failed,
-                    )
-                    result.status  = MigrationStatus.CANCELLED
-                    result.message = "Migration was cancelled."
-                    result.patients_failed = failed
-                    if on_complete:
-                        on_complete(result)
-                    return
+            parallel = bool(getattr(target, "supports_parallel_writes", False))
+            workers  = max(1, min(int(max_parallelism or 1), 16)) if parallel else 1
+            if workers > 1:
+                self.logger.info(f"Writing up to {workers} patients in parallel.")
 
-                uid  = patient.get("uid", "")
-                name = (
-                    f"{patient.get('given_names', '')} "
-                    f"{patient.get('family_name', '')}".strip() or uid
-                )
+            def _name_of(p):
+                return (f"{p.get('given_names', '')} {p.get('family_name', '')}".strip()
+                        or p.get("uid", ""))
 
-                self.store.set_patient_status(session_id, uid, "in_progress")
-
+            def _write_one(p):
+                migration_context.patient = _name_of(p)
+                migration_context.uid     = p.get("uid", "")
                 try:
                     if hasattr(source, "reattach_fetch"):
-                        source.reattach_fetch([patient])
-
-                    write_result = target.write_patients(
-                        [patient],
+                        source.reattach_fetch([p])
+                    return target.write_patients(
+                        [p],
                         progress_callback=None,
                         cancel_flag=self._cancel_or_pause_flag,
                         incremental=incremental,
                     )
-                    if write_result.get("errors", 0):
-                        raise RuntimeError(
-                            f"Write failed for {uid[:8]}… "
-                            f"(errors={write_result['errors']})"
-                        )
+                finally:
+                    migration_context.patient = None
+                    migration_context.uid     = None
 
-                    self.store.set_patient_status(session_id, uid, "completed")
+            def _counters(event=None):
+                c = {
+                    "processed":     done + failed,
+                    "imported":      done,
+                    "failed":        failed,
+                    "images":        media_uploaded,
+                    "media_missing": media_missing,
+                    "skipped":       result.patients_skipped,
+                }
+                if event:
+                    c["event"] = event    # consumed by the server's log, not stored
+                return c
 
-                    pu = write_result.get("media_uploaded", write_result.get("written", 0))
-                    pm = write_result.get("media_missing",  write_result.get("skipped", 0))
+            pending   = iter(patients)
+            inflight  = {}   # future -> patient
+            exhausted = False
+            last_saved = 0
 
-                    if pm == 0:
-                        self.store.mark_migrated(source.name, target.name, uid, session_id)
+            def _save_counters(status="running", message=""):
+                self.store.update_session_status(
+                    session_id, status, message=message,
+                    done_patients=done, failed_patients=failed,
+                    media_uploaded=media_uploaded, media_missing=media_missing,
+                )
 
-                    media_uploaded += pu
-                    media_missing  += pm
-                    done += 1
+            with _cf.ThreadPoolExecutor(max_workers=workers) as pool:
+                while True:
+                    # Top up the pool unless pausing / cancelling
+                    while (len(inflight) < workers and not exhausted
+                           and not self._paused and not self._cancelled):
+                        patient = next(pending, None)
+                        if patient is None:
+                            exhausted = True
+                            break
+                        self.store.set_patient_status(session_id, patient.get("uid", ""), "in_progress")
+                        inflight[pool.submit(_write_one, patient)] = patient
 
-                    pct = 50 + int((done / max(total, 1)) * 46)
-                    _progress(pct, 100, f"Imported: {name} ({done}/{total})", {
-                        "processed": done + failed,
-                        "imported":  done,
-                        "failed":    failed,
-                        "images":    media_uploaded,
-                        "skipped":   result.patients_skipped,
-                    })
+                    if not inflight:
+                        if exhausted or self._cancelled:
+                            break
+                        if self._paused:
+                            # Everything in flight has finished. Record the pause
+                            # (so it can be resumed from history after a restart)
+                            # and wait here for Resume or Cancel.
+                            _save_counters("paused", f"Paused after {done}/{total} patients.")
+                            _progress(50 + int(((done + failed) / max(total, 1)) * 46), 100,
+                                      f"Paused after {done + failed} of {total} patient(s).", _counters())
+                            self._pause_event.wait()
+                            if self._cancelled:
+                                break
+                            _save_counters("running", "Resumed")
+                            _progress(50 + int(((done + failed) / max(total, 1)) * 46), 100,
+                                      "Resumed.", _counters())
+                            continue
+                        break
 
-                except Exception as exc:
-                    failed += 1
-                    err_str = str(exc)
-                    errors.append(f"{name}: {err_str}")
-                    self.store.set_patient_status(session_id, uid, "failed", err_str)
-                    self.logger.error(f"Failed to migrate {name}: {exc}")
-                    pct = 50 + int(((done + failed) / max(total, 1)) * 46)
-                    _progress(pct, 100, f"Failed: {name} — {exc}", {
-                        "processed": done + failed,
-                        "imported":  done,
-                        "failed":    failed,
-                        "images":    media_uploaded,
-                        "skipped":   result.patients_skipped,
-                    })
+                    # Keep the session row current so history is right even after a crash
+                    if done + failed - last_saved >= 25:
+                        last_saved = done + failed
+                        _save_counters()
+
+                    finished, _ = _cf.wait(list(inflight), return_when=_cf.FIRST_COMPLETED)
+                    for fut in finished:
+                        patient = inflight.pop(fut)
+                        uid  = patient.get("uid", "")
+                        name = _name_of(patient)
+                        try:
+                            write_result = fut.result() or {}
+                            # Targets report failure as an errors list and/or a failed
+                            # count (VistaSoft returns failed=1 with an empty list)
+                            if write_result.get("errors") or write_result.get("failed"):
+                                detail = write_result.get("errors") or "see log"
+                                if isinstance(detail, list) and len(detail) == 1:
+                                    detail = detail[0]
+                                raise RuntimeError(f"Write failed for {uid[:8]}… ({detail})")
+
+                            self.store.set_patient_status(session_id, uid, "completed")
+
+                            pu = write_result.get("media_uploaded", write_result.get("written", 0))
+                            pm = write_result.get("media_missing",  write_result.get("skipped", 0))
+
+                            # Only a patient with everything migrated is marked done.
+                            # Images held back by the Filters page keep the patient
+                            # eligible, so a later run without that filter adds them.
+                            if pm == 0 and not patient.get("filtered_media"):
+                                self.store.mark_migrated(source.name, target.name, uid, session_id)
+
+                            media_uploaded += pu
+                            media_missing  += pm
+                            done += 1
+
+                            pct = 50 + int((done / max(total, 1)) * 46)
+                            note = f" — {pm} image(s) not migrated" if pm else ""
+                            _progress(pct, 100, f"Imported: {name} ({done}/{total}){note}", _counters({
+                                "type": "patient_done", "patient": name, "uid": uid,
+                                "images": pu, "media_missing": pm,
+                            }))
+
+                        except Exception as exc:
+                            failed += 1
+                            err_str = str(exc)
+                            errors.append(f"{name}: {err_str}")
+                            self.store.set_patient_status(session_id, uid, "failed", err_str)
+                            self.logger.error(f"Failed to migrate {name}: {exc}")
+                            pct = 50 + int(((done + failed) / max(total, 1)) * 46)
+                            _progress(pct, 100, f"Failed: {name} — {exc}", _counters({
+                                "type": "patient_failed", "patient": name, "uid": uid,
+                                "error": err_str,
+                            }))
+
+            if self._cancelled:
+                self.store.update_session_status(
+                    session_id, "cancelled",
+                    message=f"Cancelled after {done}/{total} patients.",
+                    done_patients=done, failed_patients=failed,
+                    media_uploaded=media_uploaded, media_missing=media_missing,
+                )
+                result.status  = MigrationStatus.CANCELLED
+                result.message = "Migration was cancelled."
+                result.patients_failed = failed
+                if on_complete:
+                    on_complete(result)
+                return
 
             self.store.update_session_status(
                 session_id, "completed",
@@ -330,7 +487,7 @@ class MigrationEngine:
             result.errors          = errors
             result.message = (
                 f"Migration completed. {done} patient(s) imported, {failed} failed. "
-                f"{media_uploaded} image(s) uploaded, {media_missing} not found on disk."
+                f"{media_uploaded} image(s) uploaded, {media_missing} could not be migrated."
             )
 
         except Exception as exc:
